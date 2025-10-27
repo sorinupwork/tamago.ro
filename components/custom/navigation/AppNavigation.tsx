@@ -30,7 +30,7 @@ export function AppNavigation() {
                 <span className='hidden md:inline'>Acasa</span>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className='grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
+                <ul className='grid space-x-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
                   <ListItem
                     href='/'
                     title='tamago.ro'
@@ -41,15 +41,21 @@ export function AppNavigation() {
                   >
                     Noul nostru proiect va fi lansat în curând. Rămâneți la curent!
                   </ListItem>
-                  <ListItem href='/vanzare' title='Vanzare'>
-                    Oferim servicii de vânzare pentru proiectele dumneavoastră.
-                  </ListItem>
-                  <ListItem href='/cumparare' title='Cumparare'>
-                    Cumpărați servicii pentru nevoile dumneavoastră.
-                  </ListItem>
-                  <ListItem href='/inchiriere' title='Inchiriere'>
-                    Servicii de inchiriat pentru proiectele temporare.
-                  </ListItem>
+
+                  <div>
+                    <ListItem href='/vanzare' title='Vanzare'>
+                      Oferim servicii de vânzare pentru proiectele dumneavoastră.
+                    </ListItem>
+                    <ListItem href='/cumparare' title='Cumparare'>
+                      Cumpărați servicii pentru nevoile dumneavoastră.
+                    </ListItem>
+                    <ListItem href='/inchiriere' title='Inchiriere'>
+                      Servicii de inchiriat pentru proiectele temporare.
+                    </ListItem>
+                    <ListItem href='/licitatie' title='Licitatie'>
+                      Participați la licitații pentru cele mai bune oferte.
+                    </ListItem>
+                  </div>
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
