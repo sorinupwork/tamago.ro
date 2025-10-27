@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '../theme/ModeToggle';
-import { categories } from './categories';
+import { categories } from '../../../lib/categories';
 
 export function RightSide() {
   const [open, setOpen] = React.useState(false);

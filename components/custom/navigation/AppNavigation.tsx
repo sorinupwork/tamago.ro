@@ -15,7 +15,7 @@ import {
 import { ListItem } from './ListItem';
 import { Logo } from '../logo/Logo';
 import { RightSide } from './RightSide';
-import { categories } from './categories';
+import { categories } from '../../../lib/categories';
 
 export function AppNavigation() {
   return (
