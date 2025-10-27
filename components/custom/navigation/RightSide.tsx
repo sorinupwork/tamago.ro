@@ -38,20 +38,20 @@ export function RightSide() {
         <CommandList>
           <CommandEmpty>Nu s-au găsit rezultate.</CommandEmpty>
           <CommandGroup heading='Navigare'>
-            <CommandItem>
+            <CommandItem asChild className='cursor-pointer'>
               <Link href='/'>Acasă</Link>
             </CommandItem>
-            <CommandItem>
+            <CommandItem asChild className='cursor-pointer'>
               <Link href='/despre-noi'>Despre noi</Link>
             </CommandItem>
-            <CommandItem>
+            <CommandItem asChild className='cursor-pointer'>
               <Link href='/contact'>Contact</Link>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading='Categorii'>
             {categories.map((component) => (
-              <CommandItem key={component.title}>
+              <CommandItem asChild key={component.title} className='cursor-pointer'>
                 <Link href={component.href}>{component.title}</Link>
               </CommandItem>
             ))}

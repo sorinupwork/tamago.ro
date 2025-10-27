@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Facebook, Instagram } from 'lucide-react';
+import Image from 'next/image';
 
 export function Footer() {
   return (
@@ -50,13 +50,13 @@ export function Footer() {
           <ul className='space-y-1 text-sm flex flex-col items-center'>
             <li>
               <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center'>
-                <Facebook size={16} className='mr-2' />
+                <Image src="/facebook.svg" alt="Facebook" width={16} height={16} className='mr-2' />
                 Facebook
               </Link>
             </li>
             <li>
               <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center'>
-                <Instagram size={16} className='mr-2' />
+                <Image src="/instagram.svg" alt="Instagram" width={16} height={16} className='mr-2' />
                 Instagram
               </Link>
             </li>

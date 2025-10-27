@@ -33,12 +33,12 @@ export default function RootLayout({
           <nav className='sticky top-0 z-50 bg-background border-b'>
             <AppNavigation />
           </nav>
-          <main className='flex flex-1 overflow-y-auto'>
-            <div className='flex max-w-7xl mx-auto px-4 py-2'>{children}</div>
+          <main className='flex flex-col flex-1 overflow-y-auto'>
+            <div className='flex grow max-w-7xl mx-auto px-4 py-2'>{children}</div>
+            <footer className='sticky bottom-0 bg-muted border-t'>
+              <Footer />
+            </footer>
           </main>
-          <footer className='sticky bottom-0 bg-muted border-t'>
-            <Footer />
-          </footer>
         </ThemeProvider>
       </body>
     </html>
