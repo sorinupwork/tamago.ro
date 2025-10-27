@@ -8,7 +8,7 @@ export default function GoldenCategories() {
     <section className='py-8'>
       <h2 className='text-2xl font-bold text-center mb-4 text-secondary'>Categorii Populare</h2>
       <Carousel className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-6xl'>
-        <CarouselContent className='pt-4'>
+        <CarouselContent className='py-4 px-2'>
           {categories.map((category) => {
             const Icon = category.icon;
             return (
