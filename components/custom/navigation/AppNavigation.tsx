@@ -19,13 +19,13 @@ import { categories } from '../../../lib/categories';
 
 export function AppNavigation() {
   return (
-    <div className='flex justify-between items-center px-4 py-2'>
+    <div className='flex justify-between items-center px-4 py-2 gap-1'>
       <div className='flex items-center gap-4'>
         <Logo />
         <NavigationMenu>
-          <NavigationMenuList className='flex-wrap'>
+          <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuTrigger className='flex items-center gap-2'>
+              <NavigationMenuTrigger className='flex items-center gap-2 p-2'>
                 <Home className='w-4 h-4' />
                 <span className='hidden md:inline'>Acasa</span>
               </NavigationMenuTrigger>
@@ -60,7 +60,7 @@ export function AppNavigation() {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuTrigger className='flex items-center gap-2'>
+              <NavigationMenuTrigger className='flex items-center gap-2 p-2'>
                 <Folder className='w-4 h-4' />
                 <span className='hidden md:inline'>Categorii</span>
               </NavigationMenuTrigger>

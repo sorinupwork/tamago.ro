@@ -7,7 +7,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className='flex items-center justify-center bg-background p-4'>
+    <div className='flex grow items-center justify-center bg-background p-4'>
       <div className='text-center'>
         <h1 className='text-4xl font-bold text-foreground'>
           <span className='text-primary'>404</span> - Pagina nu a fost găsită

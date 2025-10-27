@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Search, LogIn } from 'lucide-react';
 
 import {
   CommandDialog,
@@ -23,14 +23,26 @@ export function RightSide() {
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button variant='outline' className='hidden lg:flex w-64 justify-start text-left cursor-pointer' onClick={() => setOpen(true)}>
+        <Button variant='outline' className='hidden sm:flex w-64 justify-start text-left cursor-pointer' onClick={() => setOpen(true)}>
           <Search className='h-4 w-4 mr-2' />
           Caută...
         </Button>
-        <Button variant='outline' size='icon' className='lg:hidden' onClick={() => setOpen(true)}>
+        <Button variant='outline' size='icon' className='sm:hidden' onClick={() => setOpen(true)}>
           <Search className='h-4 w-4' />
           <span className='sr-only'>Search</span>
         </Button>
+        <Link href='/autentificare'>
+          <Button variant='outline' className='hidden xl:flex justify-start text-left cursor-pointer'>
+            <LogIn className='h-4 w-4 mr-2' />
+            Autentificare
+          </Button>
+        </Link>
+        <Link href='/autentificare'>
+          <Button variant='outline' size='icon' className='xl:hidden'>
+            <LogIn className='h-4 w-4' />
+            <span className='sr-only'>Autentificare</span>
+          </Button>
+        </Link>
         <ModeToggle />
       </div>
       <CommandDialog open={open} onOpenChange={setOpen}>
