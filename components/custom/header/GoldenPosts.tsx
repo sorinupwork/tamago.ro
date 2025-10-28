@@ -64,7 +64,7 @@ export default function GoldenPosts() {
 
   return (
     <section className='py-8 w-full'>
-      <h2 className='text-2xl font-bold text-center mb-6 text-secondary'>Anunțuri Promovate Verificate</h2>
+      <h2 className='text-2xl font-bold text-center mb-6 text-secondary'>Anunțuri Verificate</h2>
 
       <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-4 gap-6'>
         <div className='relative sm:row-start-1 sm:row-end-2 col-span-full'>
