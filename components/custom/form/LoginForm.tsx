@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CheckCircle, List } from 'lucide-react';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
   email: z.email('Email invalid'),
@@ -26,6 +27,7 @@ export default function LoginForm() {
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     console.log('Autentificare:', values);
+    toast.success('Autentificare reușită!');
   };
 
   return (

@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CheckCircle, List, Mail, Facebook, Instagram } from 'lucide-react';
+import { toast } from 'sonner';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Numele trebuie să aibă cel puțin 2 caractere'),
@@ -28,6 +29,7 @@ export default function SignupForm() {
 
   const onSubmit = (values: z.infer<typeof signupSchema>) => {
     console.log('Înregistrare:', values);
+    toast.success('Înregistrare reușită!');
   };
 
   return (
@@ -86,15 +88,27 @@ export default function SignupForm() {
         <div className='space-y-6'>
           <h3 className='text-lg font-semibold'>Sau înregistrează-te cu</h3>
           <div className='flex flex-col space-y-3'>
-            <Button variant='outline' className='w-full hover:scale-105 transition-transform'>
+            <Button
+              variant='outline'
+              className='w-full hover:scale-105 transition-transform'
+              onClick={() => toast.info('Înregistrare cu Google în curând!')}
+            >
               <Mail className='mr-2 h-4 w-4' />
               Continuă cu Google
             </Button>
-            <Button variant='outline' className='w-full hover:scale-105 transition-transform'>
+            <Button
+              variant='outline'
+              className='w-full hover:scale-105 transition-transform'
+              onClick={() => toast.info('Înregistrare cu Facebook în curând!')}
+            >
               <Facebook className='mr-2 h-4 w-4' />
               Continuă cu Facebook
             </Button>
-            <Button variant='outline' className='w-full hover:scale-105 transition-transform'>
+            <Button
+              variant='outline'
+              className='w-full hover:scale-105 transition-transform'
+              onClick={() => toast.info('Înregistrare cu Instagram în curând!')}
+            >
               <Instagram className='mr-2 h-4 w-4' />
               Continuă cu Instagram
             </Button>

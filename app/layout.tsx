@@ -4,6 +4,8 @@ import './globals.css';
 import { ThemeProvider } from '@/components/custom/theme/ThemeProvider';
 import { AppNavigation } from '@/components/custom/navigation/AppNavigation';
 import { Footer } from '@/components/custom/footer/Footer';
+import ChatDrawer from '@/components/custom/chat/ChatDrawer';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,6 +42,8 @@ export default function RootLayout({
               <Footer />
             </footer>
           </main>
+          <ChatDrawer />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
