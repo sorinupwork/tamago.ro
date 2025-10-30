@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import 'leaflet/dist/leaflet.css';
 import { ThemeProvider } from '@/components/custom/theme/ThemeProvider';
 import { AppNavigation } from '@/components/custom/navigation/AppNavigation';
 import { Footer } from '@/components/custom/footer/Footer';

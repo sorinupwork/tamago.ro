@@ -147,3 +147,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.leaflet-control-attribution {
+  display: none !important;
+}
