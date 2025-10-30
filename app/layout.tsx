@@ -36,7 +36,7 @@ export default function RootLayout({
             <AppNavigation />
           </nav>
           <main className='flex flex-col flex-1 overflow-y-auto'>
-            <div className='flex grow w-full mx-auto max-w-7xl px-4 py-2 min-w-0'>{children}</div>
+            <div className='flex grow w-full mx-auto max-w-7xl px-4 py-2 min-w-0 justify-center'>{children}</div>
 
             <section className='bg-background py-12 px-4'>
               <div className='max-w-6xl mx-auto'>

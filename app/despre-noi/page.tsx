@@ -2,39 +2,39 @@ import { KeyRound, Wrench, CreditCard, CheckCircle } from 'lucide-react';
 
 export default function DespreNoi() {
   return (
-    <div className='min-h-screen bg-background'>
-      <section className='bg-card py-6 sm:py-12 px-2 sm:px-4'>
-        <div className='max-w-6xl mx-auto'>
+    <div>
+      <section className='bg-muted py-4 px-2 rounded-xs'>
+        <div className='w-full max-w-7xl mx-auto'>
           <h1 className='text-3xl sm:text-4xl font-bold text-center mb-8 text-secondary'>Support pentru Tamago</h1>
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6'>
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md hidden md:block' style={{ gridColumn: '1', gridRow: '1 / 3' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Dispozitive Tamago</h2>
-              <p className='text-muted-foreground'>Ghiduri pentru dispozitivele tale Tamago.</p>
+          <div className='grid grid-cols-1 sm:grid-cols-6 sm:grid-rows-2 gap-2'>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-1 sm:col-end-3 sm:row-span-2'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Dispozitive Tamago</h2>
+              <p className='text-muted-foreground text-pretty'>Ghiduri pentru dispozitivele tale Tamago.</p>
             </div>
 
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md' style={{ gridColumn: '2', gridRow: '1' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Subiecte Populare</h2>
-              <p className='text-muted-foreground'>Întrebări frecvente și soluții.</p>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-3 sm:col-end-4'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Subiecte Populare</h2>
+              <p className='text-muted-foreground text-pretty'>Întrebări frecvente și soluții.</p>
             </div>
 
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md' style={{ gridColumn: '2', gridRow: '2' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Servicii</h2>
-              <p className='text-muted-foreground'>Acces rapid la suport.</p>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-3 sm:col-end-4'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Servicii</h2>
+              <p className='text-muted-foreground text-pretty'>Acces rapid la suport.</p>
             </div>
 
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md hidden sm:block' style={{ gridColumn: '3', gridRow: '1 / 3' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Telefon Tamago</h2>
-              <p className='text-muted-foreground'>Suport pentru telefoanele Tamago.</p>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-4 sm:col-end-5 sm:row-start-1 sm:row-end-3'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Telefon Tamago</h2>
+              <p className='text-muted-foreground text-pretty'>Suport pentru telefoanele Tamago.</p>
             </div>
 
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md' style={{ gridColumn: '4', gridRow: '1' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Tablet Tamago</h2>
-              <p className='text-muted-foreground'>Ghiduri pentru tabletele Tamago.</p>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-5 sm:col-end-7 sm:row-start-1 sm:row-end-2'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Tablet Tamago</h2>
+              <p className='text-muted-foreground text-pretty'>Ghiduri pentru tabletele Tamago.</p>
             </div>
 
-            <div className='bg-muted p-4 sm:p-6 rounded-lg shadow-md' style={{ gridColumn: '4', gridRow: '2' }}>
-              <h2 className='text-xl font-semibold mb-4 text-foreground'>Computer Tamago</h2>
-              <p className='text-muted-foreground'>Asistență pentru computerele Tamago.</p>
+            <div className='bg-card p-2 rounded-lg shadow-md sm:col-start-5 sm:col-end-7'>
+              <h2 className='text-xl font-semibold mb-4 text-foreground text-pretty'>Computer Tamago</h2>
+              <p className='text-muted-foreground text-pretty'>Asistență pentru computerele Tamago.</p>
             </div>
           </div>
         </div>
