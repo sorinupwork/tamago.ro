@@ -1,6 +1,6 @@
 import { Car, Home, Briefcase, Smartphone, Zap, Wrench, BadgeCheckIcon } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 const posts = [
@@ -54,14 +54,16 @@ const posts = [
   },
 ];
 
-export default function GoldenPosts() {
-  const Icon5 = posts[5].icon;
-  const Icon4 = posts[4].icon;
-  const Icon0 = posts[0].icon;
-  const Icon1 = posts[1].icon;
-  const Icon2 = posts[2].icon;
-  const Icon3 = posts[3].icon;
+const imageUrls: Record<number, string> = {
+  1: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+  2: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+  3: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+  4: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+  5: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+  6: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+};
 
+export default function GoldenPosts() {
   return (
     <section className='py-8 w-full'>
       <h2 className='text-2xl font-bold text-center mb-6 text-secondary'>Anunțuri Verificate</h2>
@@ -75,18 +77,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[5].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[5].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[5].title}</CardTitle>
-                <CardDescription>{posts[5].desc}</CardDescription>
+            <Card
+              key={posts[5].id}
+              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[5].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[5].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[5].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon5 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
 
@@ -98,18 +101,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[4].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[4].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[4].title}</CardTitle>
-                <CardDescription>{posts[4].desc}</CardDescription>
+            <Card
+              key={posts[4].id}
+              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[4].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[4].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[4].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon4 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
 
@@ -121,18 +125,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[0].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[0].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[0].title}</CardTitle>
-                <CardDescription>{posts[0].desc}</CardDescription>
+            <Card
+              key={posts[0].id}
+              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[0].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[0].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[0].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon0 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
 
@@ -144,18 +149,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[1].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[1].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[1].title}</CardTitle>
-                <CardDescription>{posts[1].desc}</CardDescription>
+            <Card
+              key={posts[1].id}
+              className='relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[1].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[1].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[1].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon1 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
 
@@ -167,18 +173,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[2].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[2].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[2].title}</CardTitle>
-                <CardDescription>{posts[2].desc}</CardDescription>
+            <Card
+              key={posts[2].id}
+              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[2].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[2].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[2].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon2 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
 
@@ -190,18 +197,19 @@ export default function GoldenPosts() {
               </Badge>
             )}
             {posts[3].isNew && (
-              <Badge variant='destructive' className='absolute -top-2 right-2 z-10'>
+              <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
                 Nou
               </Badge>
             )}
-            <Card key={posts[3].id} className='h-full'>
-              <CardHeader>
-                <CardTitle>{posts[3].title}</CardTitle>
-                <CardDescription>{posts[3].desc}</CardDescription>
+            <Card
+              key={posts[3].id}
+              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              style={{ backgroundImage: `url(${imageUrls[posts[3].id]})` }}
+            >
+              <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
+                <CardTitle className='text-white dark:text-black'>{posts[3].title}</CardTitle>
+                <CardDescription className='text-white dark:text-black'>{posts[3].desc}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Icon3 className='w-16 h-16 mx-auto text-primary' />
-              </CardContent>
             </Card>
           </div>
         </div>

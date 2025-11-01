@@ -50,13 +50,13 @@ export function Footer() {
           <ul className='space-y-1 text-sm flex flex-col items-center'>
             <li>
               <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center'>
-                <Image src="/facebook.svg" alt="Facebook" width={16} height={16} className='mr-2' />
+                <Image src="/icons/facebook.svg" alt="Facebook" width={16} height={16} className='mr-2' />
                 Facebook
               </Link>
             </li>
             <li>
               <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center'>
-                <Image src="/instagram.svg" alt="Instagram" width={16} height={16} className='mr-2' />
+                <Image src="/icons/instagram.svg" alt="Instagram" width={16} height={16} className='mr-2' />
                 Instagram
               </Link>
             </li>
