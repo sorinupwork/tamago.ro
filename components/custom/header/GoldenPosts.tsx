@@ -68,8 +68,8 @@ export default function GoldenPosts() {
     <section className='py-8 w-full'>
       <h2 className='text-2xl font-bold text-center mb-6 text-secondary'>Anunțuri Verificate</h2>
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
-        <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-4 gap-6'>
-          <div className='relative sm:row-start-1 sm:row-end-2 col-span-full'>
+        <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-6'>
+          <div className='relative sm:row-start-1 sm:row-end-3 col-span-full'>
             {posts[5].verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -93,7 +93,7 @@ export default function GoldenPosts() {
             </Card>
           </div>
 
-          <div className='relative sm:row-start-2 sm:row-end-5'>
+          <div className='relative sm:row-start-3 sm:row-end-6'>
             {posts[4].verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -117,7 +117,7 @@ export default function GoldenPosts() {
             </Card>
           </div>
 
-          <div className='relative sm:row-start-2 sm:row-end-4'>
+          <div className='relative sm:row-start-3 sm:row-end-5'>
             {posts[0].verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
