@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
 import { MessageCircle, Circle, User, Paperclip, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type Message = {
   text: string;

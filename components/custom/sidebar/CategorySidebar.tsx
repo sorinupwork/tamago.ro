@@ -1,6 +1,9 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+
 import {
   Sidebar,
   SidebarContent,
@@ -14,17 +17,32 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { categories, subcategories } from '@/lib/categories';
+import { categories } from '@/lib/categories';
+import { subcategories } from '@/lib/mockData';
 
-interface CategorySidebarProps {
-  selectedCategory: string;
+type CategorySidebarProps = {
+  selectedCategory?: string;
   selectedSubcategory?: string;
-  onCategoryChange: (category: string, subcategory?: string) => void;
-}
+  onCategoryChange?: (category: string, subcategory?: string) => void;
+};
 
-export function CategorySidebar({ selectedCategory, selectedSubcategory, onCategoryChange }: CategorySidebarProps) {
+export function CategorySidebar({
+  selectedCategory: selectedCategoryProp,
+  selectedSubcategory: selectedSubcategoryProp,
+  onCategoryChange,
+}: CategorySidebarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedCategory = selectedCategoryProp ?? ((searchParams?.get('category') as string) || 'sell');
+  const selectedSubcategory = selectedSubcategoryProp ?? searchParams?.get('subcategory') ?? undefined;
+
+  const navigate =
+    onCategoryChange ?? ((cat: string, sub?: string) => router.push(`/categorii?category=${cat}${sub ? `&subcategory=${sub}` : ''}`));
+
   const [openCategory, setOpenCategory] = useState<string | null>(selectedCategory);
 
   useEffect(() => {
@@ -33,11 +51,9 @@ export function CategorySidebar({ selectedCategory, selectedSubcategory, onCateg
 
   const handleMainClick = (catKey: string) => {
     if (selectedCategory === catKey && !selectedSubcategory) {
-      // Toggle submenu if already on category page
       setOpenCategory(openCategory === catKey ? null : catKey);
     } else {
-      // Navigate and open submenu
-      onCategoryChange(catKey);
+      navigate(catKey);
       setOpenCategory(catKey);
     }
   };
@@ -72,7 +88,7 @@ export function CategorySidebar({ selectedCategory, selectedSubcategory, onCateg
                         {subcategories.map((sub) => (
                           <SidebarMenuSubItem key={sub.id}>
                             <SidebarMenuSubButton
-                              onClick={() => onCategoryChange(cat.key, sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')}
+                              onClick={() => navigate(cat.key, sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')}
                               isActive={
                                 selectedCategory === cat.key &&
                                 selectedSubcategory === (sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')
@@ -99,5 +115,33 @@ export function CategorySidebar({ selectedCategory, selectedSubcategory, onCateg
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
+  );
+}
+
+export function CategoryLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname !== '/categorii') return <>{children}</>;
+
+  const childrenArray = React.Children.toArray(children);
+  const mainContent = childrenArray[0] ?? null;
+  const rest = childrenArray.slice(1);
+
+  return (
+    <SidebarProvider>
+      <div className='w-full'>
+        <div className='flex w-full items-start'>
+          <div className='shrink-0'>
+            <CategorySidebar />
+          </div>
+
+          <div className='flex-1 flex flex-col gap-6'>
+            <div>{mainContent}</div>
+
+            {rest.length > 0 && <div className='w-full'>{rest}</div>}
+          </div>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }

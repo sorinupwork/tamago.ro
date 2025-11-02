@@ -12,16 +12,16 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
-import { ListItem } from './ListItem';
-import { Logo } from '../logo/Logo';
-import { RightSide } from './RightSide';
-import { subcategories } from '../../../lib/categories';
+import { AppNavDropdownItem } from './AppNavDropdownItem';
+import { AppLogo } from '../logo/AppLogo';
+import { AppNavActions } from './AppNavActions';
+import { subcategories } from '@/lib/mockData';
 
 export function AppNavigation() {
   return (
     <div className='flex justify-between items-center px-4 py-2 gap-1'>
       <div className='flex items-center gap-4'>
-        <Logo />
+        <AppLogo />
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
@@ -31,7 +31,7 @@ export function AppNavigation() {
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className='grid space-x-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
-                  <ListItem
+                  <AppNavDropdownItem
                     href='/'
                     title='tamago.ro'
                     className='row-span-3'
@@ -40,21 +40,21 @@ export function AppNavigation() {
                     pClass='leading-tight'
                   >
                     Noul nostru proiect va fi lansat în curând. Rămâneți la curent!
-                  </ListItem>
+                  </AppNavDropdownItem>
 
                   <div>
-                    <ListItem href='/categorii?category=sell' title='Vânzare'>
+                    <AppNavDropdownItem href='/categorii?category=sell' title='Vânzare'>
                       Oferim servicii de vânzare pentru proiectele dumneavoastră.
-                    </ListItem>
-                    <ListItem href='/categorii?category=buy' title='Cumpărare'>
+                    </AppNavDropdownItem>
+                    <AppNavDropdownItem href='/categorii?category=buy' title='Cumpărare'>
                       Cumpărați servicii pentru nevoile dumneavoastră.
-                    </ListItem>
-                    <ListItem href='/categorii?category=rent' title='Închiriere'>
+                    </AppNavDropdownItem>
+                    <AppNavDropdownItem href='/categorii?category=rent' title='Închiriere'>
                       Servicii de inchiriat pentru proiectele temporare.
-                    </ListItem>
-                    <ListItem href='/categorii?category=auction' title='Licitație'>
+                    </AppNavDropdownItem>
+                    <AppNavDropdownItem href='/categorii?category=auction' title='Licitație'>
                       Participați la licitații pentru cele mai bune oferte.
-                    </ListItem>
+                    </AppNavDropdownItem>
                   </div>
                 </ul>
               </NavigationMenuContent>
@@ -67,9 +67,9 @@ export function AppNavigation() {
               <NavigationMenuContent>
                 <ul className='grid gap-2 sm:w-[400px] md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
                   {subcategories.map((component) => (
-                    <ListItem key={component.title} title={component.title} href={component.href}>
+                    <AppNavDropdownItem key={component.title} title={component.title} href={component.href}>
                       {component.description}
-                    </ListItem>
+                    </AppNavDropdownItem>
                   ))}
                 </ul>
               </NavigationMenuContent>
@@ -93,7 +93,7 @@ export function AppNavigation() {
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-      <RightSide />
+      <AppNavActions />
     </div>
   );
 }

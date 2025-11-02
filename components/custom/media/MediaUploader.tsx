@@ -7,10 +7,10 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, X, File, Image as ImageIcon, Video } from 'lucide-react';
 import Image from 'next/image';
 
-interface MediaUploaderProps {
+type MediaUploaderProps = {
   category: string;
   onUpload?: (urls: string[]) => void;
-}
+};
 
 export function MediaUploader({ category, onUpload }: MediaUploaderProps) {
   const [files, setFiles] = useState<File[]>([]);

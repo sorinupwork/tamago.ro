@@ -44,20 +44,21 @@ export default function CarDetailPage() {
 
   return (
     <div className='container mx-auto p-4 max-w-6xl'>
-      <Breadcrumbs
-        items={[
-          { label: 'Acasă', href: '/' },
-          { label: 'Categorii', href: '/categorii' },
-          { label: 'Auto', href: '/categorii/auto' },
-          { label: car.title },
-        ]}
-      />
+      <div className='flex items-center gap-4'>
+        <Button variant='ghost' onClick={() => router.back()}>
+          <ArrowLeft className='mr-2 h-4 w-4' />
+          Înapoi
+        </Button>
 
-      {/* Back Button */}
-      <Button variant='ghost' onClick={() => router.back()} className='mb-4'>
-        <ArrowLeft className='mr-2 h-4 w-4' />
-        Înapoi
-      </Button>
+        <Breadcrumbs
+          items={[
+            { label: 'Acasă', href: '/' },
+            { label: 'Categorii', href: '/categorii' },
+            { label: 'Auto', href: '/categorii/auto' },
+            { label: car.title },
+          ]}
+        />
+      </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
         {/* Image Carousel */}

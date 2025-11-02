@@ -15,9 +15,9 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '../theme/ModeToggle';
-import { subcategories } from '../../../lib/categories';
+import { subcategories } from '@/lib/mockData'; 
 
-export function RightSide() {
+export function AppNavActions() {
   const [open, setOpen] = React.useState(false);
 
   return (

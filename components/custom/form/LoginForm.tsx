@@ -2,19 +2,14 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { CheckCircle, List } from 'lucide-react';
 import { toast } from 'sonner';
 
-const loginSchema = z.object({
-  email: z.email('Email invalid'),
-  password: z.string().min(6, 'Parola trebuie să aibă cel puțin 6 caractere'),
-});
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import AuthInfo from '../auth/AuthInfo';
+import { loginSchema, type LoginFormData } from '@/lib/validations';
 
 export default function LoginForm() {
   const form = useForm({
@@ -25,7 +20,7 @@ export default function LoginForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+  const onSubmit = (values: LoginFormData) => {
     console.log('Autentificare:', values);
     toast.success('Autentificare reușită!');
   };
@@ -69,34 +64,16 @@ export default function LoginForm() {
             </Button>
           </form>
         </Form>
-        <Separator />
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold flex items-center animate-pulse'>
-            <CheckCircle className='mr-2 h-5 w-5 text-green-500' />
-            De ce să te autentifici?
-          </h3>
-          <p className='text-sm text-muted-foreground'>
-            Accesează funcții personalizate, gestionează-ți contul și bucură-te de o experiență fără întreruperi pe platforma noastră.
-          </p>
-          <ul className='list-disc list-inside text-sm space-y-2'>
-            <li>Acces securizat la datele tale</li>
-            <li>Urmărește progresul și realizările</li>
-            <li>Conectează-te cu alți utilizatori</li>
-          </ul>
-        </div>
-        <Separator />
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold flex items-center animate-pulse'>
-            <List className='mr-2 h-5 w-5 text-blue-500' />
-            Cum să începi
-          </h3>
-          <ol className='list-decimal list-inside text-sm space-y-2'>
-            <li>Introdu email-ul și parola</li>
-            <li>Apasă &quot;Autentificare&quot; pentru a accesa contul</li>
-            <li>Explorează funcțiile platformei</li>
-          </ol>
-        </div>
       </CardContent>
+      <CardFooter>
+        <AuthInfo
+          whyTitle='De ce să te autentifici?'
+          whyDescription='Accesează funcții personalizate, gestionează-ți contul și bucură-te de o experiență fără întreruperi pe platforma noastră.'
+          whyList={['Acces securizat la datele tale', 'Urmărește progresul și realizările', 'Conectează-te cu alți utilizatori']}
+          howTitle='Cum să începi'
+          howList={['Introdu email-ul și parola', 'Apasă "Autentificare" pentru a accesa contul', 'Explorează funcțiile platformei']}
+        />
+      </CardFooter>
     </Card>
   );
 }

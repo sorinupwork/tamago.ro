@@ -2,16 +2,15 @@
 
 import { Suspense, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CategorySidebar } from '@/components/custom/sidebar/CategorySidebar';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
-import { subcategories } from '@/lib/categories';
 import { Showcase } from './Showcase';
+import { Preview } from './Preview';
 import { categories } from '@/lib/categories';
-import { Preview } from '../media/Preview';
-
+import { subcategories } from '@/lib/mockData';
 const SellAutoForm = dynamic(() => import('@/components/custom/form/auto/SellAutoForm').then((mod) => ({ default: mod.SellAutoForm })), {
   ssr: false,
 });
@@ -37,13 +36,12 @@ type PreviewData = {
   duration?: string;
 };
 
-interface CategoriesClientProps {
+type CategoriesClientProps = {
   initialCategory?: string;
   initialSubcategory?: string;
-}
+};
 
 export default function CategoriesClient({}: CategoriesClientProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const selectedCategory = (searchParams.get('category') as 'sell' | 'buy' | 'rent' | 'auction') || 'sell';
   const selectedSubcategory = searchParams.get('subcategory') ?? undefined;
@@ -81,19 +79,9 @@ export default function CategoriesClient({}: CategoriesClientProps) {
   };
 
   return (
-    <>
-      <CategorySidebar
-        selectedCategory={selectedCategory}
-        selectedSubcategory={selectedSubcategory}
-        onCategoryChange={(cat, sub) => {
-          router.push(`/categorii?category=${cat}${sub ? `&subcategory=${sub}` : ''}`);
-        }}
-      />
-      <SidebarInset className='flex-1 overflow-auto'>
-        <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
-          <SidebarTrigger className='-ml-1' />
-          <div className='flex-1' />
-        </header>
+    <SidebarInset className='flex-1 overflow-auto'>
+      <header className='flex h-16 shrink-0 items-center gap-2 border-b px-1'>
+        <SidebarTrigger className='-ml-1' />
         <Breadcrumbs
           items={[
             { label: 'Acasă', href: '/' },
@@ -109,31 +97,31 @@ export default function CategoriesClient({}: CategoriesClientProps) {
               : []),
           ]}
         />
-        <main className='flex flex-1 flex-col lg:flex-row gap-4 p-4'>
-          <div className='flex-1'>
-            {selectedSubcategory ? (
-              <Card className='animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
-                <CardHeader>
-                  <CardTitle className='text-2xl font-bold text-center'>
-                    Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
-                    {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Suspense fallback={<div>Loading...</div>}>{getForm()}</Suspense>
-                </CardContent>
-              </Card>
-            ) : (
-              <Showcase category={selectedCategory} />
-            )}
-          </div>
-          {selectedSubcategory && (
-            <div className='w-full lg:w-1/3'>
-              <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
-            </div>
+      </header>
+      <main className='flex flex-1 flex-col lg:flex-row gap-4'>
+        <div className='flex-1'>
+          {selectedSubcategory ? (
+            <Card className='animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
+              <CardHeader>
+                <CardTitle className='text-2xl font-bold text-center'>
+                  Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
+                  {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<div>Loading...</div>}>{getForm()}</Suspense>
+              </CardContent>
+            </Card>
+          ) : (
+            <Showcase category={selectedCategory} />
           )}
-        </main>
-      </SidebarInset>
-    </>
+        </div>
+        {selectedSubcategory && (
+          <div className='w-full lg:w-1/3'>
+            <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
+          </div>
+        )}
+      </main>
+    </SidebarInset>
   );
 }

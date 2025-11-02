@@ -25,7 +25,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   if (pathname === '/') return null;
 
   return (
-    <Breadcrumb className='mb-4'>
+    <Breadcrumb>
       <BreadcrumbList>
         {items.map((item, index) => (
           <div key={index} className='flex items-center'>

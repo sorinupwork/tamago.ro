@@ -1,15 +1,27 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { subcategories } from '@/lib/categories';
 
-export default function GoldenCategories() {
+type Category = {
+  id: number;
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type AppCarouselProps = {
+  title: string;
+  items: Category[];
+};
+
+export default function AppCarousel({ title, items }: AppCarouselProps) {
   return (
     <section className='py-8'>
-      <h2 className='text-2xl font-bold text-center mb-4 text-secondary'>Categorii Populare</h2>
+      <h2 className='text-2xl font-bold text-center mb-4 text-secondary'>{title}</h2>
       <Carousel className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <CarouselContent className='py-4 px-2'>
-          {subcategories.map((category) => {
+          {items.map((category) => {
             const Icon = category.icon as React.ComponentType<{ className?: string }>;
             return (
               <CarouselItem key={category.id} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4'>

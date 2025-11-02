@@ -2,20 +2,16 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { CheckCircle, List, Mail, Facebook, Instagram } from 'lucide-react';
 import { toast } from 'sonner';
 
-const signupSchema = z.object({
-  name: z.string().min(2, 'Numele trebuie să aibă cel puțin 2 caractere'),
-  email: z.email('Email invalid'),
-  password: z.string().min(6, 'Parola trebuie să aibă cel puțin 6 caractere'),
-});
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import AuthInfo from '../auth/AuthInfo';
+import AppOAuth from '../auth/AppOAuth';
+import { signupSchema, type SignupFormData } from '@/lib/validations';
 
 export default function SignupForm() {
   const form = useForm({
@@ -27,7 +23,7 @@ export default function SignupForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof signupSchema>) => {
+  const onSubmit = (values: SignupFormData) => {
     console.log('Înregistrare:', values);
     toast.success('Înregistrare reușită!');
   };
@@ -85,63 +81,21 @@ export default function SignupForm() {
           </form>
         </Form>
         <Separator />
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold'>Sau înregistrează-te cu</h3>
-          <div className='flex flex-col space-y-3'>
-            <Button
-              variant='outline'
-              className='w-full hover:scale-105 transition-transform'
-              onClick={() => toast.info('Înregistrare cu Google în curând!')}
-            >
-              <Mail className='mr-2 h-4 w-4' />
-              Continuă cu Google
-            </Button>
-            <Button
-              variant='outline'
-              className='w-full hover:scale-105 transition-transform'
-              onClick={() => toast.info('Înregistrare cu Facebook în curând!')}
-            >
-              <Facebook className='mr-2 h-4 w-4' />
-              Continuă cu Facebook
-            </Button>
-            <Button
-              variant='outline'
-              className='w-full hover:scale-105 transition-transform'
-              onClick={() => toast.info('Înregistrare cu Instagram în curând!')}
-            >
-              <Instagram className='mr-2 h-4 w-4' />
-              Continuă cu Instagram
-            </Button>
-          </div>
-        </div>
-        <Separator />
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold flex items-center animate-pulse'>
-            <CheckCircle className='mr-2 h-5 w-5 text-green-500' />
-            De ce să te înregistrezi?
-          </h3>
-          <p className='text-sm text-muted-foreground'>
-            Alătură-te comunității noastre pentru a debloca funcții exclusive, a primi recomandări personalizate și a crește alături de noi.
-          </p>
-          <ul className='list-disc list-inside text-sm space-y-2'>
-            <li>Acces gratuit la instrumente premium</li>
-            <li>Construiește-ți profilul și rețeaua</li>
-            <li>Primește actualizări și notificări</li>
-          </ul>
-        </div>
-        <Separator />
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold flex items-center animate-pulse'>
-            <List className='mr-2 h-5 w-5 text-blue-500' />
-            Cum să începi
-          </h3>
-          <ol className='list-decimal list-inside text-sm space-y-2'>
-            <li>Completează numele, email-ul și parola</li>
-            <li>Apasă &quot;Înregistrare&quot; pentru a crea contul</li>
-            <li>Verifică email-ul și începe explorarea</li>
-          </ol>
-        </div>
+        <AppOAuth />
       </CardContent>
+      <CardFooter>
+        <AuthInfo
+          whyTitle='De ce să te înregistrezi?'
+          whyDescription='Alătură-te comunității noastre pentru a debloca funcții exclusive, a primi recomandări personalizate și a crește alături de noi.'
+          whyList={['Acces gratuit la instrumente premium', 'Construiește-ți profilul și rețeaua', 'Primește actualizări și notificări']}
+          howTitle='Cum să începi'
+          howList={[
+            'Completează numele, email-ul și parola',
+            'Apasă "Înregistrare" pentru a crea contul',
+            'Verifică email-ul și începe explorarea',
+          ]}
+        />
+      </CardFooter>
     </Card>
   );
 }

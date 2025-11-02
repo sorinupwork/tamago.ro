@@ -6,7 +6,9 @@ import { ThemeProvider } from '@/components/custom/theme/ThemeProvider';
 import { AppNavigation } from '@/components/custom/navigation/AppNavigation';
 import { Footer } from '@/components/custom/footer/Footer';
 import ChatDrawer from '@/components/custom/chat/ChatDrawer';
+import MoreInfo from '@/components/custom/info/MoreInfo';
 import { Toaster } from '@/components/ui/sonner';
+import { CategoryLayout } from '@/components/custom/sidebar/CategorySidebar';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,32 +38,17 @@ export default function RootLayout({
           <nav className='sticky top-0 z-50 bg-background border-b'>
             <AppNavigation />
           </nav>
+
           <main className='flex flex-col flex-1 overflow-y-auto'>
-            <div className='flex grow px-4 py-2 justify-center'>{children}</div>
+            <CategoryLayout>
+              <div className='flex grow px-4 py-2 justify-center'>{children}</div>
 
-            <section className='bg-background py-12 px-4 z-10'>
-              <h2 className='text-3xl font-bold text-center mb-8 text-secondary'>Mai Multe Resurse</h2>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-                <div className='bg-muted p-4 rounded-lg'>
-                  <h3 className='text-xl font-semibold mb-4 text-foreground'>Ghiduri Detaliate</h3>
-                  <p className='text-muted-foreground'>
-                    Descoperă tutoriale pas cu pas pentru a maximiza utilizarea dispozitivelor Tamago. De la configurare inițială până la
-                    funcții avansate, avem totul acoperit.
-                  </p>
-                </div>
-                <div className='bg-muted p-4 rounded-lg'>
-                  <h3 className='text-xl font-semibold mb-4 text-foreground'>Comunitate și Suport</h3>
-                  <p className='text-muted-foreground'>
-                    Alătură-te comunității Tamago pentru sfaturi, discuții și ajutor de la alți utilizatori. Suportul nostru este
-                    întotdeauna la un click distanță.
-                  </p>
-                </div>
-              </div>
-            </section>
+              <MoreInfo />
 
-            <footer className='sticky bottom-0 bg-muted border-t z-10'>
-              <Footer />
-            </footer>
+              <footer className='sticky bottom-0 bg-muted border-t'>
+                <Footer />
+              </footer>
+            </CategoryLayout>
           </main>
           <ChatDrawer />
           <Toaster />

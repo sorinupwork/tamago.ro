@@ -1,11 +1,11 @@
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from '@/components/ui/spinner';
 
-interface LoadingIndicatorProps {
+type LoadingIndicatorProps = {
   color?: string;
   size?: number;
   text?: string;
   showText?: boolean;
-}
+};
 
 export default function LoadingIndicator({ color, size = 32, text = 'Se încarcă...', showText = true }: LoadingIndicatorProps) {
   return (

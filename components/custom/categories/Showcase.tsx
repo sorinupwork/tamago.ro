@@ -1,5 +1,7 @@
 import Image from 'next/image';
-import { categories, subcategories } from '@/lib/categories';
+
+import { categories } from '@/lib/categories';
+import { subcategories } from '@/lib/mockData';
 
 export function Showcase({ category }: { category: string }) {
   const cat = categories.find((c) => c.key === category);
@@ -23,12 +25,7 @@ export function Showcase({ category }: { category: string }) {
         </div>
       </div>
       <div className='mt-4 relative w-full h-64'>
-        <Image
-          src={heroImages[category] || '/images/default-hero.jpg'}
-          alt={`${cat.label} showcase`}
-          fill
-          className='object-cover rounded'
-        />
+        <Image src={heroImages[category]} alt={`${cat.label} showcase`} fill className='object-cover rounded' />
       </div>
       <div className='mt-4 grid grid-cols-2 gap-4'>
         {subcategories.map((sub) => (

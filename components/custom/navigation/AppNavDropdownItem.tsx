@@ -2,7 +2,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 
-function ListItem({
+export function AppNavDropdownItem({
   title,
   children,
   href,
@@ -27,5 +27,3 @@ function ListItem({
     </li>
   );
 }
-
-export { ListItem };
