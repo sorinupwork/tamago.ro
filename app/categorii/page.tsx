@@ -1,10 +1,16 @@
+import { Suspense } from 'react';
 import CategoriesClient from '@/components/custom/categories/CategoriesClient';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 type PageProps = {
-  searchParams: Promise<{ category?: string; subcategory?: string }>;
+  searchParams?: { category?: string; subcategory?: string };
 };
 
-export default async function CategoryPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  return <CategoriesClient initialCategory={params.category} initialSubcategory={params.subcategory} />;
+export default function CategoryPage({ searchParams }: PageProps) {
+  const params = searchParams ?? {};
+  return (
+    <Suspense fallback={<LoadingIndicator />}>
+      <CategoriesClient initialCategory={params.category} initialSubcategory={params.subcategory} />
+    </Suspense>
+  );
 }
