@@ -21,6 +21,8 @@ export type Car = {
   status?: string;
   description?: string;
   features?: string[];
+  lat?: number;
+  lng?: number;
 };
 
 export type Post = {

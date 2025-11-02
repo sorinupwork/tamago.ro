@@ -3,27 +3,33 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { AppInput } from '@/components/custom/input/AppInput';
+import { AppSelect } from '@/components/custom/select/AppSelect';
+import { AppSlider } from '@/components/custom/slider/AppSlider';
+import { AppSelectWithCheckbox } from '@/components/custom/select/AppSelectWithCheckbox';
+import { AppCombobox } from '@/components/custom/combobox/AppCombobox';
+import { AppPagination } from '@/components/custom/pagination/AppPagination';
+import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
 import { mockCars } from '@/lib/mockData';
+import { cn } from '@/lib/utils';
+import { calculateDistance } from '@/lib/services';
 
 export default function AutoPage() {
-  const [activeTab, setActiveTab] = useState<'sell' | 'buy' | 'rent' | 'auction'>('sell');
+  const [activeTab, setActiveTab] = useState<'sell' | 'buy' | 'rent' | 'auction'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('savedSearch');
+      if (saved) {
+        const data = JSON.parse(saved);
+        return data.activeTab || 'sell';
+      }
+    }
+    return 'sell';
+  });
   const cars = mockCars;
   const [filters, setFilters] = useState({
     minEngineCapacity: '',
@@ -32,7 +38,6 @@ export default function AutoPage() {
     maxHorsepower: '',
     status: '',
     brand: '',
-    location: '',
     fuel: [] as string[],
     transmission: [] as string[],
     bodyType: [] as string[],
@@ -40,8 +45,8 @@ export default function AutoPage() {
     priceRange: [0, 100000],
     yearRange: [2000, 2023],
     mileageRange: [0, 300000],
-    engineCapacityRange: [0, 5000], // Assuming max 5000cc
-    horsepowerRange: [0, 1000], // Assuming max 1000hp
+    engineCapacityRange: [0, 5000],
+    horsepowerRange: [0, 1000],
   });
   const [sortCriteria, setSortCriteria] = useState<{
     price: 'asc' | 'desc' | null;
@@ -52,16 +57,20 @@ export default function AutoPage() {
     price: null,
     year: null,
     mileage: null,
-    date: 'desc',
+    date: null,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationFilter, setLocationFilter] = useState<{ location: { lat: number; lng: number; address: string; fullAddress: string } | null; radius: number }>({ location: null, radius: 50 });
+
+  const uniqueBrands = useMemo(() => {
+    const brands = [...new Set(cars.map((car) => car.brand))];
+    return brands.map((brand) => ({ value: brand, label: brand }));
+  }, [cars]);
 
   // Apply filters and sorts
   const filteredCars = useMemo(() => {
-    let filtered = cars.filter((car) => car.category === activeTab);
-    // New range filters
+    let filtered = cars;
     const minEC = filters.minEngineCapacity ? parseInt(filters.minEngineCapacity) : filters.engineCapacityRange[0];
     const maxEC = filters.maxEngineCapacity ? parseInt(filters.maxEngineCapacity) : filters.engineCapacityRange[1];
     const minHP = filters.minHorsepower ? parseInt(filters.minHorsepower) : filters.horsepowerRange[0];
@@ -69,12 +78,10 @@ export default function AutoPage() {
     filtered = filtered.filter((car) => (car.engineCapacity || 0) >= minEC && (car.engineCapacity || 0) <= maxEC);
     filtered = filtered.filter((car) => (car.horsepower || 0) >= minHP && (car.horsepower || 0) <= maxHP);
     if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
-    // Use sliders
     filtered = filtered.filter((car) => car.price >= filters.priceRange[0] && car.price <= filters.priceRange[1]);
     filtered = filtered.filter((car) => car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1]);
     filtered = filtered.filter((car) => car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1]);
     if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
-    if (filters.location) filtered = filtered.filter((car) => car.location.toLowerCase().includes(filters.location.toLowerCase()));
     if (searchQuery)
       filtered = filtered.filter(
         (car) => car.title.toLowerCase().includes(searchQuery.toLowerCase()) || car.brand.toLowerCase().includes(searchQuery.toLowerCase())
@@ -83,6 +90,17 @@ export default function AutoPage() {
     if (filters.transmission.length > 0) filtered = filtered.filter((car) => filters.transmission.includes(car.transmission));
     if (filters.bodyType.length > 0) filtered = filtered.filter((car) => filters.bodyType.includes(car.bodyType));
     if (filters.color.length > 0) filtered = filtered.filter((car) => filters.color.includes(car.color));
+    if (activeTab) filtered = filtered.filter((car) => car.category === activeTab);
+    const loc = locationFilter.location;
+    if (loc) {
+      filtered = filtered.filter((car) => {
+        if (car.lat && car.lng) {
+          const distance = calculateDistance(loc.lat, loc.lng, car.lat, car.lng);
+          return distance <= locationFilter.radius;
+        }
+        return true; // If no lat/lng, include
+      });
+    }
 
     // Sort
     filtered.sort((a, b) => {
@@ -110,11 +128,22 @@ export default function AutoPage() {
     });
 
     return filtered;
-  }, [cars, activeTab, filters, sortCriteria, searchQuery]);
+  }, [cars, filters, sortCriteria, searchQuery, activeTab, locationFilter]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredCars.length / itemsPerPage);
-  const paginatedCars = filteredCars.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const perPages = [];
+  let remaining = filteredCars.length;
+  let page = 1;
+  while (remaining > 0) {
+    const perPageCalc = Math.min(page === 1 ? 1 : page === 2 ? 2 : 3, remaining);
+    perPages.push(perPageCalc);
+    remaining -= perPageCalc;
+    page++;
+  }
+  const totalPages = perPages.length;
+  const startIndex = perPages.slice(0, currentPage - 1).reduce((sum, p) => sum + p, 0);
+  const endIndex = startIndex + perPages[currentPage - 1];
+  const paginatedCars = filteredCars.slice(startIndex, endIndex);
 
   const handleFilterChange = (key: string, value: string | number[] | string[]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -143,7 +172,6 @@ export default function AutoPage() {
       maxHorsepower: '',
       status: '',
       brand: '',
-      location: '',
       fuel: [],
       transmission: [],
       bodyType: [],
@@ -154,7 +182,21 @@ export default function AutoPage() {
       engineCapacityRange: [0, 5000],
       horsepowerRange: [0, 1000],
     });
+    setSortCriteria({
+      price: null,
+      year: null,
+      mileage: null,
+      date: null,
+    });
     setSearchQuery('');
+    setLocationFilter({ location: null, radius: 50 });
+    setCurrentPage(1);
+  };
+
+  const saveSearch = () => {
+    const searchData = { filters, sortCriteria, searchQuery, activeTab, locationFilter };
+    localStorage.setItem('savedSearch', JSON.stringify(searchData));
+    alert('Căutare salvată!');
   };
 
   const appliedFilters = [
@@ -163,7 +205,7 @@ export default function AutoPage() {
     ...filters.bodyType.map((b) => ({ key: 'bodyType', value: b, label: `Caroserie: ${b}` })),
     ...filters.color.map((c) => ({ key: 'color', value: c, label: `Culoare: ${c}` })),
     ...(filters.brand ? [{ key: 'brand', value: filters.brand, label: `Marcă: ${filters.brand}` }] : []),
-    ...(filters.location ? [{ key: 'location', value: filters.location, label: `Locație: ${filters.location}` }] : []),
+    ...(locationFilter.location ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }] : []),
     ...(filters.minEngineCapacity || filters.maxEngineCapacity
       ? [
           {
@@ -188,10 +230,77 @@ export default function AutoPage() {
       : []),
     ...(filters.status ? [{ key: 'status', value: filters.status, label: `Status: ${filters.status}` }] : []),
     ...(searchQuery ? [{ key: 'searchQuery', value: searchQuery, label: `Căutare: ${searchQuery}` }] : []),
+    ...(filters.priceRange[0] !== 0 || filters.priceRange[1] !== 100000
+      ? [
+          {
+            key: 'priceRange',
+            value: `${filters.priceRange[0]}-${filters.priceRange[1]}`,
+            label: `Interval Preț: $${filters.priceRange[0]} - $${filters.priceRange[1]}`,
+          },
+        ]
+      : []),
+    ...(filters.yearRange[0] !== 2000 || filters.yearRange[1] !== 2023
+      ? [
+          {
+            key: 'yearRange',
+            value: `${filters.yearRange[0]}-${filters.yearRange[1]}`,
+            label: `Interval An: ${filters.yearRange[0]} - ${filters.yearRange[1]}`,
+          },
+        ]
+      : []),
+    ...(filters.mileageRange[0] !== 0 || filters.mileageRange[1] !== 300000
+      ? [
+          {
+            key: 'mileageRange',
+            value: `${filters.mileageRange[0]}-${filters.mileageRange[1]}`,
+            label: `Interval Kilometraj: ${filters.mileageRange[0]} - ${filters.mileageRange[1]} km`,
+          },
+        ]
+      : []),
+    ...(sortCriteria.price
+      ? [
+          {
+            key: 'sortPrice',
+            value: sortCriteria.price,
+            label: `Sortare Preț: ${sortCriteria.price === 'asc' ? 'Crescător' : 'Descrescător'}`,
+          },
+        ]
+      : []),
+    ...(sortCriteria.year
+      ? [
+          {
+            key: 'sortYear',
+            value: sortCriteria.year,
+            label: `Sortare An: ${sortCriteria.year === 'asc' ? 'Vechi la Nou' : 'Nou la Vechi'}`,
+          },
+        ]
+      : []),
+    ...(sortCriteria.mileage
+      ? [
+          {
+            key: 'sortMileage',
+            value: sortCriteria.mileage,
+            label: `Sortare Kilometraj: ${sortCriteria.mileage === 'asc' ? 'Crescător' : 'Descrescător'}`,
+          },
+        ]
+      : []),
+    ...(sortCriteria.date
+      ? [
+          {
+            key: 'sortDate',
+            value: sortCriteria.date,
+            label: `Sortare Dată: ${sortCriteria.date === 'asc' ? 'Cele Mai Vechi' : 'Cele Mai Noi'}`,
+          },
+        ]
+      : []),
   ];
 
+  const handleLocationChange = (location: { lat: number; lng: number; address: string; fullAddress: string } | null, radius: number) => {
+    setLocationFilter({ location, radius });
+  };
+
   return (
-    <div className='container mx-auto p-4 max-w-7xl'>
+    <div className='container mx-auto max-w-7xl'>
       <Breadcrumbs items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]} />
 
       <h1 className='text-3xl font-bold mb-4 text-center md:text-left'>Auto - Mașini</h1>
@@ -212,280 +321,215 @@ export default function AutoPage() {
 
       {/* Search Bar */}
       <div className='mb-6 flex gap-2 justify-center md:justify-start'>
-        <Input
-          type='text'
+        <AppInput
           placeholder='Caută mașini (marcă, model...)'
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className='w-full max-w-sm'
+          className='flex-1'
         />
-        <Input
-          type='text'
+        <AppLocationInput
+          value={locationFilter.location?.address || ''}
+          onChange={handleLocationChange}
           placeholder='Locație'
-          value={filters.location}
-          onChange={(e) => handleFilterChange('location', e.target.value)}
-          className='w-full max-w-sm'
+          className='flex-1'
+          filteredCars={filteredCars}
         />
         <Button variant='default'>Caută</Button>
       </div>
 
       {/* Applied Filters Tags */}
-      {appliedFilters.length > 0 && (
-        <div className='mb-4 flex flex-wrap gap-2'>
-          {appliedFilters.map((filter) => (
-            <Badge
-              key={`${filter.key}-${filter.value}`}
-              variant='secondary'
-              className='cursor-pointer'
-              onClick={() => removeFilter(filter.key as keyof typeof filters, filter.value)}
-            >
-              {filter.label} ×
-            </Badge>
-          ))}
-          <Button variant='outline' size='sm' onClick={resetAllFilters}>
-            Reset All
-          </Button>
-        </div>
-      )}
+      <div className='mb-4 flex flex-wrap gap-2 min-h-8'>
+        {appliedFilters.length > 0 && (
+          <>
+            {appliedFilters.map((filter) => (
+              <Badge
+                key={`${filter.key}-${filter.value}`}
+                variant='secondary'
+                className='cursor-pointer'
+                onClick={() => removeFilter(filter.key as keyof typeof filters, filter.value)}
+              >
+                {filter.label} ×
+              </Badge>
+            ))}
+            <Button variant='outline' size='sm' onClick={resetAllFilters}>
+              Reset All
+            </Button>
+            <Button variant='default' size='sm' onClick={saveSearch}>
+              Save Search
+            </Button>
+          </>
+        )}
+      </div>
 
       {/* Filters */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6'>
-        <Input
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6'>
+        <div className='flex items-center gap-6 col-span-full'>
+          <AppSlider
+            label={`Interval Preț: $${filters.priceRange[0]} - $${filters.priceRange[1]}`}
+            value={filters.priceRange}
+            onValueChange={(value) => handleFilterChange('priceRange', value)}
+            min={0}
+            max={100000}
+            step={1000}
+            className='grow'
+          />
+          <AppSlider
+            label={`Interval An: ${filters.yearRange[0]} - ${filters.yearRange[1]}`}
+            value={filters.yearRange}
+            onValueChange={(value) => handleFilterChange('yearRange', value)}
+            min={2000}
+            max={2023}
+            step={1}
+            className='grow'
+          />
+          <AppSlider
+            label={`Interval Kilometraj: ${filters.mileageRange[0]} - ${filters.mileageRange[1]} km`}
+            value={filters.mileageRange}
+            onValueChange={(value) => handleFilterChange('mileageRange', value)}
+            min={0}
+            max={300000}
+            step={5000}
+            className='grow'
+          />
+        </div>
+        <AppInput
           type='number'
           placeholder='Capacitate Motor Min (cc)'
           value={filters.minEngineCapacity}
           onChange={(e) => handleFilterChange('minEngineCapacity', e.target.value)}
+          min={0}
         />
-        <Input
+        <AppInput
           type='number'
           placeholder='Capacitate Motor Max (cc)'
           value={filters.maxEngineCapacity}
           onChange={(e) => handleFilterChange('maxEngineCapacity', e.target.value)}
+          min={0}
         />
-        <Input
+        <AppInput
           type='number'
           placeholder='Cai Putere Min'
           value={filters.minHorsepower}
           onChange={(e) => handleFilterChange('minHorsepower', e.target.value)}
+          min={0}
         />
-        <Input
+        <AppInput
           type='number'
           placeholder='Cai Putere Max'
           value={filters.maxHorsepower}
           onChange={(e) => handleFilterChange('maxHorsepower', e.target.value)}
+          min={0}
         />
-        <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder='Status' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='new'>Nou</SelectItem>
-            <SelectItem value='used'>Second Hand</SelectItem>
-            <SelectItem value='damaged'>Deteriorat</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input type='text' placeholder='Marcă' value={filters.brand} onChange={(e) => handleFilterChange('brand', e.target.value)} />
-        <div>
-          <label className='text-sm font-medium'>
-            Interval Preț: ${filters.priceRange[0]} - ${filters.priceRange[1]}
-          </label>
-          <Slider
-            value={filters.priceRange}
-            onValueChange={(value) => handleFilterChange('priceRange', value)}
-            max={100000}
-            min={0}
-            step={1000}
-            className='mt-2'
-          />
-        </div>
-        <div>
-          <label className='text-sm font-medium'>
-            Interval An: {filters.yearRange[0]} - {filters.yearRange[1]}
-          </label>
-          <Slider
-            value={filters.yearRange}
-            onValueChange={(value) => handleFilterChange('yearRange', value)}
-            max={2023}
-            min={2000}
-            step={1}
-            className='mt-2'
-          />
-        </div>
-        <div>
-          <label className='text-sm font-medium'>
-            Interval Kilometraj: {filters.mileageRange[0]} - {filters.mileageRange[1]} km
-          </label>
-          <Slider
-            value={filters.mileageRange}
-            onValueChange={(value) => handleFilterChange('mileageRange', value)}
-            max={300000}
-            min={0}
-            step={5000}
-            className='mt-2'
-          />
-        </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant='outline' className='w-full justify-start'>
-              Tip Combustibil ({filters.fuel.length} selectat{filters.fuel.length !== 1 ? 'e' : ''})
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-56'>
-            <div className='flex flex-col gap-2'>
-              {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map((fuel) => (
-                <div key={fuel} className='flex items-center space-x-2'>
-                  <Checkbox
-                    checked={filters.fuel.includes(fuel)}
-                    onCheckedChange={(checked) => handleMultiFilterChange('fuel', fuel, checked as boolean)}
-                  />
-                  <label>
-                    {fuel === 'Petrol' ? 'Benzină' : fuel === 'Diesel' ? 'Motorină' : fuel === 'Hybrid' ? 'Hibrid' : 'Electric'}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant='outline' className='w-full justify-start'>
-              Transmisie ({filters.transmission.length} selectat{filters.transmission.length !== 1 ? 'e' : ''})
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-56'>
-            <div className='flex flex-col gap-2'>
-              {['Manual', 'Automatic'].map((trans) => (
-                <div key={trans} className='flex items-center space-x-2'>
-                  <Checkbox
-                    checked={filters.transmission.includes(trans)}
-                    onCheckedChange={(checked) => handleMultiFilterChange('transmission', trans, checked as boolean)}
-                  />
-                  <label>{trans === 'Manual' ? 'Manuală' : 'Automată'}</label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant='outline' className='w-full justify-start'>
-              Tip Caroserie ({filters.bodyType.length} selectat{filters.bodyType.length !== 1 ? 'e' : ''})
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-56'>
-            <div className='flex flex-col gap-2'>
-              {['SUV', 'Sedan', 'Hatchback', 'Coupe'].map((body) => (
-                <div key={body} className='flex items-center space-x-2'>
-                  <Checkbox
-                    checked={filters.bodyType.includes(body)}
-                    onCheckedChange={(checked) => handleMultiFilterChange('bodyType', body, checked as boolean)}
-                  />
-                  <label>{body}</label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant='outline' className='w-full justify-start'>
-              Culoare ({filters.color.length} selectat{filters.color.length !== 1 ? 'e' : ''})
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-56'>
-            <div className='flex flex-col gap-2'>
-              {['Black', 'White', 'Silver', 'Blue', 'Red', 'Gray', 'Green'].map((color) => (
-                <div key={color} className='flex items-center space-x-2'>
-                  <Checkbox
-                    checked={filters.color.includes(color)}
-                    onCheckedChange={(checked) => handleMultiFilterChange('color', color, checked as boolean)}
-                  />
-                  <label>
-                    {color === 'Black'
-                      ? 'Negru'
-                      : color === 'White'
-                      ? 'Alb'
-                      : color === 'Silver'
-                      ? 'Argintiu'
-                      : color === 'Blue'
-                      ? 'Albastru'
-                      : color === 'Red'
-                      ? 'Roșu'
-                      : color === 'Gray'
-                      ? 'Gri'
-                      : 'Verde'}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <AppCombobox
+          options={uniqueBrands}
+          value={filters.brand}
+          onValueChange={(value) => handleFilterChange('brand', value)}
+          placeholder='Marcă'
+        />
+        <AppSelectWithCheckbox
+          options={[
+            { value: 'Petrol', label: 'Benzină' },
+            { value: 'Diesel', label: 'Motorină' },
+            { value: 'Hybrid', label: 'Hibrid' },
+            { value: 'Electric', label: 'Electric' },
+          ]}
+          selected={filters.fuel}
+          onChange={(value, checked) => handleMultiFilterChange('fuel', value, checked)}
+          placeholder='Tip Combustibil'
+        />
+        <AppSelectWithCheckbox
+          options={[
+            { value: 'Manual', label: 'Manuală' },
+            { value: 'Automatic', label: 'Automată' },
+          ]}
+          selected={filters.transmission}
+          onChange={(value, checked) => handleMultiFilterChange('transmission', value, checked)}
+          placeholder='Transmisie'
+        />
+        <AppSelectWithCheckbox
+          options={[
+            { value: 'SUV', label: 'SUV' },
+            { value: 'Sedan', label: 'Sedan' },
+            { value: 'Hatchback', label: 'Hatchback' },
+            { value: 'Coupe', label: 'Coupe' },
+          ]}
+          selected={filters.bodyType}
+          onChange={(value, checked) => handleMultiFilterChange('bodyType', value, checked)}
+          placeholder='Tip Caroserie'
+        />
+        <AppSelect
+          options={[
+            { value: 'new', label: 'Nou' },
+            { value: 'used', label: 'Second Hand' },
+            { value: 'damaged', label: 'Deteriorat' },
+          ]}
+          value={filters.status}
+          onValueChange={(value) => handleFilterChange('status', value)}
+          placeholder='Status'
+        />
       </div>
 
       {/* Sort */}
       <div className='mb-6 flex justify-center md:justify-start'>
         <div className='flex gap-2'>
-          <Select
+          <AppSelect
+            options={[
+              { value: 'none', label: 'Sortează după preț' },
+              { value: 'asc', label: 'Preț: Crescător' },
+              { value: 'desc', label: 'Preț: Descrescător' },
+            ]}
             value={sortCriteria.price || 'none'}
             onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }))}
-          >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Sortează după preț' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='none'>Niciunul</SelectItem>
-              <SelectItem value='asc'>Preț: Crescător</SelectItem>
-              <SelectItem value='desc'>Preț: Descrescător</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
+            placeholder='Sortează după preț'
+            className='w-full sm:w-48'
+          />
+          <AppSelect
+            options={[
+              { value: 'none', label: 'Sortează după an' },
+              { value: 'asc', label: 'An: Vechi la Nou' },
+              { value: 'desc', label: 'An: Nou la Vechi' },
+            ]}
             value={sortCriteria.year || 'none'}
             onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }))}
-          >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Sortează după an' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='none'>Niciunul</SelectItem>
-              <SelectItem value='asc'>An: Vechi la Nou</SelectItem>
-              <SelectItem value='desc'>An: Nou la Vechi</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
+            placeholder='Sortează după an'
+            className='w-full sm:w-48'
+          />
+          <AppSelect
+            options={[
+              { value: 'none', label: 'Sortează după kilometraj' },
+              { value: 'asc', label: 'Kilometraj: Crescător' },
+              { value: 'desc', label: 'Kilometraj: Descrescător' },
+            ]}
             value={sortCriteria.mileage || 'none'}
             onValueChange={(value) =>
               setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }))
             }
-          >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Sortează după kilometraj' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='none'>Niciunul</SelectItem>
-              <SelectItem value='asc'>Kilometraj: Crescător</SelectItem>
-              <SelectItem value='desc'>Kilometraj: Descrescător</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
+            placeholder='Sortează după kilometraj'
+            className='w-full sm:w-48'
+          />
+          <AppSelect
+            options={[
+              { value: 'none', label: 'Sortează după dată' },
+              { value: 'desc', label: 'Cele Mai Noi' },
+              { value: 'asc', label: 'Cele Mai Vechi' },
+            ]}
             value={sortCriteria.date || 'none'}
             onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }))}
-          >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Sortează după dată' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='none'>Niciunul</SelectItem>
-              <SelectItem value='desc'>Cele Mai Noi</SelectItem>
-              <SelectItem value='asc'>Cele Mai Vechi</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder='Sortează după dată'
+            className='w-full sm:w-48'
+          />
         </div>
       </div>
 
       {/* Car List */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+      <div
+        className={cn(
+          'grid gap-6',
+          paginatedCars.length === 1 ? 'grid-cols-1' : paginatedCars.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+        )}
+      >
         {paginatedCars.map((car) => (
-          <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`}>
+          <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`} className=''>
             <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer animate-in fade-in-0 slide-in-from-bottom-4'>
               <Image src={car.images[0]} alt={car.title} width={400} height={192} className='w-full h-48 object-cover' />
               <CardHeader className='pb-2'>
@@ -526,25 +570,7 @@ export default function AutoPage() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination className='mt-8'>
-          <PaginationContent className='flex-wrap justify-center'>
-            <PaginationItem>
-              <PaginationPrevious onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink onClick={() => setCurrentPage(page)} isActive={page === currentPage}>
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />
     </div>
   );
 }

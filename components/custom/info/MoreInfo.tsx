@@ -1,6 +1,6 @@
 export default function MoreInfo() {
   return (
-    <section className='bg-background py-12 px-4'>
+    <section className='bg-background py-12 w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl mx-auto'>
       <h2 className='text-3xl font-bold text-center mb-8 text-secondary'>Mai Multe Resurse</h2>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
         <div className='bg-muted p-4 rounded-lg'>
