@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import {
   Sidebar,
@@ -22,6 +22,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { categories } from '@/lib/categories';
 import { subcategories } from '@/lib/mockData';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 type CategorySidebarProps = {
   selectedCategory?: string;
@@ -37,8 +38,12 @@ export function CategorySidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const selectedCategory = selectedCategoryProp ?? ((searchParams?.get('category') as string) || 'sell');
-  const selectedSubcategory = selectedSubcategoryProp ?? searchParams?.get('subcategory') ?? undefined;
+  // Use searchParams from Next instead of reading window.location or patching history
+  const searchCategory = (searchParams?.get('category') as string) ?? undefined;
+  const searchSubcategory = searchParams?.get('subcategory') ?? undefined;
+
+  const selectedCategory = selectedCategoryProp ?? (searchCategory as string) ?? 'sell';
+  const selectedSubcategory = selectedSubcategoryProp ?? searchSubcategory ?? undefined;
 
   const navigate =
     onCategoryChange ?? ((cat: string, sub?: string) => router.push(`/categorii?category=${cat}${sub ? `&subcategory=${sub}` : ''}`));
@@ -132,7 +137,9 @@ export function CategoryLayout({ children }: { children: React.ReactNode }) {
       <div className='w-full'>
         <div className='flex w-full items-start'>
           <div className='shrink-0'>
-            <CategorySidebar />
+            <Suspense fallback={<LoadingIndicator />}>
+              <CategorySidebar />
+            </Suspense>
           </div>
 
           <div className='flex-1 flex flex-col gap-6'>

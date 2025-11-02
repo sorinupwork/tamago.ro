@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,10 +40,10 @@ type CategoriesClientProps = {
   initialSubcategory?: string;
 };
 
-export default function CategoriesClient({}: CategoriesClientProps) {
-  const searchParams = useSearchParams();
-  const selectedCategory = (searchParams.get('category') as 'sell' | 'buy' | 'rent' | 'auction') || 'sell';
-  const selectedSubcategory = searchParams.get('subcategory') ?? undefined;
+export default function CategoriesClient({ initialCategory, initialSubcategory }: CategoriesClientProps) {
+  const selectedCategory = (initialCategory as 'sell' | 'buy' | 'rent' | 'auction') || 'sell';
+  const selectedSubcategory = initialSubcategory ?? undefined;
+
   const [previewData, setPreviewData] = useState<PreviewData>({
     title: '',
     description: '',
