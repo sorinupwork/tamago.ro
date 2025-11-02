@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MediaUploader } from '@/components/custom/media/MediaUploader';
-import { sellSchema, SellFormData } from '@/lib/validations';
+import { auto, AutoAuctionFormData } from '@/lib/validations';
 import dynamic from 'next/dynamic';
 import { Car, Fuel, Settings } from 'lucide-react';
 const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
@@ -23,8 +23,8 @@ const ReusableFormField = ({
   type = 'text',
   ...props
 }: {
-  control: Control<SellFormData>;
-  name: keyof SellFormData;
+  control: Control<AutoAuctionFormData>;
+  name: keyof AutoAuctionFormData;
   label: React.ReactNode;
   placeholder: string;
   type?: string;
@@ -51,22 +51,23 @@ const ReusableFormField = ({
   />
 );
 
-interface SellFormProps {
+interface AuctionAutoFormProps {
   onPreviewUpdate: (data: {
     title: string;
     description: string;
-    price: number;
+    startingBid: number;
     location: string;
     category: string;
     uploadedFiles: string[];
   }) => void;
+  subcategory?: string;
 }
 
-export function SellForm({ onPreviewUpdate }: SellFormProps) {
+export function AuctionAutoForm({ onPreviewUpdate, subcategory }: AuctionAutoFormProps) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const form = useForm<SellFormData>({
-    resolver: zodResolver(sellSchema),
-    defaultValues: { title: '', description: '', price: 0, location: '', features: '' },
+  const form = useForm<AutoAuctionFormData>({
+    resolver: zodResolver(auto.auctionSchema),
+    defaultValues: { title: '', description: '', startingBid: 0, location: '', features: '', endDate: '' }, // Added endDate and features
   });
 
   const watchedValues = useWatch({ control: form.control });
@@ -75,15 +76,15 @@ export function SellForm({ onPreviewUpdate }: SellFormProps) {
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || 0,
+      startingBid: watchedValues.startingBid || 0,
       location: watchedValues.location || '',
-      category: 'sell',
+      category: 'auction',
       uploadedFiles,
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
+  }, [watchedValues.title, watchedValues.description, watchedValues.startingBid, watchedValues.location, uploadedFiles, onPreviewUpdate]);
 
-  const onSubmit = (data: SellFormData) => {
-    console.log('Sell Form Data:', { ...data, uploadedFiles });
+  const onSubmit = (data: AutoAuctionFormData) => {
+    console.log('Auction Form Data:', { ...data, uploadedFiles });
   };
 
   return (
@@ -91,9 +92,10 @@ export function SellForm({ onPreviewUpdate }: SellFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <ReusableFormField control={form.control} name='title' label='Titlu' placeholder='Introduceți titlul' />
-          <ReusableFormField control={form.control} name='price' label='Preț' placeholder='0' type='number' />
+          <ReusableFormField control={form.control} name='startingBid' label='Ofertă de început' placeholder='0' type='number' />
         </div>
         <ReusableFormField control={form.control} name='location' label='Locație' placeholder='Introduceți locația' />
+        <ReusableFormField control={form.control} name='endDate' label='Data de sfârșit' placeholder='YYYY-MM-DD' type='date' />
 
         <FormField
           control={form.control}
@@ -134,31 +136,33 @@ export function SellForm({ onPreviewUpdate }: SellFormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name='fuel'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className='flex items-center gap-2'>
-                  <Fuel className='h-4 w-4' /> Combustibil
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Selectați combustibil' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value='Petrol'>Benzină</SelectItem>
-                    <SelectItem value='Diesel'>Motorină</SelectItem>
-                    <SelectItem value='Hybrid'>Hibrid</SelectItem>
-                    <SelectItem value='Electric'>Electric</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {subcategory === 'auto' && (
+            <FormField
+              control={form.control}
+              name='fuel'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className='flex items-center gap-2'>
+                    <Fuel className='h-4 w-4' /> Combustibil
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Selectați combustibil' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value='Petrol'>Benzină</SelectItem>
+                      <SelectItem value='Diesel'>Motorină</SelectItem>
+                      <SelectItem value='Hybrid'>Hibrid</SelectItem>
+                      <SelectItem value='Electric'>Electric</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <FormField
@@ -191,12 +195,12 @@ export function SellForm({ onPreviewUpdate }: SellFormProps) {
           </div>
         </div>
 
-        <MediaUploader category='sell' onUpload={(urls) => setUploadedFiles(urls)} />
+        <MediaUploader category='auction' onUpload={(urls) => setUploadedFiles(urls)} />
         <Button
           type='submit'
           className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
         >
-          Trimite Vânzare
+          Trimite Licitație
         </Button>
       </form>
     </Form>

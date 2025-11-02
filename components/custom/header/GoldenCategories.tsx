@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { categories } from '@/lib/categories';
+import { subcategories } from '@/lib/categories';
 
 export default function GoldenCategories() {
   return (
@@ -9,8 +9,8 @@ export default function GoldenCategories() {
       <h2 className='text-2xl font-bold text-center mb-4 text-secondary'>Categorii Populare</h2>
       <Carousel className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <CarouselContent className='py-4 px-2'>
-          {categories.map((category) => {
-            const Icon = category.icon;
+          {subcategories.map((category) => {
+            const Icon = category.icon as React.ComponentType<{ className?: string }>;
             return (
               <CarouselItem key={category.id} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4'>
                 <div className=''>

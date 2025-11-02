@@ -15,7 +15,7 @@ import {
 import { ListItem } from './ListItem';
 import { Logo } from '../logo/Logo';
 import { RightSide } from './RightSide';
-import { categories } from '../../../lib/categories';
+import { subcategories } from '../../../lib/categories';
 
 export function AppNavigation() {
   return (
@@ -66,7 +66,7 @@ export function AppNavigation() {
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className='grid gap-2 sm:w-[400px] md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
-                  {categories.map((component) => (
+                  {subcategories.map((component) => (
                     <ListItem key={component.title} title={component.title} href={component.href}>
                       {component.description}
                     </ListItem>

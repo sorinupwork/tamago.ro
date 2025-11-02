@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '../theme/ModeToggle';
-import { categories } from '../../../lib/categories';
+import { subcategories } from '../../../lib/categories';
 
 export function RightSide() {
   const [open, setOpen] = React.useState(false);
@@ -62,7 +62,7 @@ export function RightSide() {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading='Categorii'>
-            {categories.map((component) => (
+            {subcategories.map((component) => (
               <CommandItem asChild key={component.title} className='cursor-pointer'>
                 <Link href={component.href}>{component.title}</Link>
               </CommandItem>

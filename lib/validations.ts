@@ -7,28 +7,36 @@ const baseSchema = z.object({
   location: z.string().min(1, 'Locația este obligatorie'),
 });
 
-export const sellSchema = baseSchema.extend({
-  features: z.string().optional(),
-  status: z.string().optional(),
-  fuel: z.string().optional(),
-});
+export const auto = {
+  sellSchema: baseSchema.extend({
+    features: z.string().optional(),
+    status: z.string().optional(),
+    fuel: z.string().optional(),
+    mileage: z.number().min(0).optional(),
+    year: z.number().min(1900).optional(),
+  }),
+  buySchema: baseSchema.extend({
+    features: z.string().optional(),
+    status: z.string().optional(),
+    fuel: z.string().optional(),
+  }),
+  rentSchema: baseSchema.extend({
+    duration: z.string().min(1, 'Durata este obligatorie'),
+    type: z.string().optional(),
+    features: z.string().optional(),
+    status: z.string().optional(),
+    fuel: z.string().optional(),
+  }),
+  auctionSchema: baseSchema.extend({
+    startingBid: z.number().min(0, 'Licitația de start trebuie să fie pozitivă'),
+    endDate: z.string().optional(),
+    features: z.string().optional(),
+    status: z.string().optional(),
+    fuel: z.string().optional(),
+  }),
+};
 
-export const buySchema = baseSchema.extend({
-  budget: z.number().min(0, 'Bugetul trebuie să fie pozitiv'),
-  preferences: z.string().optional(),
-});
-
-export const rentSchema = baseSchema.extend({
-  duration: z.string().min(1, 'Durata este obligatorie'),
-  type: z.string().optional(),
-});
-
-export const auctionSchema = baseSchema.extend({
-  startingBid: z.number().min(0, 'Licitația de start trebuie să fie pozitivă'),
-  endDate: z.string().min(1, 'Data de sfârșit este obligatorie'),
-});
-
-export type SellFormData = z.infer<typeof sellSchema>;
-export type BuyFormData = z.infer<typeof buySchema>;
-export type RentFormData = z.infer<typeof rentSchema>;
-export type AuctionFormData = z.infer<typeof auctionSchema>;
+export type AutoSellFormData = z.infer<typeof auto.sellSchema>;
+export type AutoBuyFormData = z.infer<typeof auto.buySchema>;
+export type AutoRentFormData = z.infer<typeof auto.rentSchema>;
+export type AutoAuctionFormData = z.infer<typeof auto.auctionSchema>;
