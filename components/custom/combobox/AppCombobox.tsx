@@ -59,12 +59,7 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
         <PopoverContent className='w-(--radix-popover-trigger-width) p-0'>
           <div className='relative'>
             {onClear && (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='absolute top-2 right-2 z-10 h-6 w-6 p-0'
-                onClick={() => onClear()}
-              >
+              <Button variant='ghost' size='sm' className='absolute top-2 right-2 z-10 h-6 w-6 p-0' onClick={() => onClear()}>
                 <X className='h-4 w-4' />
               </Button>
             )}

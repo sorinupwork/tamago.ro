@@ -12,26 +12,26 @@ import { debounce } from 'lodash';
 
 const MapComponent = dynamic(() => import('./MapComponent').then((mod) => ({ default: mod.MapComponent })), { ssr: false });
 
-interface Location {
+type Location = {
   lat: number;
   lng: number;
   address: string;
   fullAddress: string;
-}
+};
 
-interface Suggestion {
+type Suggestion = {
   value: string;
   label: string;
   data: NominatimResult;
-}
+};
 
-interface AppLocationInputProps {
+type AppLocationInputProps = {
   value: string;
   onChange: (location: Location | null, radius: number) => void;
   placeholder?: string;
   className?: string;
   filteredCars?: Car[];
-}
+};
 
 export const AppLocationInput: React.FC<AppLocationInputProps> = ({
   onChange,
@@ -127,6 +127,7 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
             setSelectedLocation(null);
             setSelectedValue(null);
             setSuggestions([]);
+            onChange(null, radius);
           }}
           additionalContent={
             <div className='space-y-4 p-4'>
@@ -161,5 +162,4 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
       </div>
     </div>
   );
-
 };

@@ -4,6 +4,7 @@ import { MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MapComponent from '@/components/custom/map/MapComponent';
 import { User } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 type CardData = {
   icon: ReactNode;
@@ -18,6 +19,7 @@ type MarketplaceContactSectionProps = {
   users?: User[];
   showMap?: boolean;
   gridCols?: string;
+  className?: string;
 };
 
 export default function MarketplaceContactSection({
@@ -27,9 +29,10 @@ export default function MarketplaceContactSection({
   users = [],
   showMap = true,
   gridCols = 'grid-cols-1 md:grid-cols-3',
+  className = '',
 }: MarketplaceContactSectionProps) {
   return (
-    <section className='bg-muted p-4 transition-all duration-300 hover:bg-muted/80 rounded-lg'>
+    <section className={cn(`transition-all duration-300 rounded-lg, ${className}`)}>
       <div className='text-center'>
         <h3 className='text-xl font-semibold mb-4'>{title}</h3>
         <p className='text-muted-foreground mb-4'>{description}</p>

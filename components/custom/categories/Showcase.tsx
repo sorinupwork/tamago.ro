@@ -16,18 +16,20 @@ export function Showcase({ category }: { category: string }) {
   };
 
   return (
-    <div className='jumbotron bg-linear-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg shadow-lg animate-fade-in'>
-      <div className='flex items-center gap-4'>
-        <Icon className='w-16 h-16 animate-bounce' />
-        <div>
-          <h1 className='text-4xl font-bold'>{cat.label}</h1>
-          <p className='text-lg mt-2'>Explorează opțiunile pentru {cat.label.toLowerCase()}.</p>
+    <div className='max-w-7xl mx-auto w-full p-4 rounded-lg shadow-md bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 animate-fade-in'>
+      <div className='text-center mb-6'>
+        <div className='flex items-center justify-start gap-4 mb-4'>
+          <Icon className='w-16 h-16 animate-bounce' />
+          <div>
+            <h1 className='text-4xl font-bold'>{cat.label}</h1>
+            <p className='text-lg mt-2 text-muted-foreground'>Explorează opțiunile pentru {cat.label.toLowerCase()}.</p>
+          </div>
         </div>
       </div>
-      <div className='mt-4 relative w-full h-64'>
-        <Image src={heroImages[category]} alt={`${cat.label} showcase`} fill className='object-cover rounded' />
+      <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden shadow-sm'>
+        <Image src={heroImages[category]} alt={`${cat.label} showcase`} fill className='object-cover' />
       </div>
-      <div className='mt-4 grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
         {subcategories.map((sub) => (
           <button
             key={sub.id}
@@ -36,13 +38,13 @@ export function Showcase({ category }: { category: string }) {
                 sub.title ? sub.title.toLowerCase().replace(' ', '-') : ''
               }`)
             }
-            className='bg-white text-black p-4 rounded hover:bg-gray-200'
+            className='bg-card p-4 rounded-lg shadow-sm lift cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-left'
           >
-            <div className='w-8 h-8'>
+            <div className='w-8 h-8 mb-2'>
               <sub.icon />
             </div>
-            <h3>{sub.title || ''}</h3>
-            <p>{sub.description}</p>
+            <h3 className='text-lg font-semibold'>{sub.title || ''}</h3>
+            <p className='text-sm text-muted-foreground mt-2'>{sub.description}</p>
           </button>
         ))}
       </div>

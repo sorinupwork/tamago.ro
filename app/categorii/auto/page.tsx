@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,50 +20,151 @@ import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
 import { mockCars } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { calculateDistance } from '@/lib/services';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+type FilterState = {
+  minEngineCapacity: string;
+  maxEngineCapacity: string;
+  minHorsepower: string;
+  maxHorsepower: string;
+  status: string;
+  brand: string;
+  fuel: string[];
+  transmission: string[];
+  bodyType: string[];
+  color: string[];
+  priceRange: number[];
+  yearRange: number[];
+  mileageRange: number[];
+  engineCapacityRange: number[];
+  horsepowerRange: number[];
+};
+
+type SortCriteria = {
+  price: 'asc' | 'desc' | null;
+  year: 'asc' | 'desc' | null;
+  mileage: 'asc' | 'desc' | null;
+  date: 'asc' | 'desc' | null;
+};
+
+type LocationData = {
+  lat: number;
+  lng: number;
+  address: string;
+  fullAddress: string;
+};
+
+type LocationFilter = {
+  location: LocationData | null;
+  radius: number;
+};
+
+const categoryMapping = {
+  vanzare: 'sell',
+  cumparare: 'buy',
+  inchiriere: 'rent',
+  licitatie: 'auction',
+} as const;
+
+const categoryLabels = {
+  sell: 'Vânzare',
+  buy: 'Cumpărare',
+  rent: 'Închiriere',
+  auction: 'Licitație',
+} as const;
 
 export default function AutoPage() {
-  const [activeTab, setActiveTab] = useState<'sell' | 'buy' | 'rent' | 'auction'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('savedSearch');
-      if (saved) {
-        const data = JSON.parse(saved);
-        return data.activeTab || 'sell';
-      }
-    }
-    return 'sell';
-  });
-  const cars = mockCars;
-  const [filters, setFilters] = useState({
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const defaultActiveTab: keyof typeof categoryMapping = 'vanzare';
+  const defaultFilters: FilterState = {
     minEngineCapacity: '',
     maxEngineCapacity: '',
     minHorsepower: '',
     maxHorsepower: '',
     status: '',
     brand: '',
-    fuel: [] as string[],
-    transmission: [] as string[],
-    bodyType: [] as string[],
-    color: [] as string[],
+    fuel: [],
+    transmission: [],
+    bodyType: [],
+    color: [],
     priceRange: [0, 100000],
     yearRange: [2000, 2023],
     mileageRange: [0, 300000],
     engineCapacityRange: [0, 5000],
     horsepowerRange: [0, 1000],
-  });
-  const [sortCriteria, setSortCriteria] = useState<{
-    price: 'asc' | 'desc' | null;
-    year: 'asc' | 'desc' | null;
-    mileage: 'asc' | 'desc' | null;
-    date: 'asc' | 'desc' | null;
-  }>({
+  };
+  const defaultSortCriteria: SortCriteria = {
     price: null,
     year: null,
     mileage: null,
     date: null,
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [locationFilter, setLocationFilter] = useState<{ location: { lat: number; lng: number; address: string; fullAddress: string } | null; radius: number }>({ location: null, radius: 50 });
+  };
+  const defaultSearchQuery = '';
+  const defaultLocationFilter: LocationFilter = { location: null, radius: 50 };
+  const defaultCurrentPage = 1;
+
+  const getInitialActiveTab = () => {
+    const categorieParam = searchParams.get('tip');
+    return categorieParam && categorieParam in categoryMapping ? (categorieParam as keyof typeof categoryMapping) : defaultActiveTab;
+  };
+  const getInitialFilters = (): FilterState => {
+    const filtersParam = searchParams.get('filters');
+    const nonDefault = filtersParam ? JSON.parse(filtersParam) : {};
+    return { ...defaultFilters, ...nonDefault };
+  };
+  const getInitialSortCriteria = (): SortCriteria => {
+    const sortParam = searchParams.get('sortCriteria');
+    const nonDefault = sortParam ? JSON.parse(sortParam) : {};
+    return { ...defaultSortCriteria, ...nonDefault };
+  };
+  const getInitialSearchQuery = () => searchParams.get('searchQuery') || defaultSearchQuery;
+  const getInitialLocationFilter = (): LocationFilter => {
+    const locationParam = searchParams.get('locationFilter');
+    const nonDefault = locationParam ? JSON.parse(locationParam) : {};
+    return { ...defaultLocationFilter, ...nonDefault };
+  };
+  const getInitialCurrentPage = () => parseInt(searchParams.get('currentPage') || defaultCurrentPage.toString());
+
+  const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(getInitialActiveTab());
+  const cars = mockCars;
+  const [filters, setFilters] = useState<FilterState>(getInitialFilters());
+  const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria());
+  const [currentPage, setCurrentPage] = useState(getInitialCurrentPage());
+  const [searchQuery, setSearchQuery] = useState(getInitialSearchQuery());
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter());
+  const [resetKey, setResetKey] = useState(0);
+  const isMobile = useIsMobile();
+
+  // Update URL when state changes, only include non-default values
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
+    // For filters, only include changed fields
+    const nonDefaultFilters: Record<string, string | number[] | string[]> = {};
+    Object.keys(filters).forEach((key) => {
+      const k = key as keyof FilterState;
+      if (JSON.stringify(filters[k]) !== JSON.stringify(defaultFilters[k])) {
+        nonDefaultFilters[k] = filters[k];
+      }
+    });
+    if (Object.keys(nonDefaultFilters).length > 0) params.set('filters', JSON.stringify(nonDefaultFilters));
+    // For sortCriteria, only include changed fields
+    const nonDefaultSort: Record<string, 'asc' | 'desc' | null> = {};
+    Object.keys(sortCriteria).forEach((key) => {
+      const k = key as keyof SortCriteria;
+      if (sortCriteria[k] !== defaultSortCriteria[k]) {
+        nonDefaultSort[k] = sortCriteria[k];
+      }
+    });
+    if (Object.keys(nonDefaultSort).length > 0) params.set('sortCriteria', JSON.stringify(nonDefaultSort));
+    if (searchQuery !== defaultSearchQuery) params.set('searchQuery', searchQuery);
+    if (JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter))
+      params.set('locationFilter', JSON.stringify(locationFilter));
+    if (currentPage !== defaultCurrentPage) params.set('currentPage', currentPage.toString());
+    const newUrl = params.toString() ? `?${params.toString()}` : '';
+    router.replace(newUrl || window.location.pathname, { scroll: false });
+  }, [activeTab, filters, sortCriteria, searchQuery, locationFilter, currentPage, router]);
 
   const uniqueBrands = useMemo(() => {
     const brands = [...new Set(cars.map((car) => car.brand))];
@@ -90,7 +193,7 @@ export default function AutoPage() {
     if (filters.transmission.length > 0) filtered = filtered.filter((car) => filters.transmission.includes(car.transmission));
     if (filters.bodyType.length > 0) filtered = filtered.filter((car) => filters.bodyType.includes(car.bodyType));
     if (filters.color.length > 0) filtered = filtered.filter((car) => filters.color.includes(car.color));
-    if (activeTab) filtered = filtered.filter((car) => car.category === activeTab);
+    if (activeTab) filtered = filtered.filter((car) => car.category === categoryMapping[activeTab]);
     const loc = locationFilter.location;
     if (loc) {
       filtered = filtered.filter((car) => {
@@ -98,7 +201,7 @@ export default function AutoPage() {
           const distance = calculateDistance(loc.lat, loc.lng, car.lat, car.lng);
           return distance <= locationFilter.radius;
         }
-        return true; // If no lat/lng, include
+        return true;
       });
     }
 
@@ -145,22 +248,24 @@ export default function AutoPage() {
   const endIndex = startIndex + perPages[currentPage - 1];
   const paginatedCars = filteredCars.slice(startIndex, endIndex);
 
-  const handleFilterChange = (key: string, value: string | number[] | string[]) => {
+  const handleFilterChange = (key: keyof FilterState, value: string | number[] | string[]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleMultiFilterChange = (key: keyof typeof filters, value: string, checked: boolean) => {
+  const handleMultiFilterChange = (key: keyof FilterState, value: string, checked: boolean) => {
     setFilters((prev) => ({
       ...prev,
       [key]: checked ? [...(prev[key] as string[]), value] : (prev[key] as string[]).filter((item) => item !== value),
     }));
   };
 
-  const removeFilter = (key: keyof typeof filters, value: string) => {
-    if (Array.isArray(filters[key])) {
-      handleMultiFilterChange(key, value, false);
+  const removeFilter = (key: keyof FilterState | 'location', value: string) => {
+    if (key === 'location') {
+      setLocationFilter({ location: null, radius: 50 });
+    } else if (Array.isArray(filters[key as keyof FilterState])) {
+      handleMultiFilterChange(key as keyof FilterState, value, false);
     } else {
-      setFilters((prev) => ({ ...prev, [key]: '' }));
+      setFilters((prev) => ({ ...prev, [key as keyof FilterState]: '' }));
     }
   };
 
@@ -191,21 +296,30 @@ export default function AutoPage() {
     setSearchQuery('');
     setLocationFilter({ location: null, radius: 50 });
     setCurrentPage(1);
+    setResetKey((prev) => prev + 1);
+    router.replace(window.location.pathname);
   };
 
-  const saveSearch = () => {
-    const searchData = { filters, sortCriteria, searchQuery, activeTab, locationFilter };
-    localStorage.setItem('savedSearch', JSON.stringify(searchData));
-    alert('Căutare salvată!');
+  const saveSearch = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copiat în clipboard!', {
+        description: window.location.href,
+      });
+    } catch {
+      toast.error('Eroare la copierea link-ului.');
+    }
   };
 
   const appliedFilters = [
-    ...filters.fuel.map((f) => ({ key: 'fuel', value: f, label: `Combustibil: ${f}` })),
-    ...filters.transmission.map((t) => ({ key: 'transmission', value: t, label: `Transmisie: ${t}` })),
-    ...filters.bodyType.map((b) => ({ key: 'bodyType', value: b, label: `Caroserie: ${b}` })),
-    ...filters.color.map((c) => ({ key: 'color', value: c, label: `Culoare: ${c}` })),
+    ...filters.fuel.map((f: string) => ({ key: 'fuel', value: f, label: `Combustibil: ${f}` })),
+    ...filters.transmission.map((t: string) => ({ key: 'transmission', value: t, label: `Transmisie: ${t}` })),
+    ...filters.bodyType.map((b: string) => ({ key: 'bodyType', value: b, label: `Caroserie: ${b}` })),
+    ...filters.color.map((c: string) => ({ key: 'color', value: c, label: `Culoare: ${c}` })),
     ...(filters.brand ? [{ key: 'brand', value: filters.brand, label: `Marcă: ${filters.brand}` }] : []),
-    ...(locationFilter.location ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }] : []),
+    ...(locationFilter.location
+      ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }]
+      : []),
     ...(filters.minEngineCapacity || filters.maxEngineCapacity
       ? [
           {
@@ -295,32 +409,33 @@ export default function AutoPage() {
       : []),
   ];
 
-  const handleLocationChange = (location: { lat: number; lng: number; address: string; fullAddress: string } | null, radius: number) => {
+  const handleLocationChange = (location: LocationData | null, radius: number) => {
     setLocationFilter({ location, radius });
   };
 
   return (
     <div className='container mx-auto max-w-7xl'>
-      <Breadcrumbs items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]} />
-
-      <h1 className='text-3xl font-bold mb-4 text-center md:text-left'>Auto - Mașini</h1>
+      <Breadcrumbs
+        items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]}
+        className='mb-4'
+      />
 
       {/* Tabs */}
-      <div className='flex flex-wrap gap-2 mb-6 justify-center md:justify-start'>
-        {(['sell', 'buy', 'rent', 'auction'] as const).map((tab) => (
+      <div className='flex flex-wrap gap-2 mb-4 justify-center md:justify-start'>
+        {(Object.keys(categoryMapping) as (keyof typeof categoryMapping)[]).map((tab) => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'default' : 'outline'}
             onClick={() => setActiveTab(tab)}
-            className='transition-all duration-200 hover:scale-105'
+            className='pinch grow cursor-pointer'
           >
-            {tab === 'sell' ? 'Vânzare' : tab === 'buy' ? 'Cumpărare' : tab === 'rent' ? 'Închiriere' : 'Licitație'}
+            {tab === 'vanzare' ? 'Vânzare' : tab === 'cumparare' ? 'Cumpărare' : tab === 'inchiriere' ? 'Închiriere' : 'Licitație'}
           </Button>
         ))}
       </div>
 
       {/* Search Bar */}
-      <div className='mb-6 flex gap-2 justify-center md:justify-start'>
+      <div className='mb-4 flex flex-col sm:flex-row gap-2 justify-center md:justify-start'>
         <AppInput
           placeholder='Caută mașini (marcă, model...)'
           value={searchQuery}
@@ -328,6 +443,7 @@ export default function AutoPage() {
           className='flex-1'
         />
         <AppLocationInput
+          key={resetKey}
           value={locationFilter.location?.address || ''}
           onChange={handleLocationChange}
           placeholder='Locație'
@@ -346,7 +462,7 @@ export default function AutoPage() {
                 key={`${filter.key}-${filter.value}`}
                 variant='secondary'
                 className='cursor-pointer'
-                onClick={() => removeFilter(filter.key as keyof typeof filters, filter.value)}
+                onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
               >
                 {filter.label} ×
               </Badge>
@@ -362,8 +478,8 @@ export default function AutoPage() {
       </div>
 
       {/* Filters */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6'>
-        <div className='flex items-center gap-6 col-span-full'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
+        <div className='flex items-center gap-4 col-span-full'>
           <AppSlider
             label={`Interval Preț: $${filters.priceRange[0]} - $${filters.priceRange[1]}`}
             value={filters.priceRange}
@@ -470,8 +586,8 @@ export default function AutoPage() {
       </div>
 
       {/* Sort */}
-      <div className='mb-6 flex justify-center md:justify-start'>
-        <div className='flex gap-2'>
+      <div className='mb-4 flex justify-center md:justify-start'>
+        <div className='flex grow flex-col sm:flex-row sm:flex-wrap gap-2'>
           <AppSelect
             options={[
               { value: 'none', label: 'Sortează după preț' },
@@ -479,9 +595,11 @@ export default function AutoPage() {
               { value: 'desc', label: 'Preț: Descrescător' },
             ]}
             value={sortCriteria.price || 'none'}
-            onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }))}
+            onValueChange={(value) =>
+              setSortCriteria((prev: typeof sortCriteria) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }))
+            }
             placeholder='Sortează după preț'
-            className='w-full sm:w-48'
+            className='flex-1'
           />
           <AppSelect
             options={[
@@ -490,9 +608,11 @@ export default function AutoPage() {
               { value: 'desc', label: 'An: Nou la Vechi' },
             ]}
             value={sortCriteria.year || 'none'}
-            onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }))}
+            onValueChange={(value) =>
+              setSortCriteria((prev: typeof sortCriteria) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }))
+            }
             placeholder='Sortează după an'
-            className='w-full sm:w-48'
+            className='flex-1'
           />
           <AppSelect
             options={[
@@ -502,10 +622,10 @@ export default function AutoPage() {
             ]}
             value={sortCriteria.mileage || 'none'}
             onValueChange={(value) =>
-              setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }))
+              setSortCriteria((prev: typeof sortCriteria) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }))
             }
             placeholder='Sortează după kilometraj'
-            className='w-full sm:w-48'
+            className='flex-1'
           />
           <AppSelect
             options={[
@@ -514,9 +634,11 @@ export default function AutoPage() {
               { value: 'asc', label: 'Cele Mai Vechi' },
             ]}
             value={sortCriteria.date || 'none'}
-            onValueChange={(value) => setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }))}
+            onValueChange={(value) =>
+              setSortCriteria((prev: typeof sortCriteria) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }))
+            }
             placeholder='Sortează după dată'
-            className='w-full sm:w-48'
+            className='flex-1'
           />
         </div>
       </div>
@@ -525,24 +647,18 @@ export default function AutoPage() {
       <div
         className={cn(
           'grid gap-6',
-          paginatedCars.length === 1 ? 'grid-cols-1' : paginatedCars.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+          isMobile ? 'grid-cols-1' : paginatedCars.length === 1 ? 'grid-cols-1' : paginatedCars.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
         )}
       >
         {paginatedCars.map((car) => (
           <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`} className=''>
-            <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer animate-in fade-in-0 slide-in-from-bottom-4'>
+            <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-102 cursor-pointer animate-in fade-in-0 slide-in-from-bottom-4'>
               <Image src={car.images[0]} alt={car.title} width={400} height={192} className='w-full h-48 object-cover' />
               <CardHeader className='pb-2'>
                 <div className='flex justify-between items-start'>
                   <CardTitle className='text-lg font-semibold line-clamp-2'>{car.title}</CardTitle>
                   <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='ml-2'>
-                    {car.category === 'sell'
-                      ? 'Vânzare'
-                      : car.category === 'buy'
-                      ? 'Cumpărare'
-                      : car.category === 'rent'
-                      ? 'Închiriere'
-                      : 'Licitație'}
+                    {categoryLabels[car.category as keyof typeof categoryLabels]}
                   </Badge>
                 </div>
                 <p className='text-2xl font-bold text-green-600'>${car.price.toLocaleString('en-US')}</p>

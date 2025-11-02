@@ -15,15 +15,22 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '../theme/ModeToggle';
-import { subcategories } from '@/lib/mockData'; 
+import { subcategories } from '@/lib/mockData';
 
 export function AppNavActions() {
   const [open, setOpen] = React.useState(false);
 
+  const mainCategories = [
+    { title: 'Vânzare', href: '/categorii?tip=vanzare' },
+    { title: 'Cumpărare', href: '/categorii?tip=cumparare' },
+    { title: 'Închiriere', href: '/categorii?tip=inchiriere' },
+    { title: 'Licitație', href: '/categorii?tip=licitatie' },
+  ];
+
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button variant='outline' className='hidden sm:flex w-64 justify-start text-left cursor-pointer' onClick={() => setOpen(true)}>
+        <Button variant='outline' className='hidden sm:flex w-52 justify-start text-left cursor-pointer' onClick={() => setOpen(true)}>
           <Search className='h-4 w-4 mr-2' />
           Caută...
         </Button>
@@ -62,6 +69,14 @@ export function AppNavActions() {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading='Categorii'>
+            {mainCategories.map((cat) => (
+              <CommandItem asChild key={cat.title} className='cursor-pointer'>
+                <Link href={cat.href}>{cat.title}</Link>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading='Subcategorii'>
             {subcategories.map((component) => (
               <CommandItem asChild key={component.title} className='cursor-pointer'>
                 <Link href={component.href}>{component.title}</Link>

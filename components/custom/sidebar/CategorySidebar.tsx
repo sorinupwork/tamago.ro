@@ -30,6 +30,20 @@ type CategorySidebarProps = {
   onCategoryChange?: (category: string, subcategory?: string) => void;
 };
 
+const categoryMapping = {
+  vanzare: 'sell',
+  cumparare: 'buy',
+  inchiriere: 'rent',
+  licitatie: 'auction',
+} as const;
+
+const reverseMapping = {
+  sell: 'vanzare',
+  buy: 'cumparare',
+  rent: 'inchiriere',
+  auction: 'licitatie',
+} as const;
+
 export function CategorySidebar({
   selectedCategory: selectedCategoryProp,
   selectedSubcategory: selectedSubcategoryProp,
@@ -38,15 +52,19 @@ export function CategorySidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Use searchParams from Next instead of reading window.location or patching history
-  const searchCategory = (searchParams?.get('category') as string) ?? undefined;
+  const searchCategory = (searchParams?.get('tip') as string) ?? undefined;
   const searchSubcategory = searchParams?.get('subcategory') ?? undefined;
 
-  const selectedCategory = selectedCategoryProp ?? (searchCategory as string) ?? 'sell';
+  const selectedCategory =
+    selectedCategoryProp ?? (searchCategory ? categoryMapping[searchCategory as keyof typeof categoryMapping] : 'sell') ?? 'sell';
   const selectedSubcategory = selectedSubcategoryProp ?? searchSubcategory ?? undefined;
 
   const navigate =
-    onCategoryChange ?? ((cat: string, sub?: string) => router.push(`/categorii?category=${cat}${sub ? `&subcategory=${sub}` : ''}`));
+    onCategoryChange ??
+    ((cat: string, sub?: string) => {
+      const tipValue = reverseMapping[cat as keyof typeof reverseMapping] || cat;
+      router.push(`/categorii?tip=${tipValue}${sub ? `&subcategory=${sub}` : ''}`);
+    });
 
   const [openCategory, setOpenCategory] = useState<string | null>(selectedCategory);
 

@@ -40,8 +40,17 @@ type CategoriesClientProps = {
   initialSubcategory?: string;
 };
 
+const categoryMapping = {
+  vanzare: 'sell',
+  cumparare: 'buy',
+  inchiriere: 'rent',
+  licitatie: 'auction',
+} as const;
+
 export default function CategoriesClient({ initialCategory, initialSubcategory }: CategoriesClientProps) {
-  const selectedCategory = (initialCategory as 'sell' | 'buy' | 'rent' | 'auction') || 'sell';
+  const selectedCategory = (
+    initialCategory && initialCategory in categoryMapping ? categoryMapping[initialCategory as keyof typeof categoryMapping] : 'sell'
+  ) as 'sell' | 'buy' | 'rent' | 'auction';
   const selectedSubcategory = initialSubcategory ?? undefined;
 
   const [previewData, setPreviewData] = useState<PreviewData>({
@@ -89,7 +98,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
               ? [
                   {
                     label: categories.find((c) => c.key === selectedCategory)?.label || '',
-                    href: `/categorii?category=${selectedCategory}`,
+                    href: `/categorii?tip=${initialCategory}`,
                   },
                   { label: subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title || '' },
                 ]
@@ -98,7 +107,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         />
       </header>
       <main className='flex flex-1 flex-col lg:flex-row gap-4'>
-        <div className='flex-1'>
+        <div className='flex-1 p-4'>
           {selectedSubcategory ? (
             <Card className='animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
               <CardHeader>

@@ -17,15 +17,16 @@ interface BreadcrumbItem {
 
 interface BreadcrumbsProps {
   items: BreadcrumbItem[];
+  className?: string;
 }
 
-export default function Breadcrumbs({ items }: BreadcrumbsProps) {
+export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   const pathname = usePathname();
 
   if (pathname === '/') return null;
 
   return (
-    <Breadcrumb>
+    <Breadcrumb className={className}>
       <BreadcrumbList>
         {items.map((item, index) => (
           <div key={index} className='flex items-center'>

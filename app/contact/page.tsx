@@ -61,7 +61,15 @@ export default function ContactPage() {
   return (
     <>
       <div className='flex flex-col w-full gap-4'>
-        <div className='flex flex-col lg:flex-row flex-1 gap-4'>
+        <MarketplaceContactSection
+          title='Conectează-te pentru Tranzacții'
+          description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
+          cards={contactCards}
+          users={filteredUsers}
+          showMap={true}
+        />
+
+        <div className='flex flex-col lg:flex-row flex-1 gap-4 max-w-7xl mx-auto w-full'>
           <AppChatFilter
             search={search}
             setSearch={setSearch}
@@ -81,14 +89,6 @@ export default function ContactPage() {
             sendMessage={sendMessage}
           />
         </div>
-
-        <MarketplaceContactSection
-          title='Conectează-te pentru Tranzacții'
-          description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
-          cards={contactCards}
-          users={filteredUsers}
-          showMap={true}
-        />
       </div>
     </>
   );
