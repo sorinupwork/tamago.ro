@@ -22,7 +22,6 @@ interface BreadcrumbsProps {
 export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   const pathname = usePathname();
 
-  // Don't render on homepage
   if (pathname === '/') return null;
 
   return (
@@ -32,11 +31,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
           <div key={index} className='flex items-center'>
             {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
-              {item.href ? (
-                <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
-              ) : (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
-              )}
+              {item.href ? <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink> : <BreadcrumbPage>{item.label}</BreadcrumbPage>}
             </BreadcrumbItem>
           </div>
         ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Control } from 'react-hook-form';
@@ -9,15 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MediaUploader } from '@/components/custom/MediaUploader';
-import { rentSchema, RentFormData } from '@/lib/validations';
+import { MediaUploader } from '@/components/custom/media/MediaUploader';
+import { buySchema, BuyFormData } from '@/lib/validations';
 import dynamic from 'next/dynamic';
-import { Calendar, Clock, MapPin } from 'lucide-react';
-
-// Dynamically import Editor
+import { Search, DollarSign, MapPin } from 'lucide-react';
 const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
 
-// Reusable Form Field Component
 const ReusableFormField = ({
   control,
   name,
@@ -26,8 +23,8 @@ const ReusableFormField = ({
   type = 'text',
   ...props
 }: {
-  control: Control<RentFormData>;
-  name: keyof RentFormData;
+  control: Control<BuyFormData>;
+  name: keyof BuyFormData;
   label: React.ReactNode;
   placeholder: string;
   type?: string;
@@ -54,7 +51,7 @@ const ReusableFormField = ({
   />
 );
 
-interface RentFormProps {
+interface BuyFormProps {
   onPreviewUpdate: (data: {
     title: string;
     description: string;
@@ -65,11 +62,10 @@ interface RentFormProps {
   }) => void;
 }
 
-export function RentForm({ onPreviewUpdate }: RentFormProps) {
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const form = useForm<RentFormData>({
-    resolver: zodResolver(rentSchema),
-    defaultValues: { title: '', description: '', price: 0, location: '', duration: '' },
+export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
+  const form = useForm<BuyFormData>({
+    resolver: zodResolver(buySchema),
+    defaultValues: { title: '', description: '', price: 0, location: '', budget: 0 },
   });
 
   const watchedValues = useWatch({ control: form.control });
@@ -78,28 +74,37 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || 0,
+      price: watchedValues.budget || 0,
       location: watchedValues.location || '',
-      category: 'rent',
-      uploadedFiles,
+      category: 'buy',
+      uploadedFiles: [],
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
+  }, [watchedValues.title, watchedValues.description, watchedValues.budget, watchedValues.location, onPreviewUpdate]);
 
-  const onSubmit = (data: RentFormData) => {
-    console.log('Rent Form Data:', data);
+  const onSubmit = (data: BuyFormData) => {
+    console.log('Buy Form Data:', data);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <ReusableFormField control={form.control} name='title' label='Titlu' placeholder='Introduceți titlul' />
           <ReusableFormField
             control={form.control}
-            name='price'
+            name='title'
             label={
               <>
-                <Clock className='h-4 w-4' /> Preț pe Zi
+                <Search className='h-4 w-4' /> Titlu
+              </>
+            }
+            placeholder='Introduceți titlul căutării'
+          />
+          <ReusableFormField
+            control={form.control}
+            name='budget'
+            label={
+              <>
+                <DollarSign className='h-4 w-4' /> Buget
               </>
             }
             placeholder='0'
@@ -122,9 +127,9 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
           name='description'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descriere</FormLabel>
+              <FormLabel>Descriere Detaliată</FormLabel>
               <FormControl>
-                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți închirierea...' />
+                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți ce căutați...' />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,24 +139,21 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <FormField
             control={form.control}
-            name='duration'
+            name='price'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  <Calendar className='h-4 w-4 inline mr-2' />
-                  Durată
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel>Preț Maxim Dorit</FormLabel>
+                <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder='Selectați durata' />
+                      <SelectValue placeholder='Selectați prețul' />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value='1 zi'>1 Zi</SelectItem>
-                    <SelectItem value='1 săptămână'>1 Săptămână</SelectItem>
-                    <SelectItem value='1 lună'>1 Lună</SelectItem>
-                    <SelectItem value='3 luni'>3 Luni</SelectItem>
+                    <SelectItem value='5000'>Sub 5,000€</SelectItem>
+                    <SelectItem value='10000'>Sub 10,000€</SelectItem>
+                    <SelectItem value='20000'>Sub 20,000€</SelectItem>
+                    <SelectItem value='50000'>Sub 50,000€</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -160,19 +162,20 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
           />
           <FormField
             control={form.control}
-            name='type'
+            name='preferences'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tip Închiriere</FormLabel>
+                <FormLabel>Preferințe</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder='Selectați tipul' />
+                      <SelectValue placeholder='Selectați preferințe' />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value='short'>Scurtă Durată</SelectItem>
-                    <SelectItem value='long'>Lungă Durată</SelectItem>
+                    <SelectItem value='new'>Nou</SelectItem>
+                    <SelectItem value='used'>Second Hand</SelectItem>
+                    <SelectItem value='luxury'>Lux</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -182,9 +185,9 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
         </div>
 
         <div className='space-y-2'>
-          <FormLabel>Opțiuni Suplimentare</FormLabel>
+          <FormLabel>Caracteristici Dorite</FormLabel>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-            {['Asigurare Inclusă', 'Km Nelimitat', 'Suport 24/7', 'Curățenie'].map((option) => (
+            {['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°', 'Navigație', 'Bluetooth'].map((option) => (
               <div key={option} className='flex items-center space-x-2'>
                 <Checkbox id={option} />
                 <label htmlFor={option} className='text-sm'>
@@ -195,12 +198,12 @@ export function RentForm({ onPreviewUpdate }: RentFormProps) {
           </div>
         </div>
 
-        <MediaUploader category='rent' onUpload={(urls) => setUploadedFiles(urls)} />
+        <MediaUploader category='buy' />
         <Button
           type='submit'
-          className='w-full bg-linear-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 transition-all duration-300 hover:scale-105 shadow-lg'
+          className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
         >
-          Trimite Închiriere
+          Trimite Căutare
         </Button>
       </form>
     </Form>

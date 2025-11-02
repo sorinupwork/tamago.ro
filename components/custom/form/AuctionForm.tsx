@@ -7,14 +7,11 @@ import { Control } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MediaUploader } from '@/components/custom/MediaUploader';
+import { MediaUploader } from '@/components/custom/media/MediaUploader';
 import { auctionSchema, AuctionFormData } from '@/lib/validations';
 import dynamic from 'next/dynamic';
+const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
 
-// Dynamically import Editor
-const Editor = dynamic(() => import('react-simple-wysiwyg').then(mod => ({ default: mod.default })), { ssr: false });
-
-// Reusable Form Field Component
 const ReusableFormField = ({
   control,
   name,
@@ -91,11 +88,7 @@ export function AuctionForm({ onPreviewUpdate }: AuctionFormProps) {
             <FormItem>
               <FormLabel>Descriere</FormLabel>
               <FormControl>
-                <Editor
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  placeholder='Introduceți descrierea'
-                />
+                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Introduceți descrierea' />
               </FormControl>
               <FormMessage />
             </FormItem>

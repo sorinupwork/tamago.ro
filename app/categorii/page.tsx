@@ -5,14 +5,14 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Preview } from '@/components/custom/Preview';
+import { Preview } from '@/components/custom/media/Preview';
 import { AppSidebar } from '@/components/custom/sidebar/AppSidebar';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 
-const SellForm = dynamic(() => import('@/components/custom/forms/SellForm').then((mod) => ({ default: mod.SellForm })), { ssr: false });
-const BuyForm = dynamic(() => import('@/components/custom/forms/BuyForm').then((mod) => ({ default: mod.BuyForm })), { ssr: false });
-const RentForm = dynamic(() => import('@/components/custom/forms/RentForm').then((mod) => ({ default: mod.RentForm })), { ssr: false });
-const AuctionForm = dynamic(() => import('@/components/custom/forms/AuctionForm').then((mod) => ({ default: mod.AuctionForm })), {
+const SellForm = dynamic(() => import('@/components/custom/form/SellForm').then((mod) => ({ default: mod.SellForm })), { ssr: false });
+const BuyForm = dynamic(() => import('@/components/custom/form/BuyForm').then((mod) => ({ default: mod.BuyForm })), { ssr: false });
+const RentForm = dynamic(() => import('@/components/custom/form/RentForm').then((mod) => ({ default: mod.RentForm })), { ssr: false });
+const AuctionForm = dynamic(() => import('@/components/custom/form/AuctionForm').then((mod) => ({ default: mod.AuctionForm })), {
   ssr: false,
 });
 

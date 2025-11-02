@@ -26,7 +26,6 @@ export default function ChatDrawer() {
     const newMessages = [...messages, { text: input, isUser: true }];
     setMessages(newMessages);
     setInput('');
-    // Mock operator response
     setTimeout(() => {
       setMessages([...newMessages, { text: 'Mulțumesc pentru mesaj! Cum vă pot ajuta mai departe?', isUser: false }]);
     }, 1000);

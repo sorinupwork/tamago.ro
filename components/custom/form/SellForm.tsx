@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Control } from 'react-hook-form';
@@ -9,15 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MediaUploader } from '@/components/custom/MediaUploader';
-import { buySchema, BuyFormData } from '@/lib/validations';
+import { MediaUploader } from '@/components/custom/media/MediaUploader';
+import { sellSchema, SellFormData } from '@/lib/validations';
 import dynamic from 'next/dynamic';
-import { Search, DollarSign, MapPin } from 'lucide-react';
-
-// Dynamically import Editor
+import { Car, Fuel, Settings } from 'lucide-react';
 const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
 
-// Reusable Form Field Component
 const ReusableFormField = ({
   control,
   name,
@@ -26,8 +23,8 @@ const ReusableFormField = ({
   type = 'text',
   ...props
 }: {
-  control: Control<BuyFormData>;
-  name: keyof BuyFormData;
+  control: Control<SellFormData>;
+  name: keyof SellFormData;
   label: React.ReactNode;
   placeholder: string;
   type?: string;
@@ -54,7 +51,7 @@ const ReusableFormField = ({
   />
 );
 
-interface BuyFormProps {
+interface SellFormProps {
   onPreviewUpdate: (data: {
     title: string;
     description: string;
@@ -65,10 +62,11 @@ interface BuyFormProps {
   }) => void;
 }
 
-export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
-  const form = useForm<BuyFormData>({
-    resolver: zodResolver(buySchema),
-    defaultValues: { title: '', description: '', price: 0, location: '', budget: 0 },
+export function SellForm({ onPreviewUpdate }: SellFormProps) {
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const form = useForm<SellFormData>({
+    resolver: zodResolver(sellSchema),
+    defaultValues: { title: '', description: '', price: 0, location: '', features: '' },
   });
 
   const watchedValues = useWatch({ control: form.control });
@@ -77,62 +75,36 @@ export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.budget || 0,
+      price: watchedValues.price || 0,
       location: watchedValues.location || '',
-      category: 'buy',
-      uploadedFiles: [],
+      category: 'sell',
+      uploadedFiles,
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.budget, watchedValues.location, onPreviewUpdate]);
+  }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
 
-  const onSubmit = (data: BuyFormData) => {
-    console.log('Buy Form Data:', data);
+  const onSubmit = (data: SellFormData) => {
+    console.log('Sell Form Data:', { ...data, uploadedFiles });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <ReusableFormField
-            control={form.control}
-            name='title'
-            label={
-              <>
-                <Search className='h-4 w-4' /> Titlu
-              </>
-            }
-            placeholder='Introduceți titlul căutării'
-          />
-          <ReusableFormField
-            control={form.control}
-            name='budget'
-            label={
-              <>
-                <DollarSign className='h-4 w-4' /> Buget
-              </>
-            }
-            placeholder='0'
-            type='number'
-          />
+          <ReusableFormField control={form.control} name='title' label='Titlu' placeholder='Introduceți titlul' />
+          <ReusableFormField control={form.control} name='price' label='Preț' placeholder='0' type='number' />
         </div>
-        <ReusableFormField
-          control={form.control}
-          name='location'
-          label={
-            <>
-              <MapPin className='h-4 w-4' /> Locație
-            </>
-          }
-          placeholder='Introduceți locația'
-        />
+        <ReusableFormField control={form.control} name='location' label='Locație' placeholder='Introduceți locația' />
 
         <FormField
           control={form.control}
           name='description'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descriere Detaliată</FormLabel>
+              <FormLabel className='flex items-center gap-2'>
+                <Car className='h-4 w-4' /> Descriere
+              </FormLabel>
               <FormControl>
-                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți ce căutați...' />
+                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți produsul detaliat...' />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -142,21 +114,20 @@ export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <FormField
             control={form.control}
-            name='price'
+            name='status'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Preț Maxim Dorit</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder='Selectați prețul' />
+                      <SelectValue placeholder='Selectați status' />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value='5000'>Sub 5,000€</SelectItem>
-                    <SelectItem value='10000'>Sub 10,000€</SelectItem>
-                    <SelectItem value='20000'>Sub 20,000€</SelectItem>
-                    <SelectItem value='50000'>Sub 50,000€</SelectItem>
+                    <SelectItem value='new'>Nou</SelectItem>
+                    <SelectItem value='used'>Second Hand</SelectItem>
+                    <SelectItem value='damaged'>Deteriorat</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -165,20 +136,23 @@ export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
           />
           <FormField
             control={form.control}
-            name='preferences'
+            name='fuel'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Preferințe</FormLabel>
+                <FormLabel className='flex items-center gap-2'>
+                  <Fuel className='h-4 w-4' /> Combustibil
+                </FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder='Selectați preferințe' />
+                      <SelectValue placeholder='Selectați combustibil' />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value='new'>Nou</SelectItem>
-                    <SelectItem value='used'>Second Hand</SelectItem>
-                    <SelectItem value='luxury'>Lux</SelectItem>
+                    <SelectItem value='Petrol'>Benzină</SelectItem>
+                    <SelectItem value='Diesel'>Motorină</SelectItem>
+                    <SelectItem value='Hybrid'>Hibrid</SelectItem>
+                    <SelectItem value='Electric'>Electric</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -187,10 +161,26 @@ export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name='features'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className='flex items-center gap-2'>
+                <Settings className='h-4 w-4' /> Caracteristici
+              </FormLabel>
+              <FormControl>
+                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Listează caracteristicile...' />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className='space-y-2'>
-          <FormLabel>Caracteristici Dorite</FormLabel>
+          <FormLabel>Opțiuni Adiționale</FormLabel>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-            {['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°', 'Navigație', 'Bluetooth'].map((option) => (
+            {['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'].map((option) => (
               <div key={option} className='flex items-center space-x-2'>
                 <Checkbox id={option} />
                 <label htmlFor={option} className='text-sm'>
@@ -201,12 +191,12 @@ export function BuyForm({ onPreviewUpdate }: BuyFormProps) {
           </div>
         </div>
 
-        <MediaUploader category='buy' />
+        <MediaUploader category='sell' onUpload={(urls) => setUploadedFiles(urls)} />
         <Button
           type='submit'
           className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
         >
-          Trimite Căutare
+          Trimite Vânzare
         </Button>
       </form>
     </Form>
