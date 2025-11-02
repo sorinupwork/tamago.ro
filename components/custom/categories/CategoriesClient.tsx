@@ -24,7 +24,7 @@ const AuctionAutoForm = dynamic(
   { ssr: false }
 );
 
-type PreviewData = {
+export type PreviewData = {
   title: string;
   description: string;
   price?: number;
@@ -62,7 +62,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     uploadedFiles: [],
   });
 
-  const onPreviewUpdate = useCallback((data: typeof previewData) => {
+  const onPreviewUpdate = useCallback((data: PreviewData) => {
     setPreviewData(data);
   }, []);
 
@@ -106,17 +106,17 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           ]}
         />
       </header>
-      <main className='flex flex-1 flex-col lg:flex-row gap-4'>
-        <div className='flex-1 p-4'>
+      <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-hidden'>
+        <div className='flex-1 p-4 overflow-hidden'>
           {selectedSubcategory ? (
-            <Card className='animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
-              <CardHeader>
+            <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
+              <CardHeader className='flex-shrink-0'>
                 <CardTitle className='text-2xl font-bold text-center'>
                   Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
                   {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='flex-1 overflow-auto'>
                 <Suspense fallback={<div>Loading...</div>}>{getForm()}</Suspense>
               </CardContent>
             </Card>
@@ -125,8 +125,10 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           )}
         </div>
         {selectedSubcategory && (
-          <div className='w-full lg:w-1/3'>
-            <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
+          <div className='flex-1 p-4 overflow-hidden'>
+            <div className='h-full'>
+              <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
+            </div>
           </div>
         )}
       </main>

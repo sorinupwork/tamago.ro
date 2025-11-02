@@ -21,7 +21,7 @@ export function Preview({ title, description, price, location, category, uploade
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
       </CardHeader>
-      <CardContent className='space-y-4'>
+      <CardContent className='space-y-4 overflow-hidden'>
         <div className='flex justify-between items-start'>
           <h3 className='text-lg font-semibold'>{title || 'Titlu Postare'}</h3>
           <Badge variant={category === 'auction' ? 'destructive' : 'secondary'}>
@@ -51,7 +51,7 @@ export function Preview({ title, description, price, location, category, uploade
           </Carousel>
         )}
 
-        <div className='prose prose-sm max-w-none' dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }} />
+        <div className='prose prose-sm max-w-none break-words' dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }} />
 
         <p className='text-xs text-muted-foreground'>Adăugat: {new Date().toLocaleDateString('ro-RO')}</p>
       </CardContent>

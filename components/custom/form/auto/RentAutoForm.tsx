@@ -3,72 +3,42 @@
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Control } from 'react-hook-form';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field';
+import FormTextarea from '@/components/custom/form/controls/FormTextarea';
 import { MediaUploader } from '@/components/custom/media/MediaUploader';
 import { auto, AutoRentFormData } from '@/lib/validations';
-import dynamic from 'next/dynamic';
 import { Car, Settings } from 'lucide-react';
-const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
+import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
+import { submitRentAutoForm } from '@/actions/auto/actions';
+import { toast } from 'sonner';
 
-const ReusableFormField = ({
-  control,
-  name,
-  label,
-  placeholder,
-  type = 'text',
-  ...props
-}: {
-  control: Control<AutoRentFormData>;
-  name: keyof AutoRentFormData;
-  label: React.ReactNode;
-  placeholder: string;
-  type?: string;
-  [key: string]: unknown;
-}) => (
-  <FormField
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <FormItem className='space-y-2'>
-        <FormLabel className='text-sm font-medium flex items-center gap-2'>{label}</FormLabel>
-        <FormControl>
-          <Input
-            type={type}
-            placeholder={placeholder}
-            {...field}
-            {...props}
-            className='transition-all duration-200 focus:ring-2 focus:ring-primary'
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
-
-interface RentAutoFormProps {
-  onPreviewUpdate: (data: {
-    title: string;
-    description: string;
-    price: number;
-    location: string;
-    category: string;
-    uploadedFiles: string[];
-    duration: string;
-  }) => void;
-  subcategory?: string;
-}
-
-export function RentAutoForm({ onPreviewUpdate, subcategory }: RentAutoFormProps) {
+export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [options, setOptions] = useState<string[]>([]);
+  const [uploaderKey, setUploaderKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const form = useForm<AutoRentFormData>({
-    resolver: zodResolver(auto.rentSchema),
-    defaultValues: { title: '', description: '', price: 0, location: '', duration: '' },
+    resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
+    defaultValues: { title: '', description: '', price: 0, location: '', duration: '', uploadedFiles: [] },
   });
 
   const watchedValues = useWatch({ control: form.control });
@@ -93,125 +63,154 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: RentAutoFormProps
     watchedValues.duration,
   ]);
 
-  const onSubmit = (data: AutoRentFormData) => {
-    console.log('Rent Form Data:', { ...data, uploadedFiles });
+  const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
+  const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {
+    setOptions((prev) => (checked ? (prev.includes(opt) ? prev : [...prev, opt]) : prev.filter((o) => o !== opt)));
+  };
+
+  const onSubmit: SubmitHandler<AutoRentFormData> = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const result = await submitRentAutoForm({ ...data, uploadedFiles, options });
+      if (result.success) {
+        toast.success('Formular trimis cu succes!');
+        form.reset();
+        setUploadedFiles([]);
+        setOptions([]);
+        setUploaderKey((k) => k + 1);
+        setUploadError(false);
+      } else {
+        toast.error('Eroare la trimiterea formularului.');
+      }
+    } catch {
+      toast.error('Eroare la trimiterea formularului.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <ReusableFormField control={form.control} name='title' label='Titlu' placeholder='Introduceți titlul' />
-          <ReusableFormField control={form.control} name='price' label='Preț' placeholder='0' type='number' />
-        </div>
-        <ReusableFormField control={form.control} name='location' label='Locație' placeholder='Introduceți locația' />
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-6'>
+      <FieldSet>
+        <FieldGroup>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Field>
+              <FieldLabel htmlFor='title'>Titlu</FieldLabel>
+              <Input {...form.register('title')} placeholder='Introduceți titlul' />
+              <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor='price'>Preț</FieldLabel>
+              <Input {...form.register('price', { valueAsNumber: true })} type='number' placeholder='0' min={0} step={0.01} />
+              <FieldError errors={form.formState.errors.price ? [form.formState.errors.price] : undefined} />
+            </Field>
+          </div>
 
-        <FormField
-          control={form.control}
-          name='description'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className='flex items-center gap-2'>
-                <Car className='h-4 w-4' /> Descriere
-              </FormLabel>
-              <FormControl>
-                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți produsul detaliat...' />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <Field>
+            <FieldLabel htmlFor='location'>Locație</FieldLabel>
+            <Input {...form.register('location')} placeholder='Introduceți locația' />
+            <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
+          </Field>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <FormField
-            control={form.control}
-            name='status'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Selectați status' />
-                    </SelectTrigger>
-                  </FormControl>
+          <Field>
+            <FieldLabel htmlFor='duration'>Durată</FieldLabel>
+            <Input {...form.register('duration')} placeholder='e.g., 1 lună' />
+            <FieldError errors={form.formState.errors.duration ? [form.formState.errors.duration] : undefined} />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor='description' className='flex items-center gap-2'>
+              <Car className='h-4 w-4' /> Descriere
+            </FieldLabel>
+            <FormTextarea value={form.watch('description')} onChange={(v) => form.setValue('description', v)} placeholder='Descrieți produsul detaliat...' />
+            <FieldError errors={form.formState.errors.description ? [form.formState.errors.description] : undefined} />
+          </Field>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Field>
+              <FieldLabel htmlFor='status'>Status</FieldLabel>
+              <Select value={form.watch('status')} onValueChange={(v) => form.setValue('status', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Selectați status' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='new'>Nou</SelectItem>
+                  <SelectItem value='used'>Second Hand</SelectItem>
+                  <SelectItem value='damaged'>Deteriorat</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.status ? [form.formState.errors.status] : undefined} />
+            </Field>
+            {subcategory === 'auto' && (
+              <Field>
+                <FieldLabel htmlFor='fuel' className='flex items-center gap-2'>
+                  <Car className='h-4 w-4' /> Combustibil
+                </FieldLabel>
+                <Select value={form.watch('fuel')} onValueChange={(v) => form.setValue('fuel', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Selectați combustibil' />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='new'>Nou</SelectItem>
-                    <SelectItem value='used'>Second Hand</SelectItem>
-                    <SelectItem value='damaged'>Deteriorat</SelectItem>
+                    <SelectItem value='Petrol'>Benzină</SelectItem>
+                    <SelectItem value='Diesel'>Motorină</SelectItem>
+                    <SelectItem value='Hybrid'>Hibrid</SelectItem>
+                    <SelectItem value='Electric'>Electric</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
+                <FieldError errors={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined} />
+              </Field>
             )}
-          />
-          {subcategory === 'auto' && (
-            <FormField
-              control={form.control}
-              name='fuel'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className='flex items-center gap-2'>
-                    <Car className='h-4 w-4' /> Combustibil
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Selectați combustibil' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='Petrol'>Benzină</SelectItem>
-                      <SelectItem value='Diesel'>Motorină</SelectItem>
-                      <SelectItem value='Hybrid'>Hibrid</SelectItem>
-                      <SelectItem value='Electric'>Electric</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-
-        <FormField
-          control={form.control}
-          name='features'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className='flex items-center gap-2'>
-                <Settings className='h-4 w-4' /> Caracteristici
-              </FormLabel>
-              <FormControl>
-                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Listează caracteristicile...' />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className='space-y-2'>
-          <FormLabel>Opțiuni Adiționale</FormLabel>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-            {['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'].map((option) => (
-              <div key={option} className='flex items-center space-x-2'>
-                <Checkbox id={option} />
-                <label htmlFor={option} className='text-sm'>
-                  {option}
-                </label>
-              </div>
-            ))}
           </div>
-        </div>
 
-        <MediaUploader category='rent' onUpload={(urls) => setUploadedFiles(urls)} />
-        <Button
-          type='submit'
-          className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
-        >
-          Trimite Închiriere
-        </Button>
-      </form>
-    </Form>
+          <Field>
+            <FieldLabel htmlFor='features' className='flex items-center gap-2'>
+              <Settings className='h-4 w-4' /> Caracteristici
+            </FieldLabel>
+            <FormTextarea value={form.watch('features')} onChange={(v) => form.setValue('features', v)} placeholder='Listează caracteristicile...' />
+            <FieldError errors={form.formState.errors.features ? [form.formState.errors.features] : undefined} />
+          </Field>
+
+          <FieldSet>
+            <FieldLegend>Opțiuni Adiționale</FieldLegend>
+            <FieldGroup className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+              {availableOptions.map((option) => (
+                <Field key={option} orientation='horizontal'>
+                  <Checkbox id={option} onCheckedChange={(checked) => toggleOption(option, checked)} />
+                  <FieldLabel htmlFor={option} className='font-normal'>
+                    {option}
+                  </FieldLabel>
+                </Field>
+              ))}
+            </FieldGroup>
+          </FieldSet>
+
+          <Field>
+            <FieldLabel className={uploadError ? 'text-red-600' : ''}>Fotografii</FieldLabel>
+            <div className={uploadError ? 'rounded-md ring-2 ring-red-500 p-1' : ''}>
+              <MediaUploader
+                key={uploaderKey}
+                category='rent'
+                onUpload={(urls) => {
+                  setUploadedFiles(urls);
+                  form.setValue('uploadedFiles', urls);
+                  if (urls.length > 0) setUploadError(false);
+                }}
+              />
+            </div>
+            <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+
+      <Button
+        type='submit'
+        onClick={() => form.trigger()}
+        disabled={isSubmitting}
+        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
+      >
+        {isSubmitting ? 'Se trimite...' : 'Trimite Închiriere'}
+      </Button>
+    </form>
   );
 }

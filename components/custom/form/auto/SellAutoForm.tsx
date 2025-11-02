@@ -3,75 +3,45 @@
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Control } from 'react-hook-form';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
+import FormTextarea from '@/components/custom/form/controls/FormTextarea';
 import { MediaUploader } from '@/components/custom/media/MediaUploader';
 import { auto, AutoSellFormData } from '@/lib/validations';
-import dynamic from 'next/dynamic';
 import { Car, Fuel, Settings, Calendar } from 'lucide-react';
+import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
+import { submitSellAutoForm } from '@/actions/auto/actions';
+import { toast } from 'sonner';
 
-const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
+const CURRENT_YEAR = new Date().getFullYear();
 
-const ReusableFormField = ({
-  control,
-  name,
-  label,
-  placeholder,
-  type = 'text',
-  ...props
-}: {
-  control: Control<AutoSellFormData>;
-  name: keyof AutoSellFormData;
-  label: React.ReactNode;
-  placeholder: string;
-  type?: string;
-  [key: string]: unknown;
-}) => (
-  <FormField
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <FormItem className='space-y-2'>
-        <FormLabel className='text-sm font-medium flex items-center gap-2'>{label}</FormLabel>
-        <FormControl>
-          <Input
-            type={type}
-            placeholder={placeholder}
-            {...field}
-            {...props}
-            className='transition-all duration-200 focus:ring-2 focus:ring-primary'
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
-
-interface SellAutoFormProps {
-  onPreviewUpdate: (data: {
-    title: string;
-    description: string;
-    price: number;
-    location: string;
-    category: string;
-    uploadedFiles: string[];
-  }) => void;
-  subcategory?: string;
-}
-
-export function SellAutoForm({ onPreviewUpdate }: SellAutoFormProps) {
+export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [options, setOptions] = useState<string[]>([]);
+  const [uploaderKey, setUploaderKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const form = useForm<AutoSellFormData>({
-    resolver: zodResolver(auto.sellSchema),
-    defaultValues: { title: '', description: '', price: 0, location: '', features: '', fuel: '', mileage: 0, year: 0 },
+    resolver: zodResolver(auto.sellSchema) as Resolver<AutoSellFormData>,
+    defaultValues: {
+      title: '',
+      description: '',
+      price: 0,
+      location: '',
+      features: '',
+      fuel: '',
+      mileage: 0,
+      year: 0,
+      uploadedFiles: [],
+    },
   });
 
   const watchedValues = useWatch({ control: form.control });
+  const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
 
   useEffect(() => {
     onPreviewUpdate({
@@ -84,136 +54,162 @@ export function SellAutoForm({ onPreviewUpdate }: SellAutoFormProps) {
     });
   }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
 
-  const onSubmit = (data: AutoSellFormData) => {
-    console.log('Sell Auto Form Data:', { ...data, uploadedFiles });
+  const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {
+    setOptions((prev) => {
+      if (checked) {
+        if (!prev.includes(opt)) return [...prev, opt];
+        return prev;
+      } else {
+        return prev.filter((o) => o !== opt);
+      }
+    });
+  };
+
+  const onSubmit: SubmitHandler<AutoSellFormData> = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const result = await submitSellAutoForm({ ...data, uploadedFiles, options });
+      if (result.success) {
+        toast.success('Formular trimis cu succes!');
+        form.reset();
+        setUploadedFiles([]);
+        setOptions([]);
+        setUploaderKey((k) => k + 1);
+        setUploadError(false);
+      } else {
+        toast.error('Eroare la trimiterea formularului.');
+      }
+    } catch {
+      toast.error('Eroare la trimiterea formularului.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <ReusableFormField
-            control={form.control}
-            name='title'
-            label={
-              <>
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-6 max-w-full'>
+      <FieldSet>
+        <FieldGroup>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Field className='min-w-0'>
+              <FieldLabel htmlFor='title' className='flex items-center gap-2'>
                 <Car className='h-4 w-4' /> Titlu
-              </>
-            }
-            placeholder='Introduceți titlul mașinii'
-          />
-          <ReusableFormField control={form.control} name='price' label='Preț' placeholder='0' type='number' />
-        </div>
-        <ReusableFormField control={form.control} name='location' label='Locație' placeholder='Introduceți locația' />
-
-        <FormField
-          control={form.control}
-          name='description'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className='flex items-center gap-2'>
-                <Car className='h-4 w-4' /> Descriere
-              </FormLabel>
-              <FormControl>
-                <Editor value={field.value} onChange={(e) => field.onChange(e.target.value)} placeholder='Descrieți mașina detaliat...' />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <FormField
-            control={form.control}
-            name='fuel'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className='flex items-center gap-2'>
-                  <Fuel className='h-4 w-4' /> Combustibil
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Selectați combustibil' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value='Petrol'>Benzină</SelectItem>
-                    <SelectItem value='Diesel'>Motorină</SelectItem>
-                    <SelectItem value='Hybrid'>Hibrid</SelectItem>
-                    <SelectItem value='Electric'>Electric</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <ReusableFormField
-            control={form.control}
-            name='mileage'
-            label={
-              <>
-                <Settings className='h-4 w-4' /> Kilometraj
-              </>
-            }
-            placeholder='0'
-            type='number'
-          />
-          <ReusableFormField
-            control={form.control}
-            name='year'
-            label={
-              <>
-                <Calendar className='h-4 w-4' /> An Fabricație
-              </>
-            }
-            placeholder='2020'
-            type='number'
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name='features'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className='flex items-center gap-2'>
-                <Settings className='h-4 w-4' /> Caracteristici
-              </FormLabel>
-              <FormControl>
-                <Editor
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  placeholder='Listează caracteristicile mașinii...'
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className='space-y-2'>
-          <FormLabel>Opțiuni Adiționale</FormLabel>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-            {['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'].map((option) => (
-              <div key={option} className='flex items-center space-x-2'>
-                <Checkbox id={option} />
-                <label htmlFor={option} className='text-sm'>
-                  {option}
-                </label>
-              </div>
-            ))}
+              </FieldLabel>
+              <Input {...form.register('title')} placeholder='Introduceți titlul mașinii' className="break-words max-w-full" />
+              <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
+            </Field>
+            <Field className='min-w-0'>
+              <FieldLabel htmlFor='price'>Preț</FieldLabel>
+              <Input {...form.register('price', { valueAsNumber: true })} type='number' placeholder='0' min={0} step={0.01} className="break-words max-w-full" />
+              <FieldError errors={form.formState.errors.price ? [form.formState.errors.price] : undefined} />
+            </Field>
           </div>
-        </div>
 
-        <MediaUploader category='sell' onUpload={(urls) => setUploadedFiles(urls)} />
-        <Button
-          type='submit'
-          className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
-        >
-          Trimite Vânzare Auto
-        </Button>
-      </form>
-    </Form>
+          <Field className='min-w-0'>
+            <FieldLabel htmlFor='location'>Locație</FieldLabel>
+            <Input {...form.register('location')} placeholder='Introduceți locația' className="break-words max-w-full" />
+            <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
+          </Field>
+
+          <Field className='min-w-0'>
+            <FieldLabel htmlFor='description' className='flex items-center gap-2'>
+              <Car className='h-4 w-4' /> Descriere
+            </FieldLabel>
+            <FormTextarea
+              value={form.watch('description')}
+              onChange={(v) => form.setValue('description', v)}
+              placeholder='Descrieți mașina detaliat...'
+            />
+            <FieldError errors={form.formState.errors.description ? [form.formState.errors.description] : undefined} />
+          </Field>
+
+          <div className='flex flex-col md:flex-row items-center gap-4 max-w-full'>
+            <Field className='min-w-0'>
+              <FieldLabel htmlFor='fuel' className='flex items-center gap-2' aria-required='true'>
+                <Fuel className='h-4 w-4' /> Combustibil <span className='text-red-600'>*</span>
+              </FieldLabel>
+              <Select value={form.watch('fuel')} onValueChange={(v) => form.setValue('fuel', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Selectați combustibil' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='Petrol'>Benzină</SelectItem>
+                  <SelectItem value='Diesel'>Motorină</SelectItem>
+                  <SelectItem value='Hybrid'>Hibrid</SelectItem>
+                  <SelectItem value='Electric'>Electric</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined} />
+            </Field>
+            <Field className='min-w-0'>
+              <FieldLabel htmlFor='mileage' className='flex items-center gap-2'>
+                <Settings className='h-4 w-4' /> Kilometraj <span className='text-red-600'>*</span>
+              </FieldLabel>
+              <Input {...form.register('mileage', { valueAsNumber: true })} type='number' placeholder='0' min={1} required className="break-words max-w-full" />
+              <FieldError errors={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined} />
+            </Field>
+            <Field className='min-w-0'>
+              <FieldLabel htmlFor='year' className='flex items-center gap-2'>
+                <Calendar className='h-4 w-4' /> An Fabricație
+              </FieldLabel>
+              <Input {...form.register('year', { valueAsNumber: true })} type='number' placeholder='2020' min={1900} max={CURRENT_YEAR} className="break-words max-w-full" />
+              <FieldError errors={form.formState.errors.year ? [form.formState.errors.year] : undefined} />
+            </Field>
+          </div>
+
+          <Field className='min-w-0'>
+            <FieldLabel htmlFor='features' className='flex items-center gap-2' aria-required='true'>
+              <Settings className='h-4 w-4' /> Caracteristici <span className='text-red-600'>*</span>
+            </FieldLabel>
+            <FormTextarea
+              value={form.watch('features')}
+              onChange={(v) => form.setValue('features', v)}
+              placeholder='Listează caracteristicile mașinii...'
+            />
+            <FieldError errors={form.formState.errors.features ? [form.formState.errors.features] : undefined} />
+          </Field>
+
+          <FieldSet>
+            <FieldLegend>Opțiuni Adiționale</FieldLegend>
+            <FieldGroup className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+              {availableOptions.map((option) => (
+                <Field key={option} orientation='horizontal' className='min-w-0'>
+                  <Checkbox id={option} checked={options.includes(option)} onCheckedChange={(c) => toggleOption(option, c)} />
+                  <FieldLabel htmlFor={option} className='font-normal'>
+                    {option}
+                  </FieldLabel>
+                </Field>
+              ))}
+            </FieldGroup>
+          </FieldSet>
+
+          <Field className='min-w-0'>
+            <FieldLabel className={uploadError ? 'text-red-600' : ''}>Fotografii</FieldLabel>
+            <div className={uploadError ? 'rounded-md ring-2 ring-red-500 p-1' : ''}>
+              <MediaUploader
+                key={uploaderKey}
+                category='sell'
+                onUpload={(urls) => {
+                  setUploadedFiles(urls);
+                  form.setValue('uploadedFiles', urls);
+                  if (urls.length > 0) setUploadError(false);
+                }}
+              />
+            </div>
+            <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+
+      <Button
+        type='submit'
+        onClick={() => form.trigger()}
+        disabled={isSubmitting}
+        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
+      >
+        {isSubmitting ? 'Se trimite...' : 'Trimite Vânzare Auto'}
+      </Button>
+    </form>
   );
 }
