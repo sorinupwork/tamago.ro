@@ -43,16 +43,16 @@ export function AppNavigation() {
                   </ListItem>
 
                   <div>
-                    <ListItem href='/vanzare' title='Vanzare'>
+                    <ListItem href='/categorii?category=sell' title='Vânzare'>
                       Oferim servicii de vânzare pentru proiectele dumneavoastră.
                     </ListItem>
-                    <ListItem href='/cumparare' title='Cumparare'>
+                    <ListItem href='/categorii?category=buy' title='Cumpărare'>
                       Cumpărați servicii pentru nevoile dumneavoastră.
                     </ListItem>
-                    <ListItem href='/inchiriere' title='Inchiriere'>
+                    <ListItem href='/categorii?category=rent' title='Închiriere'>
                       Servicii de inchiriat pentru proiectele temporare.
                     </ListItem>
-                    <ListItem href='/licitatie' title='Licitatie'>
+                    <ListItem href='/categorii?category=auction' title='Licitație'>
                       Participați la licitații pentru cele mai bune oferte.
                     </ListItem>
                   </div>

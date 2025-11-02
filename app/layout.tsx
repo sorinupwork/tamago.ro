@@ -39,7 +39,7 @@ export default function RootLayout({
           <main className='flex flex-col flex-1 overflow-y-auto'>
             <div className='flex grow px-4 py-2 justify-center'>{children}</div>
 
-            <section className='bg-background py-12 px-4'>
+            <section className='bg-background py-12 px-4 z-10'>
               <h2 className='text-3xl font-bold text-center mb-8 text-secondary'>Mai Multe Resurse</h2>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                 <div className='bg-muted p-4 rounded-lg'>
@@ -59,7 +59,7 @@ export default function RootLayout({
               </div>
             </section>
 
-            <footer className='sticky bottom-0 bg-muted border-t'>
+            <footer className='sticky bottom-0 bg-muted border-t z-10'>
               <Footer />
             </footer>
           </main>

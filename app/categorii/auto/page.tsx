@@ -4,20 +4,9 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
@@ -31,7 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Car, mockCars } from '@/lib/mockData';
+import { mockCars } from '@/lib/mockData';
 
 export default function AutoPage() {
   const [activeTab, setActiveTab] = useState<'sell' | 'buy' | 'rent' | 'auction'>('sell');
@@ -203,13 +192,7 @@ export default function AutoPage() {
 
   return (
     <div className='container mx-auto p-4 max-w-7xl'>
-      <Breadcrumbs
-        items={[
-          { label: 'Acasă', href: '/' },
-          { label: 'Categorii', href: '/categorii' },
-          { label: 'Auto' },
-        ]}
-      />
+      <Breadcrumbs items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]} />
 
       <h1 className='text-3xl font-bold mb-4 text-center md:text-left'>Auto - Mașini</h1>
 
