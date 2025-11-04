@@ -59,6 +59,16 @@ interface MapComponentProps {
 export const MapComponent: React.FC<MapComponentProps> = ({ mapPosition, selectedLocation, onMapClick, filteredCars = [], radius = 50 }) => {
   const mapRef = useRef<L.Map>(null);
 
+  // Invalidate map size after mount to fix rendering issues in dynamic containers
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
     <MapContainer center={mapPosition} zoom={13} style={{ height: '300px', width: '100%' }} ref={mapRef}>
       <MapController mapPosition={mapPosition} />
