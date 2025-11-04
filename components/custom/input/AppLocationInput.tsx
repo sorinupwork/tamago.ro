@@ -9,6 +9,7 @@ import { MapPin } from 'lucide-react';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { debounce } from 'lodash';
+import { toast } from 'sonner';
 
 const MapComponent = dynamic(() => import('./MapComponent').then((mod) => ({ default: mod.MapComponent })), { ssr: false });
 
@@ -73,12 +74,11 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
           onChange(loc, radius);
         },
         (error) => {
-          console.error('Geolocation error:', error);
-          alert('Unable to retrieve your location. Please check permissions.');
+          toast.error(`Unable to retrieve your location: ${error.message}`);
         }
       );
     } else {
-      alert('Geolocation is not supported by this browser.');
+      toast.error('Geolocation is not supported by this browser.');
     }
   };
 

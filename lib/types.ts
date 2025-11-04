@@ -57,3 +57,40 @@ export type Message = {
   text: string;
   sender: 'me' | 'other';
 };
+
+export type FilterState = {
+  minEngineCapacity: string;
+  maxEngineCapacity: string;
+  minHorsepower: string;
+  maxHorsepower: string;
+  status: string;
+  brand: string;
+  fuel: string[];
+  transmission: string[];
+  bodyType: string[];
+  color: string[];
+  priceRange: number[];
+  yearRange: number[];
+  mileageRange: number[];
+  engineCapacityRange: number[];
+  horsepowerRange: number[];
+};
+
+export type SortCriteria = {
+  price: 'asc' | 'desc' | null;
+  year: 'asc' | 'desc' | null;
+  mileage: 'asc' | 'desc' | null;
+  date: 'asc' | 'desc' | null;
+};
+
+export type LocationData = {
+  lat: number;
+  lng: number;
+  address: string;
+  fullAddress: string;
+};
+
+export type LocationFilter = {
+  location: LocationData | null;
+  radius: number;
+};

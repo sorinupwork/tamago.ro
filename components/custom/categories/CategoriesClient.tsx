@@ -110,7 +110,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         <div className='flex-1 p-4 overflow-hidden'>
           {selectedSubcategory ? (
             <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
-              <CardHeader className='flex-shrink-0'>
+              <CardHeader className='shrink-0'>
                 <CardTitle className='text-2xl font-bold text-center'>
                   Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
                   {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
