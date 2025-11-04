@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { Zap } from 'lucide-react';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 export function AppLogo() {
   return (
-    <Link href='/' className='flex items-center gap-2 font-bold text-lg'>
-      <Zap className='h-6 w-6' />
-      tamago
+    <Link href='/'>
+      <Avatar className="aspect-square rounded">
+        <AvatarImage src='/tamago.png' alt='Tamago Logo' />
+      </Avatar>
     </Link>
   );
 }

@@ -33,13 +33,13 @@ export function AppNavigation() {
                 <ul className='grid space-x-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
                   <AppNavDropdownItem
                     href='/'
-                    title='tamago.ro'
-                    className='row-span-3'
-                    linkClassName='from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-4 no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md md:p-6'
-                    titleClass='mb-2 text-lg sm:mt-4'
-                    pClass='leading-tight'
+                    // title='tamago.ro'
+                    className='row-span-3 min-h-24 md:min-h-72'
+                    linkClassName='bg-[url("/tamago.png")] bg-cover bg-center backdrop-blur-sm bg-black/30 dark:bg-black/40 flex h-full w-full flex-col justify-center items-center rounded-md p-4 no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md md:p-6'
+                    titleClass='mb-2 text-lg sm:mt-4 text-center text-white backdrop-blur-xs'
+                    pClass='leading-tight text-center text-white backdrop-blur-xs'
                   >
-                    Noul nostru proiect va fi lansat în curând. Rămâneți la curent!
+                    {/* Noul nostru proiect va fi lansat în curând. Rămâneți la curent! */}
                   </AppNavDropdownItem>
 
                   <div>
