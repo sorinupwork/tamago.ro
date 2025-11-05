@@ -126,7 +126,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
               <Showcase category={selectedCategory} />
             )}
           </div>
-          {selectedSubcategory && (
+          {selectedSubcategory === 'auto' && (
             <div className='flex-1 p-4 overflow-hidden'>
               <div className='h-full'>
                 <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
