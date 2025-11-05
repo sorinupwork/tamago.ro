@@ -51,7 +51,7 @@ export function Preview({ title, description, price, location, category, uploade
           </Carousel>
         )}
 
-        <div className='prose prose-sm max-w-none break-words' dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }} />
+        <div className='prose prose-sm max-w-none wrap-break-word' dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }} />
 
         <p className='text-xs text-muted-foreground'>Adăugat: {new Date().toLocaleDateString('ro-RO')}</p>
       </CardContent>

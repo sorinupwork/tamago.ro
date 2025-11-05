@@ -51,13 +51,13 @@ export default function RootLayout({
             <AppNavigation />
           </nav>
 
-          <main className='flex flex-col flex-1 overflow-y-auto'>
+          <main className='flex flex-col flex-1'>
             <CategoryLayout>
-              <div className='flex grow px-4 py-2 justify-center'>{children}</div>
+              <div className='flex grow py-2 justify-center'>{children}</div>
 
               <MoreInfo />
 
-              <footer className='sticky bottom-0 bg-muted border-t'>
+              <footer className='bg-muted border-t'>
                 <Footer />
               </footer>
             </CategoryLayout>
