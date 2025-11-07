@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
-import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 import CategoriesClient from '@/components/custom/categories/CategoriesClient';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+
+export const dynamic = 'force-dynamic';
 
 type PageProps = {
   searchParams?: { tip?: string; subcategory?: string };
@@ -9,7 +11,7 @@ type PageProps = {
 export default function CategoryPage({ searchParams }: PageProps) {
   return (
     <Suspense fallback={<LoadingIndicator />}>
-      <CategoriesClient initialCategory={searchParams?.tip} initialSubcategory={searchParams?.subcategory} />
+      <CategoriesClient initialCategory={searchParams?.tip ?? undefined} initialSubcategory={searchParams?.subcategory ?? undefined} />
     </Suspense>
   );
 }
