@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense, useState, useCallback } from 'react';
+import { Suspense, useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,10 +50,17 @@ const categoryMapping = {
 } as const;
 
 export default function CategoriesClient({ initialCategory, initialSubcategory }: CategoriesClientProps) {
-  const selectedCategory = (
-    initialCategory && initialCategory in categoryMapping ? categoryMapping[initialCategory as keyof typeof categoryMapping] : 'sell'
-  ) as 'sell' | 'buy' | 'rent' | 'auction';
-  const selectedSubcategory = initialSubcategory ?? undefined;
+  const searchParams = useSearchParams();
+  const tipParam = useMemo(() => searchParams?.get('tip') ?? initialCategory ?? undefined, [searchParams, initialCategory]);
+  const subParam = useMemo(() => searchParams?.get('subcategory') ?? initialSubcategory ?? undefined, [searchParams, initialSubcategory]);
+
+  const selectedCategory = useMemo(() => {
+    return tipParam && tipParam in categoryMapping
+      ? (categoryMapping[tipParam as keyof typeof categoryMapping] as 'sell' | 'buy' | 'rent' | 'auction')
+      : 'sell';
+  }, [tipParam]);
+
+  const selectedSubcategory = subParam ?? undefined;
 
   const [previewData, setPreviewData] = useState<PreviewData>({
     title: '',
@@ -99,7 +107,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
               ? [
                   {
                     label: categories.find((c) => c.key === selectedCategory)?.label || '',
-                    href: `/categorii?tip=${initialCategory}`,
+                    href: `/categorii?tip=${tipParam ?? ''}`,
                   },
                   { label: subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title || '' },
                 ]
