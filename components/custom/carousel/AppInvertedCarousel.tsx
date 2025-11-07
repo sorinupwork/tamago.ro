@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { ArrowRight } from 'lucide-react';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
-import { Button } from '@/components/ui/button';
+import { CarouselCard } from './CarouselCard';
+import { LuckyNumber } from '../LuckyNumber';
 
 type Subcategory = {
   id: number;
@@ -185,24 +184,40 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     };
   }, [apiB, playing]);
 
-  return (
-    <>
-      {/* Top carousel (first half) */}
+  const RenderRow = ({
+    items,
+    setApi,
+    currentIndex,
+    offset,
+    apiKeyPrefix,
+  }: {
+    items: Subcategory[];
+    setApi: (api?: CarouselApi) => void;
+    currentIndex: number;
+    offset: number;
+    apiKeyPrefix: string;
+  }) => {
+    return (
       <section
-        className={`mt-4 sm:mt-6 px-0 relative overflow-hidden ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
+        className={`mt-4 sm:mt-6 px-0 relative overflow-y-visible ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        } transition-opacity duration-500`}
       >
         <div onMouseEnter={() => setPlaying(false)} onMouseLeave={() => setPlaying(true)} className='flex justify-center'>
           <Carousel
-            setApi={setApiA}
+            setApi={setApi}
             opts={{ align: 'center', loop: true }}
-            className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'
+            className='w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-visible'
           >
-            <CarouselContent className='gap-6'>
-              {rowAItems.map((sub, i) => {
-                const origIndex = i;
+            <CarouselContent className='gap-6' containerClassName='overflow-visible'>
+              {items.map((sub, i) => {
+                const origIndex = offset + i;
                 const navigate = () => navigateTo(category, sub.title ? sub.title.toLowerCase().replace(' ', '-') : undefined);
                 return (
-                  <CarouselItem key={`a-${sub.id}`} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/3 flex justify-center'>
+                  <CarouselItem
+                    key={`${apiKeyPrefix}-${origIndex}`}
+                    className='basis-full sm:basis-1/2 lg:basis-1/3 flex-justify-center relative'
+                  >
                     <div
                       onClick={navigate}
                       role='button'
@@ -215,47 +230,16 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
                       }}
                       className='p-2 relative focus:outline-none'
                     >
-                      <span
-                        aria-hidden
-                        className={`absolute left-4 -top-2 text-[30px] sm:text-[50px] md:text-[70px] lg:text-[90px] xl:text-[110px] font-extrabold pointer-events-none select-none z-20 transition-colors ${
-                          currentA === i
-                            ? `${categoryColors[category]?.text ?? 'text-primary'}`
-                            : 'text-muted-foreground/10 dark:text-muted-foreground/12'
-                        }`}
-                        style={{ transform: 'translateX(-50%)' }}
-                      >
-                        {origIndex + 1}
-                      </span>
-                      <Card className='lift cursor-pointer'>
-                        <CardContent className='flex flex-col'>
-                          <div className='absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full'>
-                            <div
-                              className={`w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 ${
-                                categoryColors[category]?.icon ?? 'text-primary'
-                              }`}
-                            >
-                              <sub.icon />
-                            </div>
-                          </div>
-                          <div className='text-center flex-1 px-2'>
-                            <h3 className='text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight'>
-                              {sub.title}
-                            </h3>
-                            <p className='text-xs sm:text-sm text-muted-foreground mt-1 leading-snug line-clamp-2'>{sub.description}</p>
-                          </div>
-                          <div className='flex justify-end mt-4'>
-                            <Button
-                              variant='link'
-                              size='sm'
-                              className={`${categoryColors[category]?.text ?? 'text-primary'} hover:opacity-80 p-0`}
-                            >
-                              Explorează{' '}
-                              <ArrowRight className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${categoryColors[category]?.arrow ?? 'text-primary'}`} />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <CarouselCard
+                        origIndex={origIndex}
+                        isActive={currentIndex === i}
+                        categoryColors={categoryColors}
+                        category={category}
+                        sub={sub}
+                        onClick={navigate}
+                      />
                     </div>
+                    <LuckyNumber number={origIndex + 1} isActive={currentIndex === i} category={category} />
                   </CarouselItem>
                 );
               })}
@@ -263,81 +247,16 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
           </Carousel>
         </div>
       </section>
+    );
+  };
+
+  return (
+    <>
+      {/* Top carousel (first half) */}
+      {RenderRow({ items: rowAItems, setApi: setApiA, currentIndex: currentA, offset: 0, apiKeyPrefix: 'a' })}
 
       {/* Bottom carousel (second half) */}
-      <section className='mt-4 sm:mt-6 px-0 relative overflow-hidden'>
-        <div onMouseEnter={() => setPlaying(false)} onMouseLeave={() => setPlaying(true)} className='flex justify-center'>
-          <Carousel
-            setApi={setApiB}
-            opts={{ align: 'center', loop: true }}
-            className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'
-          >
-            <CarouselContent className='gap-6'>
-              {rowBItems.map((sub, j) => {
-                const origIndex = rowAItems.length + j;
-                const navigate = () => navigateTo(category, sub.title ? sub.title.toLowerCase().replace(' ', '-') : undefined);
-                return (
-                  <CarouselItem key={`b-${sub.id}`} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/3 flex justify-center'>
-                    <div
-                      onClick={navigate}
-                      role='button'
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          navigate();
-                        }
-                      }}
-                      className='p-2 relative focus:outline-none'
-                    >
-                      <span
-                        aria-hidden
-                        className={`absolute left-4 -top-2 text-[30px] sm:text-[50px] md:text-[70px] lg:text-[90px] xl:text-[110px] font-extrabold pointer-events-none select-none z-20 transition-colors ${
-                          currentB === j
-                            ? `${categoryColors[category]?.text ?? 'text-primary'}`
-                            : 'text-muted-foreground/10 dark:text-muted-foreground/12'
-                        }`}
-                        style={{ transform: 'translateX(-50%)' }}
-                      >
-                        {origIndex + 1}
-                      </span>
-                      <Card className='lift cursor-pointer'>
-                        <CardContent className='flex flex-col'>
-                          <div className='absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full'>
-                            <div
-                              className={`w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 ${
-                                categoryColors[category]?.icon ?? 'text-primary'
-                              }`}
-                            >
-                              <sub.icon />
-                            </div>
-                          </div>
-                          <div className='text-center flex-1 px-2'>
-                            <h3 className='text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight'>
-                              {sub.title}
-                            </h3>
-                            <p className='text-xs sm:text-sm text-muted-foreground mt-1 leading-snug line-clamp-2'>{sub.description}</p>
-                          </div>
-                          <div className='flex justify-end mt-4'>
-                            <Button
-                              variant='link'
-                              size='sm'
-                              className={`${categoryColors[category]?.text ?? 'text-primary'} hover:opacity-80 p-0`}
-                            >
-                              Explorează{' '}
-                              <ArrowRight className={`ml-1 h-3 w-3 sm:h-4 sm:w-4 ${categoryColors[category]?.arrow ?? 'text-primary'}`} />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-          </Carousel>
-        </div>
-      </section>
+      {RenderRow({ items: rowBItems, setApi: setApiB, currentIndex: currentB, offset: 0, apiKeyPrefix: 'b' })}
     </>
   );
 }

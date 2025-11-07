@@ -1,6 +1,7 @@
 import AppCarousel from '@/components/custom/carousel/AppCarousel';
-import AppGoldenSection from '@/components/custom/layout/AppGoldenSection';
-import { posts, subcategories } from '@/lib/mockData';
+import AppGoldenSection from '@/components/custom/section/AppGoldenSection';
+import { subcategories } from '@/lib/subcategories';
+import { posts } from '@/lib/mockData';
 
 export default function Home() {
   return (

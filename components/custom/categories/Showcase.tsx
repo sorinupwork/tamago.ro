@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { categories } from '@/lib/categories';
-import { subcategories } from '@/lib/mockData';
+import { subcategories } from '@/lib/subcategories';
 import AppSeparator from '../separator/AppSeparator';
 import { AppInvertedCarousel } from '../carousel/AppInvertedCarousel';
 
@@ -37,14 +37,11 @@ export function Showcase({ category }: { category: string }) {
     router.push(url);
   };
 
-  // Duplicate subcategories for more items to test rendering (e.g., 14 total)
-  const extendedSubcategories = [...subcategories, ...subcategories];
+  // Duplicate subcategories for more items to test rendering (e.g., 20 total)
+  const extendedSubcategories = [...subcategories, ...subcategories, ...subcategories].slice(0, 20);
 
-  const total = extendedSubcategories.length;
-  const mid = Math.ceil(total / 2);
-
-  const rowAItems = extendedSubcategories.slice(0, mid); // top row: items 0..mid-1
-  const rowBItems = extendedSubcategories.slice(mid); // bottom row: items mid..total-1
+  const rowAItems = extendedSubcategories; // top row: all 20 items
+  const rowBItems = extendedSubcategories; // bottom row: same 20 items
 
   const cat = categories.find((c) => c.key === category);
   if (!cat) return null;

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
@@ -13,13 +14,21 @@ type Category = {
 type AppCarouselProps = {
   title: string;
   items: Category[];
+  autoplay?: boolean;
+  interval?: number;
+  pauseOnHover?: boolean;
 };
 
-export default function AppCarousel({ title, items }: AppCarouselProps) {
+export default function AppCarousel({ title, items, autoplay = true, interval = 3000, pauseOnHover = true }: AppCarouselProps) {
   return (
     <section className='py-8'>
-      <h2 className='text-2xl font-bold text-center mb-4 text-secondary'>{title}</h2>
-      <Carousel className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
+      <h2 className='text-2xl font-bold text-end mb-4 text-secondary'>{title}</h2>
+      <Carousel
+        className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'
+        autoplay={autoplay}
+        autoplayInterval={interval}
+        pauseOnHover={pauseOnHover}
+      >
         <CarouselContent className='py-4 px-2'>
           {items.map((category) => {
             const Icon = category.icon as React.ComponentType<{ className?: string }>;

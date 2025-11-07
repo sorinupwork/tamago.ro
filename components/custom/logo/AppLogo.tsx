@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 export function AppLogo() {

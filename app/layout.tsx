@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
-import './globals.css';
-import 'leaflet/dist/leaflet.css';
+
+import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/custom/theme/ThemeProvider';
 import { AppNavigation } from '@/components/custom/navigation/AppNavigation';
 import { Footer } from '@/components/custom/footer/Footer';
 import ChatDrawer from '@/components/custom/chat/ChatDrawer';
 import MoreInfo from '@/components/custom/info/MoreInfo';
-import { Toaster } from '@/components/ui/sonner';
-import { CategoryLayout } from '@/components/custom/sidebar/CategorySidebar';
+import { CategoryLayout } from '@/components/custom/layout/CategoryLayout';
+import './globals.css';
+import 'leaflet/dist/leaflet.css';
 
 const poppins = Poppins({
   variable: '--font-poppins',
@@ -45,23 +46,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ro' suppressHydrationWarning>
-      <body className={`${poppins.variable} antialiased min-h-screen flex flex-col`}>
+      <body className={`${poppins.variable} antialiased`}>
         <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-          <nav className='sticky top-0 z-50 bg-background border-b'>
-            <AppNavigation />
-          </nav>
+          <AppNavigation />
 
-          <main className='flex flex-col flex-1'>
-            <CategoryLayout>
-              <div className='flex grow py-2 justify-center'>{children}</div>
+          <CategoryLayout>
+            {children}
 
-              <MoreInfo />
+            <MoreInfo />
+            <Footer />
+          </CategoryLayout>
 
-              <footer className='bg-muted border-t'>
-                <Footer />
-              </footer>
-            </CategoryLayout>
-          </main>
           <ChatDrawer />
           <Toaster />
         </ThemeProvider>

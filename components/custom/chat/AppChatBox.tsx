@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { Message } from '@/lib/types';
-import { ChatMessage } from './ChatMessage';
+import ChatMessage from './ChatMessage';
 
 type AppChatBoxProps = {
   selectedUserName: string;
@@ -26,7 +26,7 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({ selectedUserName, messag
           <ScrollArea className='flex-1 mb-4'>
             <div className='space-y-2'>
               {messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} />
+                <ChatMessage key={msg.id} message={{ text: msg.text, isUser: msg.sender === 'me' }} />
               ))}
             </div>
           </ScrollArea>

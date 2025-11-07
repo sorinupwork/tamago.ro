@@ -13,8 +13,8 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
 
   return (
     <section className='py-8 w-full'>
-      <h2 className='text-2xl font-bold text-center mb-6 text-secondary'>{title}</h2>
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
+        <h2 className='text-2xl font-bold text-end mb-6 text-secondary'>{title}</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-6'>
           <div className='relative sm:row-start-1 sm:row-end-3 col-span-full'>
             {displayedPosts[5]?.verified && (

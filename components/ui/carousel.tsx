@@ -17,6 +17,9 @@ type CarouselProps = {
   plugins?: CarouselPlugin;
   orientation?: 'horizontal' | 'vertical';
   setApi?: (api: CarouselApi) => void;
+  autoplay?: boolean;
+  autoplayInterval?: number;
+  pauseOnHover?: boolean;
 };
 
 type CarouselContextProps = {
@@ -47,23 +50,54 @@ function Carousel({
   plugins,
   className,
   children,
+  autoplay = false,
+  autoplayInterval = 3000,
+  pauseOnHover = true,
   ...props
 }: React.ComponentProps<'div'> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
       axis: orientation === 'horizontal' ? 'x' : 'y',
+      loop: opts?.loop ?? true,
     },
     plugins
   );
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
+  const pausedRef = React.useRef(false);
+  const timerRef = React.useRef<number | null>(null);
+
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return;
     setCanScrollPrev(api.canScrollPrev());
     setCanScrollNext(api.canScrollNext());
   }, []);
+
+  React.useEffect(() => {
+    if (!api || !autoplay) return;
+
+    const tick = () => {
+      if (pausedRef.current) return;
+      try {
+        if (api.canScrollNext()) {
+          api.scrollNext();
+        } else {
+          api.scrollTo(0);
+        }
+      } catch {}
+    };
+
+    timerRef.current = window.setInterval(tick, autoplayInterval);
+
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [api, autoplay, autoplayInterval]);
 
   const scrollPrev = React.useCallback(() => {
     api?.scrollPrev();
@@ -117,6 +151,12 @@ function Carousel({
     >
       <div
         onKeyDownCapture={handleKeyDown}
+        onMouseEnter={() => {
+          if (pauseOnHover) pausedRef.current = true;
+        }}
+        onMouseLeave={() => {
+          if (pauseOnHover) pausedRef.current = false;
+        }}
         className={cn('relative overflow-hidden', className)}
         role='region'
         aria-roledescription='carousel'
@@ -129,11 +169,15 @@ function Carousel({
   );
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
+type CarouselContentProps = React.ComponentProps<'div'> & {
+  containerClassName?: string;
+};
+
+function CarouselContent({ containerClassName, className, ...props }: CarouselContentProps) {
   const { carouselRef, orientation } = useCarousel();
 
   return (
-    <div ref={carouselRef} className='overflow-hidden' data-slot='carousel-content'>
+    <div ref={carouselRef} className={cn('overflow-hidden', containerClassName)} data-slot='carousel-content'>
       <div className={cn('flex', orientation === 'horizontal' ? '-ml-4' : '-mt-4 flex-col', className)} {...props} />
     </div>
   );

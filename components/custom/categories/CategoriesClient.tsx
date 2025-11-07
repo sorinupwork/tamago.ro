@@ -9,7 +9,7 @@ import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Showcase } from './Showcase';
 import { Preview } from './Preview';
 import { categories } from '@/lib/categories';
-import { subcategories } from '@/lib/mockData';
+import { subcategories } from '@/lib/subcategories';
 import { ScrollArea } from '@/components/ui/scroll-area';
 const SellAutoForm = dynamic(() => import('@/components/custom/form/auto/SellAutoForm').then((mod) => ({ default: mod.SellAutoForm })), {
   ssr: false,

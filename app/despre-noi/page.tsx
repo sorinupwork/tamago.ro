@@ -1,7 +1,7 @@
 import { KeyRound, Wrench, CreditCard, CheckCircle } from 'lucide-react';
 
 import MarketplaceContactSection from '@/components/custom/marketplace/MarketplaceContactSection';
-import AppPlatinumSection from '@/components/custom/layout/AppPlatinumSection';
+import AppPlatinumSection from '@/components/custom/section/AppPlatinumSection';
 
 export default function DespreNoi() {
   const servicesCards = [

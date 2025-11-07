@@ -15,43 +15,42 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '../theme/ModeToggle';
-import { subcategories } from '@/lib/mockData';
+import { subcategories } from '@/lib/subcategories';
+import { categories } from '@/lib/categories';
+import { cn } from '@/lib/utils';
 
 export function AppNavActions() {
   const [open, setOpen] = React.useState(false);
 
-  const mainCategories = [
-    { title: 'Vânzare', href: '/categorii?tip=vanzare' },
-    { title: 'Cumpărare', href: '/categorii?tip=cumparare' },
-    { title: 'Închiriere', href: '/categorii?tip=inchiriere' },
-    { title: 'Licitație', href: '/categorii?tip=licitatie' },
-  ];
+  const mainCategories = categories.map((cat) => ({ title: cat.label, href: cat.href }));
 
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button variant='outline' className='hidden sm:flex w-52 justify-start text-left cursor-pointer' onClick={() => setOpen(true)}>
-          <Search className='h-4 w-4 mr-2' />
-          Caută...
-        </Button>
-        <Button variant='outline' size='icon' className='sm:hidden' onClick={() => setOpen(true)}>
+        <Button
+          variant='outline'
+          className='cursor-pointer w-10 h-10 justify-start text-left sm:w-52'
+          onClick={() => setOpen(true)}
+        >
           <Search className='h-4 w-4' />
+          <span className='hidden sm:inline ml-2'>Caută...</span>
           <span className='sr-only'>Search</span>
         </Button>
-        <Link href='/autentificare'>
-          <Button variant='outline' className='hidden xl:flex justify-start text-left cursor-pointer'>
-            <LogIn className='h-4 w-4 mr-2' />
-            Autentificare
-          </Button>
-        </Link>
-        <Link href='/autentificare'>
-          <Button variant='outline' size='icon' className='xl:hidden'>
+        <Button
+          variant='outline'
+          className={cn('cursor-pointer w-10 h-10 justify-start text-left xl:w-auto')}
+          asChild
+        >
+          <Link href='/autentificare'>
             <LogIn className='h-4 w-4' />
+            <span className='hidden xl:inline ml-2'>Autentificare</span>
             <span className='sr-only'>Autentificare</span>
-          </Button>
-        </Link>
+          </Link>
+        </Button>
+
         <ModeToggle />
       </div>
+
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder='Caută...' />
         <CommandList>

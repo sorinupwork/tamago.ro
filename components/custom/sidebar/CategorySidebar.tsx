@@ -1,8 +1,7 @@
 'use client';
 
-import React, { Suspense } from 'react';
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   Sidebar,
@@ -17,12 +16,10 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { categories } from '@/lib/categories';
-import { subcategories } from '@/lib/mockData';
-import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { subcategories } from '@/lib/subcategories';
 
 type CategorySidebarProps = {
   selectedCategory?: string;
@@ -138,35 +135,5 @@ export function CategorySidebar({
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  );
-}
-
-export function CategoryLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname !== '/categorii') return <>{children}</>;
-
-  const childrenArray = React.Children.toArray(children);
-  const mainContent = childrenArray[0] ?? null;
-  const rest = childrenArray.slice(1);
-
-  return (
-    <SidebarProvider>
-      <div className='w-full'>
-        <div className='flex w-full items-start'>
-          <div className='shrink-0'>
-            <Suspense fallback={<LoadingIndicator />}>
-              <CategorySidebar />
-            </Suspense>
-          </div>
-
-          <div className='flex-1 flex flex-col gap-6'>
-            <div>{mainContent}</div>
-
-            {rest.length > 0 && <div className='w-full'>{rest}</div>}
-          </div>
-        </div>
-      </div>
-    </SidebarProvider>
   );
 }
