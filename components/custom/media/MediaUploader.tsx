@@ -1,129 +1,120 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Upload, X, File, Image as ImageIcon, Video } from 'lucide-react';
 import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
+import { Upload, X, FileVideo } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-type MediaUploaderProps = {
-  category: string;
-  onUpload?: (urls: string[]) => void;
-};
+interface MediaUploaderProps {
+  onFilesChange: (files: File[]) => void;
+  acceptedTypes?: string;
+  maxFiles?: number;
+  errorMessage?: string; // Add errorMessage prop for validation
+}
 
-export function MediaUploader({ category, onUpload }: MediaUploaderProps) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+interface PreviewFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video' | 'document';
+}
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles((prev) => [...prev, ...acceptedFiles]);
-  }, []);
+export function MediaUploader({
+  onFilesChange,
+  acceptedTypes = 'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  maxFiles = 10,
+  errorMessage,
+}: MediaUploaderProps) {
+  const [previews, setPreviews] = useState<PreviewFile[]>([]);
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const newPreviews: PreviewFile[] = acceptedFiles.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        type: file.type.startsWith('video/') ? 'video' : file.type.startsWith('image/') ? 'image' : 'document',
+      }));
+      const updatedPreviews = [...previews, ...newPreviews].slice(0, maxFiles);
+      setPreviews(updatedPreviews);
+      onFilesChange(updatedPreviews.map((p) => p.file));
+    },
+    [previews, maxFiles, onFilesChange]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif'],
-      'video/*': ['.mp4', '.avi', '.mov'],
-      'application/*': ['.pdf', '.doc', '.docx'],
-    },
-    maxSize: 10 * 1024 * 1024, // 10MB
+    accept: acceptedTypes.split(',').reduce((acc, type) => ({ ...acc, [type.trim()]: [] }), {}),
+    maxFiles,
+    multiple: true,
   });
 
-  const uploadFiles = async () => {
-    if (files.length === 0) return;
-    setUploading(true);
-    setProgress(0);
-
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-    formData.append('category', category);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUploadedUrls(data.urls);
-        onUpload?.(data.urls);
-        setFiles([]);
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-    } finally {
-      setUploading(false);
-      setProgress(100);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) return <ImageIcon className='h-4 w-4' />;
-    if (file.type.startsWith('video/')) return <Video className='h-4 w-4' />;
-    return <File className='h-4 w-4' />;
+  const removePreview = (index: number) => {
+    const updatedPreviews = previews.filter((_, i) => i !== index);
+    setPreviews(updatedPreviews);
+    onFilesChange(updatedPreviews.map((p) => p.file));
   };
 
   return (
     <div className='space-y-4'>
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          isDragActive ? 'border-primary bg-primary/10' : 'border-muted-foreground/25'
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+          errorMessage ? 'border-red-500 bg-red-50' : isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
         }`}
       >
         <input {...getInputProps()} />
-        <Upload className='mx-auto h-8 w-8 text-muted-foreground' />
-        <p className='mt-2 text-sm text-muted-foreground'>
-          {isDragActive ? 'Eliberați fișierele aici...' : 'Trageți fișierele aici sau faceți clic pentru a selecta'}
+        <Upload className={`mx-auto h-12 w-12 mb-4 ${errorMessage ? 'text-red-400' : 'text-gray-400'}`} />
+        <p className={`text-sm mb-1 ${errorMessage ? 'text-red-600' : 'text-gray-600'}`}>
+          {isDragActive ? 'Aruncați fișierele aici...' : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
         </p>
-        <p className='text-xs text-muted-foreground'>Imagini, videouri, fișiere (max 10MB)</p>
+        <p className={`text-xs ${errorMessage ? 'text-red-500' : 'text-gray-500'}`}>
+          Acceptă imagini, videouri și documente (minim 1, maxim {maxFiles} fișiere)
+        </p>
       </div>
 
-      {files.length > 0 && (
-        <div className='space-y-2'>
-          <h4 className='text-sm font-medium'>Fișiere selectate:</h4>
-          {files.map((file, index) => (
-            <div key={index} className='flex items-center gap-2 p-2 border rounded'>
-              {getFileIcon(file)}
-              <span className='text-sm flex-1'>{file.name}</span>
-              <Button variant='ghost' size='sm' onClick={() => removeFile(index)}>
+      {previews.length > 0 && (
+        <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
+          {previews.map((preview, index) => (
+            <Card key={index} className='relative'>
+              <CardContent className='p-2'>
+                {preview.type === 'image' ? (
+                  <Image
+                    src={preview.preview}
+                    alt={`Preview ${index}`}
+                    width={150}
+                    height={150}
+                    className='w-full h-32 object-cover rounded'
+                  />
+                ) : preview.type === 'video' ? (
+                  <div className='relative w-full h-32'>
+                    <video src={preview.preview} className='w-full h-full object-cover rounded' controls={false} muted />
+                    <FileVideo className='absolute inset-0 m-auto h-8 w-8 text-white bg-black/50 rounded-full p-1' />
+                  </div>
+                ) : (
+                  <div className='w-full h-32 bg-gray-100 rounded flex items-center justify-center'>
+                    <p className='text-gray-500 text-sm'>Previzualizare document</p>
+                  </div>
+                )}
+              </CardContent>
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                className='absolute top-1 right-1 z-10'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removePreview(index);
+                }}
+              >
                 <X className='h-4 w-4' />
               </Button>
-            </div>
+            </Card>
           ))}
-          <Button onClick={uploadFiles} disabled={uploading} className='w-full'>
-            {uploading ? 'Se încarcă...' : 'Încarcă Fișiere'}
-          </Button>
-          {uploading && <Progress value={progress} className='w-full' />}
         </div>
       )}
 
-      {uploadedUrls.length > 0 && (
-        <div className='space-y-2'>
-          <h4 className='text-sm font-medium'>Fișiere încărcate:</h4>
-          {uploadedUrls.map((url, index) => (
-            <div key={index} className='flex items-center gap-2'>
-              {url.includes('.mp4') || url.includes('.avi') ? (
-                <Video className='h-4 w-4' />
-              ) : url.includes('.pdf') || url.includes('.doc') ? (
-                <File className='h-4 w-4' />
-              ) : (
-                <Image src={url} alt='Uploaded' width={32} height={32} className='rounded' />
-              )}
-              <a href={url} target='_blank' rel='noopener noreferrer' className='text-sm text-primary hover:underline'>
-                {url.split('/').pop()}
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
+      {errorMessage && <p className='text-sm text-red-600'>{errorMessage}</p>}
     </div>
   );
 }

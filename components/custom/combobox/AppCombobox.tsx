@@ -50,7 +50,7 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <div className={className}>
-                <Button variant='outline' role='combobox' aria-expanded={open} className={`w-full justify-between`}>
+                <Button variant='outline' role='combobox' aria-expanded={open} className={`w-full justify-between`} type="button">
                   <div className='flex items-center'>
                     {LeftIcon && <LeftIcon className='w-4 h-4 text-muted-foreground mr-2' />}
                     <span className='truncate'>{displayValue || placeholder}</span>
@@ -70,7 +70,7 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
         <PopoverContent className='w-(--radix-popover-trigger-width) p-0'>
           <div className='relative'>
             {onClear && (
-              <Button variant='ghost' size='sm' className='absolute top-2 right-2 z-10 h-6 w-6 p-0' onClick={() => onClear()}>
+              <Button variant='ghost' size='sm' className='absolute top-2 right-2 z-10 h-6 w-6 p-0' onClick={() => onClear()} type="button">
                 <X className='h-4 w-4' />
               </Button>
             )}

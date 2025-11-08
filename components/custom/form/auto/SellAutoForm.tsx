@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
-import { Car, Fuel, Settings, Calendar } from 'lucide-react';
+import { Car, Fuel, Settings, Calendar, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,9 @@ import { MediaUploader } from '@/components/custom/media/MediaUploader';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitSellAutoForm } from '@/actions/auto/actions';
 import { auto, AutoSellFormData } from '@/lib/validations';
+import { Progress } from '@/components/ui/progress';
+import { AppLocationInput } from '../../input/AppLocationInput';
+import { Textarea } from '@/components/ui/textarea';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -26,19 +29,20 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
   const [options, setOptions] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadError, setUploadError] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const form = useForm<AutoSellFormData>({
     resolver: zodResolver(auto.sellSchema) as Resolver<AutoSellFormData>,
     defaultValues: {
       title: '',
       description: '',
-      price: '',
+      price: '', // Changed to string
       currency: 'EUR',
       location: '',
       features: '',
       fuel: '',
-      mileage: 0,
-      year: 0,
+      mileage: '', // Changed to string
+      year: '', // Changed to string
       uploadedFiles: [],
     },
   });
@@ -46,18 +50,27 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
   const watchedValues = useWatch({ control: form.control });
   const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
 
+  const handleFilesChange = (newFiles: File[]) => {
+    setFiles(newFiles);
+    // Generate object URLs for preview (client-side only)
+    const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
+    setUploadedFiles(previewUrls); // Update for preview immediately
+    form.setValue('uploadedFiles', previewUrls); // Update form value for Zod validation
+    form.trigger('uploadedFiles'); // Trigger live validation
+  };
+
   useEffect(() => {
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || '',
+      price: watchedValues.price || '', // Pass as string
       currency: watchedValues.currency || 'EUR',
       location: watchedValues.location || '',
       category: 'sell',
-      uploadedFiles,
+      uploadedFiles, // Now shows local URLs for preview
       fuel: watchedValues.fuel || '',
-      mileage: watchedValues.mileage || 0,
-      year: watchedValues.year || 0,
+      mileage: watchedValues.mileage || '', // Pass as string
+      year: watchedValues.year || '', // Pass as string
       features: watchedValues.features || '',
       options,
     });
@@ -71,7 +84,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     watchedValues.mileage,
     watchedValues.year,
     watchedValues.features,
-    uploadedFiles,
+    uploadedFiles, // Reacts to local URLs
     options,
     onPreviewUpdate,
   ]);
@@ -90,49 +103,91 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
   const onSubmit: SubmitHandler<AutoSellFormData> = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setUploadProgress(0); // Ensure starts at 0
+
     try {
-      const result = await submitSellAutoForm({ ...data, uploadedFiles, options });
+      let urls: string[] = [];
+      if (files.length > 0) {
+        const formData = new FormData();
+        files.forEach((file) => formData.append('files', file));
+        formData.append('category', 'sell');
+        formData.append('subcategory', 'auto'); // Add subcategory
+
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete); // Update progressively
+          }
+        };
+
+        const uploadPromise = new Promise<string[]>((resolve, reject) => {
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              resolve(JSON.parse(xhr.responseText).urls);
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          };
+          xhr.onerror = () => reject(new Error('Upload failed'));
+          xhr.open('POST', '/api/upload');
+          xhr.send(formData);
+        });
+
+        urls = await uploadPromise;
+      }
+
+      const result = await submitSellAutoForm({ ...data, uploadedFiles: urls, options });
       if (result.success) {
         toast.success('Formular trimis cu succes!');
         form.reset();
-        setUploadedFiles([]);
+        setUploadedFiles([]); // Clear preview images
         setOptions([]);
+        setFiles([]);
         setUploaderKey((k) => k + 1);
-        setUploadError(false);
       } else {
         toast.error('Eroare la trimiterea formularului.');
       }
     } catch {
-      toast.error('Eroare la trimiterea formularului.');
+      toast.error('Eroare la încărcarea fișierelor.'); // Server-side error toast
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
+  const mediaError = files.length < 1;
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-4 max-w-full'>
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-4 w-full'>
       <FieldSet>
         <FieldGroup>
-          <div className='flex flex-col md:flex-row gap-4'>
-            <Field className='min-w-0 flex-1'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
+            <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='title' className='flex items-center gap-2'>
                 <Car className='h-4 w-4' /> Titlu
               </FieldLabel>
-              <Input {...form.register('title')} placeholder='Introduceți titlul mașinii' className='wrap-break-word max-w-full' />
+              <Input {...form.register('title')} placeholder='Introduceți titlul mașinii' className='break-all w-full' />
               <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
             </Field>
-            <div className='min-w-0 flex-1'>
+            <div className='min-w-0 w-full'>
               <AutoPriceSelector form={form} />
             </div>
           </div>
 
-          <Field className='min-w-0'>
+          <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='location'>Locație</FieldLabel>
-            <Input {...form.register('location')} placeholder='Introduceți locația' className='wrap-break-word max-w-full' />
+            <AppLocationInput
+              value={form.watch('location')}
+              onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+              placeholder='Introduceți locația'
+              leftIcon={MapPin}
+              showMap={false}
+            />
             <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
           </Field>
 
-          <Field className='min-w-0'>
+          <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='description' className='flex items-center gap-2'>
               <Car className='h-4 w-4' /> Descriere
             </FieldLabel>
@@ -144,13 +199,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             <FieldError errors={form.formState.errors.description ? [form.formState.errors.description] : undefined} />
           </Field>
 
-          <div className='flex flex-col md:flex-row items-center gap-4 max-w-full'>
-            <Field className='min-w-0'>
+          <div className='flex flex-col md:flex-row items-center gap-4 min-w-0'>
+            <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='fuel' className='flex items-center gap-2' aria-required='true'>
                 <Fuel className='h-4 w-4' /> Combustibil <span className='text-red-600'>*</span>
               </FieldLabel>
               <Select value={form.watch('fuel')} onValueChange={(v) => form.setValue('fuel', v, { shouldValidate: true })}>
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder='Selectați combustibil' />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,37 +217,34 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               </Select>
               <FieldError errors={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined} />
             </Field>
-            <Field className='min-w-0'>
+            <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='mileage' className='flex items-center gap-2'>
                 <Settings className='h-4 w-4' /> Kilometraj <span className='text-red-600'>*</span>
               </FieldLabel>
-              <Input
-                {...form.register('mileage', { valueAsNumber: true })}
-                type='number'
-                placeholder='0'
-                min={1}
-                required
-                className='wrap-break-word max-w-full'
-              />
+              <Input {...form.register('mileage')} type='text' step='0.01' placeholder='22.500' className='break-all w-full' />
               <FieldError errors={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined} />
             </Field>
-            <Field className='min-w-0'>
+            <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='year' className='flex items-center gap-2'>
                 <Calendar className='h-4 w-4' /> An Fabricație
               </FieldLabel>
               <Input
-                {...form.register('year', { valueAsNumber: true })}
-                type='number'
+                {...form.register('year')}
+                type='text'
+                inputMode='numeric'
                 placeholder='2020'
-                min={1900}
-                max={CURRENT_YEAR}
-                className='wrap-break-word max-w-full'
+                className='break-words overflow-wrap-break-word w-full'
+                onKeyDown={(e) => {
+                  if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
               />
               <FieldError errors={form.formState.errors.year ? [form.formState.errors.year] : undefined} />
             </Field>
           </div>
 
-          <Field className='min-w-0'>
+          <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='features' className='flex items-center gap-2' aria-required='true'>
               <Settings className='h-4 w-4' /> Caracteristici <span className='text-red-600'>*</span>
             </FieldLabel>
@@ -208,7 +260,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             <FieldLegend>Opțiuni Adiționale</FieldLegend>
             <FieldGroup className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
               {availableOptions.map((option) => (
-                <Field key={option} orientation='horizontal' className='min-w-0'>
+                <Field key={option} orientation='horizontal' className='min-w-0 w-full'>
                   <Checkbox id={option} checked={options.includes(option)} onCheckedChange={(c) => toggleOption(option, c)} />
                   <FieldLabel htmlFor={option} className='font-normal'>
                     {option}
@@ -218,17 +270,12 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             </FieldGroup>
           </FieldSet>
 
-          <Field className='min-w-0'>
-            <FieldLabel className={uploadError ? 'text-red-600' : ''}>Fotografii</FieldLabel>
-            <div className={uploadError ? 'rounded-md ring-2 ring-red-500 p-1' : ''}>
+          <Field className='min-w-0 w-full'>
+            <FieldLabel>Fișiere</FieldLabel>
+            <div>
               <MediaUploader
                 key={uploaderKey}
-                category='sell'
-                onUpload={(urls) => {
-                  setUploadedFiles(urls);
-                  form.setValue('uploadedFiles', urls, { shouldValidate: true });
-                  if (urls.length > 0) setUploadError(false);
-                }}
+                onFilesChange={handleFilesChange} // Use new handler
               />
             </div>
             <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
@@ -236,13 +283,15 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         </FieldGroup>
       </FieldSet>
 
-      <Button
-        type='submit'
-        onClick={() => form.trigger()}
-        disabled={isSubmitting}
-        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-102 shadow-lg'
-      >
-        {isSubmitting ? 'Se trimite...' : 'Trimite Vânzare Auto'}
+      {isSubmitting && uploadProgress > 0 && (
+        <div className='space-y-2'>
+          <p className='text-sm text-gray-600'>Se încarcă... {uploadProgress}%</p>
+          <Progress value={uploadProgress} className='w-full' />
+        </div>
+      )}
+
+      <Button type='submit' className='w-full' disabled={isSubmitting}>
+        {isSubmitting ? 'Se trimite...' : 'Trimite Formularul'}
       </Button>
     </form>
   );

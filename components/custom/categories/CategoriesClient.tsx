@@ -20,7 +20,7 @@ import { AuctionAutoForm } from '@/components/custom/form/auto/AuctionAutoForm';
 export type PreviewData = {
   title: string;
   description: string;
-  price: string;
+  price: string; // Keep as string for display
   currency: string;
   startingBid?: number;
   location: string;
@@ -28,8 +28,8 @@ export type PreviewData = {
   uploadedFiles: string[];
   duration?: string;
   fuel: string;
-  mileage: number;
-  year: number;
+  mileage: string; // Changed to string
+  year: string; // Changed to string
   features: string;
   options: string[];
 };
@@ -62,14 +62,14 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
   const [previewData, setPreviewData] = useState<PreviewData>({
     title: '',
     description: '',
-    price: '',
+    price: '', // Keep as string
     currency: 'EUR',
     location: '',
     category: 'sell',
-    uploadedFiles: [],
+    uploadedFiles: [], // Keep empty until after upload/submit
     fuel: '',
-    mileage: 0,
-    year: 0,
+    mileage: '', // Changed to string
+    year: '', // Changed to string
     features: '',
     options: [],
   });
@@ -139,17 +139,17 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         />
       </header>
       <ScrollArea className='flex-1'>
-        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-hidden p-2'>
-          <div className='flex-1 overflow-visible'>
+        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto p-2'>
+          <div className='flex-1 overflow-visible min-w-0'>
             {selectedSubcategory ? (
-              <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md'>
+              <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md w-full'>
                 <CardHeader className='shrink-0'>
                   <CardTitle className='text-2xl font-bold text-center'>
                     Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
                     {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className='flex-1 overflow-auto'>
+                <CardContent className='flex-1 overflow-auto min-w-0'>
                   <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
                 </CardContent>
               </Card>
@@ -158,9 +158,9 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
             )}
           </div>
           {selectedSubcategory === 'auto' && (
-            <div className='flex-1 overflow-hidden'>
-              <div className='h-full'>
-                <Preview {...previewData} price={previewData.price || previewData.startingBid?.toString() || '0'} />
+            <div className='flex-1 overflow-visible w-full md:w-auto min-w-0'>
+              <div className='w-full min-w-0'>
+                <Preview {...previewData} price={previewData.price} /> {/* Pass string directly */}
               </div>
             </div>
           )}

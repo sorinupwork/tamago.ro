@@ -4,50 +4,43 @@ export const auto = {
   sellSchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),
     description: z.string().min(10, 'Descrierea trebuie să aibă cel puțin 10 caractere'),
-    price: z.string().regex(/^\d+(\.\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }).min(1, 'Prețul este obligatoriu'),
+    price: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }),
     currency: z.enum(['EUR', 'USD', 'RON'], { message: 'Moneda trebuie să fie EUR, USD sau RON' }),
     location: z.string().min(1, 'Locația este obligatorie'),
     features: z.string().min(1, 'Caracteristicile sunt obligatorii'),
     status: z.string().optional(),
     fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
-    mileage: z.coerce.number().int({ message: 'Kilometrajul trebuie să fie un număr întreg' }).min(1, { message: 'Kilometrajul trebuie să fie >= 1' }),
-    year: z.preprocess(
-      (val) => {
-        if (val === '' || val === null || val === undefined) return undefined;
-        return Number(val);
-      },
-      z
-        .number()
-        .int({ message: 'Anul trebuie să fie un număr întreg' })
-        .min(1900, { message: 'Anul trebuie să fie >= 1900' })
-        .max(new Date().getFullYear(), { message: `Anul nu poate fi mai mare decât ${new Date().getFullYear()}` })
-        .optional()
-    ),
-    uploadedFiles: z.array(z.string()).min(1, { message: 'Trebuie încărcată cel puțin o fotografie' }),
+    mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
+    year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
+    uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
   }),
   buySchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),
     description: z.string().min(10, 'Descrierea trebuie să aibă cel puțin 10 caractere'),
-    price: z.coerce.number().positive({ message: 'Prețul trebuie să fie un număr pozitiv' }),
+    price: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }),
     location: z.string().min(1, 'Locația este obligatorie'),
     features: z.string().optional(),
     status: z.string().optional(),
     fuel: z.string().optional(),
-    uploadedFiles: z.array(z.string()).min(1, { message: 'Trebuie încărcată cel puțin o fotografie' }),
+    mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
+    year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
+    uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
   }),
   rentSchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),
     description: z.string().min(10, 'Descrierea trebuie să aibă cel puțin 10 caractere'),
-    price: z.coerce.number().positive({ message: 'Prețul trebuie să fie un număr pozitiv' }),
+    price: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }),
     location: z.string().min(1, 'Locația este obligatorie'),
     duration: z.string().min(1, 'Durata este obligatorie'),
     type: z.string().optional(),
     features: z.string().optional(),
     status: z.string().optional(),
     fuel: z.string().optional(),
-    uploadedFiles: z.array(z.string()).min(1, { message: 'Trebuie încărcată cel puțin o fotografie' }),
+    mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
+    year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
+    uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
   }),
   auctionSchema: z.object({
@@ -59,7 +52,9 @@ export const auto = {
     features: z.string().optional(),
     status: z.string().optional(),
     fuel: z.string().optional(),
-    uploadedFiles: z.array(z.string()).min(1, { message: 'Trebuie încărcată cel puțin o fotografie' }),
+    mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
+    year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
+    uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
   }),
 };

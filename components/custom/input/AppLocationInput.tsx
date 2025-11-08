@@ -33,6 +33,7 @@ type AppLocationInputProps = {
   className?: string;
   filteredCars?: Car[];
   leftIcon?: LucideIcon;
+  showMap?: boolean;
 };
 
 export const AppLocationInput: React.FC<AppLocationInputProps> = ({
@@ -41,6 +42,7 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
   className,
   filteredCars = [],
   leftIcon,
+  showMap = true,
 }) => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
@@ -133,33 +135,41 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
             onChange(null, radius);
           }}
           additionalContent={
-            <div className='space-y-4 p-4'>
-              <div className='flex items-center gap-2'>
-                <Button onClick={getCurrentLocation} variant='outline' size='sm' title='Folosește locația mea'>
-                  <MapPin className='w-4 h-4' />
-                </Button>
+            showMap ? (
+              <div className='space-y-4 p-4'>
+                <div className='flex items-center gap-2'>
+                  <Button onClick={getCurrentLocation} variant='outline' size='sm' title='Folosește locația mea' type="button">
+                    <MapPin className='w-4 h-4' />
+                  </Button>
 
-                <AppSlider
-                  label={`Search Radius: ${radius} km`}
-                  value={[radius]}
-                  onValueChange={(value) => {
-                    setRadius(value[0]);
-                    if (selectedLocation) onChange(selectedLocation, value[0]);
-                  }}
-                  min={10}
-                  max={100}
-                  step={5}
-                  className='w-full'
+                  <AppSlider
+                    label={`Search Radius: ${radius} km`}
+                    value={[radius]}
+                    onValueChange={(value) => {
+                      setRadius(value[0]);
+                      if (selectedLocation) onChange(selectedLocation, value[0]);
+                    }}
+                    min={10}
+                    max={100}
+                    step={5}
+                    className='w-full'
+                  />
+                </div>
+                <MapComponent
+                  mapPosition={mapPosition}
+                  selectedLocation={selectedLocation}
+                  onMapClick={handleMapClick}
+                  filteredCars={filteredCars}
+                  radius={radius}
                 />
               </div>
-              <MapComponent
-                mapPosition={mapPosition}
-                selectedLocation={selectedLocation}
-                onMapClick={handleMapClick}
-                filteredCars={filteredCars}
-                radius={radius}
-              />
-            </div>
+            ) : (
+              <div className='p-4'>
+                <Button onClick={getCurrentLocation} variant='outline' size='sm' title='Folosește locația mea' type="button">
+                  <MapPin className='w-4 h-4' />
+                </Button>
+              </div>
+            )
           }
         />
       </div>

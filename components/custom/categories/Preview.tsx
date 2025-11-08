@@ -6,35 +6,52 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 
-type PreviewProps = {
+interface PreviewProps {
   title: string;
   description: string;
-  price: string;
+  price: string; // Changed to string
   currency: string;
+  startingBid?: number;
   location: string;
   category: string;
   uploadedFiles: string[];
+  duration?: string;
   fuel: string;
-  mileage: number;
-  year: number;
+  mileage: string; // Changed to string
+  year: string; // Changed to string
   features: string;
   options: string[];
-};
+}
 
-export function Preview({ title, description, price, currency, location, category, uploadedFiles, fuel, mileage, year, features, options }: PreviewProps) {
+export function Preview({
+  title,
+  description,
+  price,
+  currency,
+  location,
+  category,
+  uploadedFiles,
+  fuel,
+  mileage,
+  year,
+  features,
+  options,
+}: PreviewProps) {
   return (
-    <Card className='animate-in fade-in-0 slide-in-from-right-4 bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 shadow-md'>
+    <Card className='animate-in fade-in-0 slide-in-from-right-4 bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 shadow-md w-full'>
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
       </CardHeader>
-      <CardContent className='space-y-4 overflow-hidden'>
-        <div className='flex justify-between items-start'>
-          <h3 className='text-lg font-semibold'>{title || 'Titlu Postare'}</h3>
-          <Badge variant={category === 'auction' ? 'destructive' : 'secondary'}>
+      <CardContent className='space-y-4 overflow-auto'>
+        <div className='flex flex-col md:flex-row gap-2'>
+          <h3 className='min-w-0 text-lg font-semibold break-all overflow-wrap-break-word'>{title || 'Titlu Postare'}</h3>
+          <Badge variant={category === 'auction' ? 'destructive' : 'secondary'} className='self-start'>
             {category === 'sell' ? 'Vânzare' : category === 'buy' ? 'Cumpărare' : category === 'rent' ? 'Închiriere' : 'Licitație'}
           </Badge>
         </div>
-        <p className='text-2xl font-bold text-green-600'>{price || '0'} {currency || 'EUR'}</p>
+        <p className='text-2xl font-bold text-primary break-all overflow-wrap-break-word max-w-full'>
+          {price} {currency} {/* Display exact string without truncation */}
+        </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
 
         {uploadedFiles.length > 0 && (
@@ -57,19 +74,36 @@ export function Preview({ title, description, price, currency, location, categor
           </Carousel>
         )}
 
-        <div className='prose prose-sm max-w-none wrap-break-word' dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }} />
+        {/* Ensure same wrapping as editor: pre-wrap + break-word */}
+        <div
+          className='prose prose-sm max-w-none w-full break-words overflow-wrap-break-word min-w-0'
+          style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+          dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }}
+        />
 
         <div className='space-y-2'>
-          <p className='text-sm'><strong>Combustibil:</strong> {fuel || 'Nespecificat'}</p>
-          <p className='text-sm'><strong>Kilometraj:</strong> {mileage || 0} km</p>
-          <p className='text-sm'><strong>An Fabricație:</strong> {year || 'Nespecificat'}</p>
-          <p className='text-sm'><strong>Caracteristici:</strong> {features || 'Nespecificate'}</p>
+          <p className='text-sm'>
+            <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
+          </p>
+          <p className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
+            <strong>Kilometraj:</strong> {mileage} km
+          </p>
+          <p className='text-sm break-words overflow-wrap-break-word'>
+            <strong>An Fabricație:</strong> {year}
+          </p>
+          <div
+            className='prose prose-sm max-w-none w-full break-words overflow-wrap-break-word break-all min-w-0'
+            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+            dangerouslySetInnerHTML={{ __html: `<strong>Caracteristici:</strong> ${features || 'Nespecificate'}` }}
+          />
           {options && options.length > 0 && (
             <div className='text-sm'>
               <strong>Opțiuni Adiționale:</strong>
               <div className='flex flex-wrap gap-1 mt-1'>
                 {options.map((opt, index) => (
-                  <Badge key={index} variant='outline'>{opt}</Badge>
+                  <Badge key={index} variant='outline'>
+                    {opt}
+                  </Badge>
                 ))}
               </div>
             </div>

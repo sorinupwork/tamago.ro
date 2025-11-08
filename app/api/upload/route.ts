@@ -1,28 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.formData();
     const files = data.getAll('files') as File[];
     const category = data.get('category') as string;
+    const subcategory = data.get('subcategory') as string; // Add subcategory
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ error: 'No files provided' }, { status: 400 });
+      return NextResponse.json({ error: 'Trebuie să încărcați cel puțin un fișier.' }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'categories', category);
-    await mkdir(uploadDir, { recursive: true });
+    const getSubfolder = (file: File, category: string, subcategory: string): string => { // Add subcategory param
+      if (file.type.startsWith('image/')) {
+        return `${category}_${subcategory}_images`; // Use subcategory
+      } else if (file.type.startsWith('video/')) {
+        return `${category}_${subcategory}_videos`; // Use subcategory
+      } else {
+        return `${category}_${subcategory}_documents`; // Use subcategory
+      }
+    };
 
     const urls: string[] = [];
 
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const filename = `${Date.now()}-${file.name}`;
-      const filepath = path.join(uploadDir, filename);
-      await writeFile(filepath, buffer);
-      urls.push(`/uploads/categories/${category}/${filename}`);
+
+      const subfolder = getSubfolder(file, category, subcategory); // Pass subcategory
+      const key = `${subfolder}/${filename}`;
+      const blob = await put(key, buffer, { access: 'public' });
+      urls.push(blob.url);
     }
 
     return NextResponse.json({ urls });
