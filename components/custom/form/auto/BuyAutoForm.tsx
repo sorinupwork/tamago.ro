@@ -47,12 +47,28 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || 0,
+      price: watchedValues.price?.toString() || '',
+      currency: 'EUR',
       location: watchedValues.location || '',
       category: 'buy',
       uploadedFiles,
+      fuel: watchedValues.fuel || '',
+      mileage: 0,
+      year: 0,
+      features: watchedValues.features || '',
+      options,
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
+  }, [
+    watchedValues.title,
+    watchedValues.description,
+    watchedValues.price,
+    watchedValues.location,
+    watchedValues.fuel,
+    watchedValues.features,
+    uploadedFiles,
+    options,
+    onPreviewUpdate,
+  ]);
 
   const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {
     setOptions((prev) => (checked ? (prev.includes(opt) ? prev : [...prev, opt]) : prev.filter((o) => o !== opt)));

@@ -46,12 +46,28 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      startingBid: watchedValues.startingBid || 0,
+      price: watchedValues.startingBid?.toString() || '',
+      currency: 'EUR',
       location: watchedValues.location || '',
       category: 'auction',
       uploadedFiles,
+      fuel: watchedValues.fuel || '',
+      mileage: 0,
+      year: 0,
+      features: watchedValues.features || '',
+      options,
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.startingBid, watchedValues.location, uploadedFiles, onPreviewUpdate]);
+  }, [
+    watchedValues.title,
+    watchedValues.description,
+    watchedValues.startingBid,
+    watchedValues.location,
+    watchedValues.fuel,
+    watchedValues.features,
+    uploadedFiles,
+    options,
+    onPreviewUpdate,
+  ]);
 
   const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
   const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {

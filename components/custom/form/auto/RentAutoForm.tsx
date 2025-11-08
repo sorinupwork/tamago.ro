@@ -47,10 +47,16 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || 0,
+      price: watchedValues.price?.toString() || '',
+      currency: 'EUR',
       location: watchedValues.location || '',
       category: 'rent',
       uploadedFiles,
+      fuel: watchedValues.fuel || '',
+      mileage: 0,
+      year: 0,
+      features: watchedValues.features || '',
+      options,
       duration: watchedValues.duration || '',
     });
   }, [
@@ -58,7 +64,10 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
     watchedValues.description,
     watchedValues.price,
     watchedValues.location,
+    watchedValues.fuel,
+    watchedValues.features,
     uploadedFiles,
+    options,
     onPreviewUpdate,
     watchedValues.duration,
   ]);
