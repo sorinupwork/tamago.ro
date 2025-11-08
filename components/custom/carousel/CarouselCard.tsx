@@ -18,7 +18,7 @@ type CarouselCardProps = {
 
 export function CarouselCard({ categoryColors, category, sub, onClick }: CarouselCardProps) {
   return (
-    <Card className='aspect-square lift cursor-pointer relative'>
+    <Card className='aspect-square lift relative'>
       <CardContent className='flex flex-col relative h-full'>
         <div className='absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full'>
           <div

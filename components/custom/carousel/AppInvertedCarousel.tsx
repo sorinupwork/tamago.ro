@@ -55,13 +55,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     if (!apiA) return;
     const aIndex = apiA.selectedScrollSnap();
     setCurrentA(aIndex);
-    const now = Date.now();
     if (!apiB || isSyncing.current) {
-      prevARef.current = aIndex;
-      return;
-    }
-
-    if (lastAutoA.current && now - lastAutoA.current < 600) {
       prevARef.current = aIndex;
       return;
     }
@@ -84,12 +78,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     if (!apiB) return;
     const bIndex = apiB.selectedScrollSnap();
     setCurrentB(bIndex);
-    const now = Date.now();
     if (!apiA || isSyncing.current) {
-      prevBRef.current = bIndex;
-      return;
-    }
-    if (lastAutoB.current && now - lastAutoB.current < 600) {
       prevBRef.current = bIndex;
       return;
     }
@@ -116,11 +105,18 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
       prevARef.current = apiA.selectedScrollSnap();
     };
 
+    const onPointerDownA = () => {
+      prevARef.current = apiA.selectedScrollSnap();
+    };
+
     apiA.on('init', onInitA);
     apiA.on('select', onSelectA);
+    apiA.on('pointerDown', onPointerDownA);
+
     return () => {
       apiA.off('init', onInitA);
       apiA.off('select', onSelectA);
+      apiA.off('pointerDown', onPointerDownA);
     };
   }, [apiA, onSelectA]);
 
@@ -132,11 +128,18 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
       prevBRef.current = apiB.selectedScrollSnap();
     };
 
+    const onPointerDownB = () => {
+      prevBRef.current = apiB.selectedScrollSnap();
+    };
+
     apiB.on('init', onInitB);
     apiB.on('select', onSelectB);
+    apiB.on('pointerDown', onPointerDownB);
+
     return () => {
       apiB.off('init', onInitB);
       apiB.off('select', onSelectB);
+      apiB.off('pointerDown', onPointerDownB);
     };
   }, [apiB, onSelectB]);
 
@@ -190,12 +193,14 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     currentIndex,
     offset,
     apiKeyPrefix,
+    opts,
   }: {
     items: Subcategory[];
     setApi: (api?: CarouselApi) => void;
     currentIndex: number;
     offset: number;
     apiKeyPrefix: string;
+    opts: { align: 'start' | 'center' | 'end'; loop: boolean; startIndex: number };
   }) => {
     return (
       <section
@@ -206,7 +211,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         <div onMouseEnter={() => setPlaying(false)} onMouseLeave={() => setPlaying(true)} className='flex justify-center'>
           <Carousel
             setApi={setApi}
-            opts={{ align: 'center', loop: true }}
+            opts={opts}
             className='w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-visible'
           >
             <CarouselContent className='gap-6' containerClassName='overflow-visible'>
@@ -218,27 +223,15 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
                     key={`${apiKeyPrefix}-${origIndex}`}
                     className='basis-full sm:basis-1/2 lg:basis-1/3 flex-justify-center relative'
                   >
-                    <div
+                    <CarouselCard
+                      origIndex={origIndex}
+                      isActive={currentIndex === i}
+                      categoryColors={categoryColors}
+                      category={category}
+                      sub={sub}
                       onClick={navigate}
-                      role='button'
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          navigate();
-                        }
-                      }}
-                      className='p-2 relative focus:outline-none'
-                    >
-                      <CarouselCard
-                        origIndex={origIndex}
-                        isActive={currentIndex === i}
-                        categoryColors={categoryColors}
-                        category={category}
-                        sub={sub}
-                        onClick={navigate}
-                      />
-                    </div>
+                    />
+
                     <LuckyNumber number={origIndex + 1} isActive={currentIndex === i} category={category} />
                   </CarouselItem>
                 );
@@ -252,11 +245,25 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
 
   return (
     <>
-      {/* Top carousel (first half) */}
-      {RenderRow({ items: rowAItems, setApi: setApiA, currentIndex: currentA, offset: 0, apiKeyPrefix: 'a' })}
+      {/* Top carousel */}
+      {RenderRow({
+        items: rowAItems,
+        setApi: setApiA,
+        currentIndex: currentA,
+        offset: 0,
+        apiKeyPrefix: 'a',
+        opts: { align: 'center', loop: true, startIndex: 0 },
+      })}
 
-      {/* Bottom carousel (second half) */}
-      {RenderRow({ items: rowBItems, setApi: setApiB, currentIndex: currentB, offset: 0, apiKeyPrefix: 'b' })}
+      {/* Bottom carousel */}
+      {RenderRow({
+        items: rowBItems,
+        setApi: setApiB,
+        currentIndex: currentB,
+        offset: 0,
+        apiKeyPrefix: 'b',
+        opts: { align: 'center', loop: true, startIndex: 16 },
+      })}
     </>
   );
 }

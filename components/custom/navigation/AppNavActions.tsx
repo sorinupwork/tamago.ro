@@ -29,7 +29,7 @@ export function AppNavActions() {
       <div className='flex items-center gap-2'>
         <Button
           variant='outline'
-          className='cursor-pointer w-10 h-10 justify-start text-left sm:w-52'
+          className='w-10 h-10 justify-start text-left sm:w-52'
           onClick={() => setOpen(true)}
         >
           <Search className='h-4 w-4' />
@@ -38,7 +38,7 @@ export function AppNavActions() {
         </Button>
         <Button
           variant='outline'
-          className={cn('cursor-pointer w-10 h-10 justify-start text-left xl:w-auto')}
+          className={cn(' w-10 h-10 justify-start text-left xl:w-auto')}
           asChild
         >
           <Link href='/autentificare'>
@@ -56,20 +56,20 @@ export function AppNavActions() {
         <CommandList>
           <CommandEmpty>Nu s-au găsit rezultate.</CommandEmpty>
           <CommandGroup heading='Navigare'>
-            <CommandItem asChild className='cursor-pointer'>
+            <CommandItem asChild>
               <Link href='/'>Acasă</Link>
             </CommandItem>
-            <CommandItem asChild className='cursor-pointer'>
+            <CommandItem asChild>
               <Link href='/despre-noi'>Despre noi</Link>
             </CommandItem>
-            <CommandItem asChild className='cursor-pointer'>
+            <CommandItem asChild>
               <Link href='/contact'>Contact</Link>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading='Categorii'>
             {mainCategories.map((cat) => (
-              <CommandItem asChild key={cat.title} className='cursor-pointer'>
+              <CommandItem asChild key={cat.title}>
                 <Link href={cat.href}>{cat.title}</Link>
               </CommandItem>
             ))}
@@ -77,7 +77,7 @@ export function AppNavActions() {
           <CommandSeparator />
           <CommandGroup heading='Subcategorii'>
             {subcategories.map((component) => (
-              <CommandItem asChild key={component.title} className='cursor-pointer'>
+              <CommandItem asChild key={component.title}>
                 <Link href={component.href}>{component.title}</Link>
               </CommandItem>
             ))}

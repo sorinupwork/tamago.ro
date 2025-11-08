@@ -25,7 +25,7 @@ export const AppListItem: React.FC<AppListItemProps> = ({
 }) => {
   return (
     <div
-      className={`flex items-center gap-3 p-2 hover:bg-muted cursor-pointer transition-all duration-200 pinch ${
+      className={`flex items-center gap-3 p-2 hover:bg-muted transition-all duration-200 pinch ${
         selectedUser.id === user.id ? 'bg-accent animate-pulse' : ''
       }`}
       onClick={() => setSelectedUser(user)}

@@ -29,7 +29,6 @@ export function Showcase({ category }: { category: string }) {
     auction: { text: 'text-purple-600', icon: 'text-purple-600', arrow: 'text-purple-600' },
   };
 
-  // navigation helper: category key -> tip param
   const reverseMapping: Record<string, string> = { sell: 'vanzare', buy: 'cumparare', rent: 'inchiriere', auction: 'licitatie' };
   const navigateTo = (catKey: string, sub?: string) => {
     const tip = reverseMapping[catKey] ?? catKey;
@@ -37,18 +36,16 @@ export function Showcase({ category }: { category: string }) {
     router.push(url);
   };
 
-  // Duplicate subcategories for more items to test rendering (e.g., 20 total)
   const extendedSubcategories = [...subcategories, ...subcategories, ...subcategories].slice(0, 20);
 
-  const rowAItems = extendedSubcategories; // top row: all 20 items
-  const rowBItems = extendedSubcategories; // bottom row: same 20 items
+  const rowAItems = extendedSubcategories;
+  const rowBItems = extendedSubcategories;
 
   const cat = categories.find((c) => c.key === category);
   if (!cat) return null;
 
   return (
     <div className='flex-1 relative w-full mx-auto px-4 sm:px-8 md:px-0 animate-fade-in overflow-hidden'>
-      {/*hero section */}
       <div
         className={`relative w-full h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg transition-opacity duration-1000 ${
           isVisible ? 'opacity-100' : 'opacity-0'

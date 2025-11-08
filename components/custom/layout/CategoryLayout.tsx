@@ -17,17 +17,15 @@ export function CategoryLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <main className='flex flex-col flex-1'>
-        <div className='w-full'>
-          <div className='flex w-full items-start'>
-            <div className='shrink-0'>
-              <CategorySidebar />
-            </div>
+        <div className='flex w-full items-start h-full'>
+          <div className='shrink-0'>
+            <CategorySidebar />
+          </div>
 
-            <div className='flex-1 flex flex-col gap-6'>
-              <div>{mainContent}</div>
+          <div className='flex-1 flex flex-col justify-between gap-6 h-full'>
+            <div className='flex-1'>{mainContent}</div>
 
-              {rest.length > 0 && <div className='w-full'>{rest}</div>}
-            </div>
+            {rest.length > 0 && <div className='w-full'>{rest}</div>}
           </div>
         </div>
       </main>

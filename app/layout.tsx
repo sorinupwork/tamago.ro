@@ -49,15 +49,16 @@ export default function RootLayout({
     <html lang='ro' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased`}>
         <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-          <AppNavigation />
-
-          <CategoryLayout>
-            {children}
-
-            <MoreInfo />
-            <Footer />
-          </CategoryLayout>
-
+          <div className='flex flex-col min-h-screen'>
+            <AppNavigation />
+            <div className='flex-1 flex flex-col'>
+              <CategoryLayout>
+                {children}
+                <MoreInfo />
+                <Footer />
+              </CategoryLayout>
+            </div>
+          </div>
           <ChatDrawer />
           <Toaster />
         </ThemeProvider>

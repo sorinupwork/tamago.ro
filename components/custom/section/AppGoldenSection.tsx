@@ -30,7 +30,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[5]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[5]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
@@ -54,7 +54,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[4]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[4]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
@@ -78,7 +78,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[0]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[0]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
@@ -102,7 +102,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[1]?.id}
-              className='relative bg-cover bg-center pinch cursor-pointer'
+              className='relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[1]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
@@ -126,7 +126,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[2]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[2]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
@@ -150,7 +150,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[3]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch'
               style={{ backgroundImage: `url(${displayedPosts[3]?.imageUrl})` }}
             >
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>

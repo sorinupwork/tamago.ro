@@ -8,8 +8,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -79,13 +77,9 @@ export function CategorySidebar({
   };
 
   return (
-    <Sidebar variant='sidebar' collapsible='icon'>
-      <SidebarHeader>
-        <h2 className='text-lg font-semibold'>Categorii</h2>
-      </SidebarHeader>
+    <Sidebar variant='sidebar' collapsible='icon' className='top-[52px]'>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Alege Categoria</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {categories.map((cat) => (
@@ -95,6 +89,7 @@ export function CategorySidebar({
                       <SidebarMenuButton
                         onClick={() => handleMainClick(cat.key)}
                         isActive={selectedCategory === cat.key && !selectedSubcategory}
+                        tooltip={cat.label}
                         className={`transition-all duration-300 hover:scale-105 ${
                           selectedCategory === cat.key ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                         }`}
@@ -113,6 +108,7 @@ export function CategorySidebar({
                                 selectedCategory === cat.key &&
                                 selectedSubcategory === (sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')
                               }
+                              tooltip={sub.title || ''}
                               className={`transition-all duration-200 ${
                                 selectedCategory === cat.key &&
                                 selectedSubcategory === (sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')
@@ -121,7 +117,7 @@ export function CategorySidebar({
                               }`}
                             >
                               <sub.icon />
-                              <span>{sub.title || ''}</span>
+                              <span className='pointer-events-none'>{sub.title || ''}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}

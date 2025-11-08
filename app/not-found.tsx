@@ -13,7 +13,7 @@ export default function NotFound() {
           <span className='text-primary'>404</span> - Pagina nu a fost găsită
         </h1>
         <p className='mt-4 text-lg text-secondary'>Această pagină nu există.</p>
-        <Button onClick={() => router.push('/')} variant='secondary' className='mt-4 cursor-pointer'>
+        <Button onClick={() => router.push('/')} variant='secondary' className='mt-4'>
           Înapoi acasă
         </Button>
       </div>

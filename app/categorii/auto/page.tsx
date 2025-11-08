@@ -223,7 +223,6 @@ export default function AutoPage() {
               <Badge
                 key={`${filter.key}-${filter.value}`}
                 variant='secondary'
-                className='cursor-pointer'
                 onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
               >
                 {filter.label} ×
@@ -412,7 +411,7 @@ export default function AutoPage() {
       >
         {paginatedItems.map((car) => (
           <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`} className=''>
-            <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-102 cursor-pointer animate-in fade-in-0 slide-in-from-bottom-4'>
+            <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-102 animate-in fade-in-0 slide-in-from-bottom-4'>
               <Image src={car.images[0]} alt={car.title} width={400} height={192} className='w-full h-48 object-cover' />
               <CardHeader className='pb-2'>
                 <div className='flex justify-between items-start'>

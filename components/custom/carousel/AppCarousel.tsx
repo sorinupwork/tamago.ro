@@ -35,7 +35,7 @@ export default function AppCarousel({ title, items, autoplay = true, interval = 
             return (
               <CarouselItem key={category.id} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4'>
                 <Link href={category.href}>
-                  <Card className='lift cursor-pointer'>
+                  <Card className='lift'>
                     <CardContent className='flex items-center gap-2 px-2 sm:px-6'>
                       {Icon && <Icon className='w-12 h-12 text-primary shrink-0' />}
                       <div className='flex flex-col flex-1'>

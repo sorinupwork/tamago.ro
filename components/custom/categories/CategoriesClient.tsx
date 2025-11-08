@@ -97,7 +97,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
 
   return (
     <SidebarInset className='flex-1'>
-      <header className='sticky top-[52px] z-10 bg-background border-b px-1 flex h-16 shrink-0 items-center gap-2'>
+      <header className='sticky top-[52px] z-10 bg-background border-b flex h-16 shrink-0 items-center gap-2 px-2'>
         <SidebarTrigger className='-ml-1' />
         <Breadcrumbs
           items={[
@@ -117,7 +117,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
       </header>
       <ScrollArea className='flex-1'>
         <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-hidden'>
-          <div className='flex-1 p-0 overflow-visible'>
+          <div className='flex-1 overflow-visible'>
             {selectedSubcategory ? (
               <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
                 <CardHeader className='shrink-0'>
