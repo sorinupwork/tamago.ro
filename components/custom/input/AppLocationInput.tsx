@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { AppCombobox } from '@/components/custom/combobox/AppCombobox';
 import { Button } from '@/components/ui/button';
 import { AppSlider } from '@/components/custom/slider/AppSlider';
-import { MapPin } from 'lucide-react';
+import { LucideIcon, MapPin } from 'lucide-react';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { debounce } from 'lodash';
@@ -32,6 +32,7 @@ type AppLocationInputProps = {
   placeholder?: string;
   className?: string;
   filteredCars?: Car[];
+  leftIcon?: LucideIcon;
 };
 
 export const AppLocationInput: React.FC<AppLocationInputProps> = ({
@@ -39,6 +40,7 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
   placeholder = 'Enter location',
   className,
   filteredCars = [],
+  leftIcon,
 }) => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
@@ -123,6 +125,7 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
           onInputChange={debouncedOnInputChange}
           placeholder={placeholder}
           className='flex-1'
+          leftIcon={leftIcon}
           onClear={() => {
             setSelectedLocation(null);
             setSelectedValue(null);

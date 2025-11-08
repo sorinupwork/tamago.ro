@@ -1,10 +1,10 @@
 import { calculateDistance } from '@/lib/services';
 import type { Car, FilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import { defaultFilters } from './initializers';
 
-export function getFilteredAndSortedCars(
+export function getFilteredCars(
   cars: Car[],
   filters: FilterState,
-  sortCriteria: SortCriteria,
   searchQuery: string,
   activeTab: string,
   categoryMapping: Record<string, string>,
@@ -44,31 +44,6 @@ export function getFilteredAndSortedCars(
       return true;
     });
   }
-
-  // Sort
-  filtered.sort((a, b) => {
-    let result = 0;
-    if (sortCriteria.date) {
-      result =
-        sortCriteria.date === 'asc'
-          ? new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime()
-          : new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
-      if (result !== 0) return result;
-    }
-    if (sortCriteria.price) {
-      result = sortCriteria.price === 'asc' ? a.price - b.price : b.price - a.price;
-      if (result !== 0) return result;
-    }
-    if (sortCriteria.year) {
-      result = sortCriteria.year === 'asc' ? a.year - b.year : b.year - a.year;
-      if (result !== 0) return result;
-    }
-    if (sortCriteria.mileage) {
-      result = sortCriteria.mileage === 'asc' ? a.mileage - b.mileage : b.mileage - a.mileage;
-      if (result !== 0) return result;
-    }
-    return 0;
-  });
 
   return filtered;
 }
@@ -113,7 +88,7 @@ export function getAppliedFilters(
       : []),
     ...(filters.status ? [{ key: 'status', value: filters.status, label: `Status: ${filters.status}` }] : []),
     ...(searchQuery ? [{ key: 'searchQuery', value: searchQuery, label: `Căutare: ${searchQuery}` }] : []),
-    ...(filters.priceRange[0] !== 0 || filters.priceRange[1] !== 100000
+    ...(filters.priceRange[0] !== defaultFilters.priceRange[0] || filters.priceRange[1] !== defaultFilters.priceRange[1]
       ? [
           {
             key: 'priceRange',
@@ -122,7 +97,7 @@ export function getAppliedFilters(
           },
         ]
       : []),
-    ...(filters.yearRange[0] !== 2000 || filters.yearRange[1] !== 2023
+    ...(filters.yearRange[0] !== defaultFilters.yearRange[0] || filters.yearRange[1] !== defaultFilters.yearRange[1]
       ? [
           {
             key: 'yearRange',
@@ -131,7 +106,7 @@ export function getAppliedFilters(
           },
         ]
       : []),
-    ...(filters.mileageRange[0] !== 0 || filters.mileageRange[1] !== 300000
+    ...(filters.mileageRange[0] !== defaultFilters.mileageRange[0] || filters.mileageRange[1] !== defaultFilters.mileageRange[1]
       ? [
           {
             key: 'mileageRange',

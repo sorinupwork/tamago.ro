@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { MapPin, Search } from 'lucide-react';
 
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,8 +23,9 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AutoTabs } from '@/components/custom/tabs/AutoTabs';
 import { categoryMapping, categoryLabels } from '@/lib/categories';
-import { getFilteredAndSortedCars, getAppliedFilters } from '@/lib/helpers/auto/filters';
-import { calcTotalPages, paginateArray } from '@/lib/helpers/pagination';
+import { getFilteredCars, getAppliedFilters } from '@/lib/helpers/auto/filters';
+import { getSortedCars } from '@/lib/helpers/auto/sorting';
+import { calcTotalPages, paginateArray } from '@/lib/helpers/auto/pagination';
 import {
   defaultActiveTab,
   defaultFilters,
@@ -89,12 +91,14 @@ export default function AutoPage() {
   }, [cars]);
 
   const filteredCars = useMemo(() => {
-    return getFilteredAndSortedCars(cars, filters, sortCriteria, searchQuery, activeTab, categoryMapping, locationFilter);
+    const filtered = getFilteredCars(cars, filters, searchQuery, activeTab, categoryMapping, locationFilter);
+    return getSortedCars(filtered, sortCriteria);
   }, [cars, filters, sortCriteria, searchQuery, activeTab, locationFilter]);
 
   const computeNewTotalPages = (nextFilters: FilterState, nextSort: SortCriteria, nextSearch: string, nextLocation: LocationFilter) => {
-    const newFiltered = getFilteredAndSortedCars(cars, nextFilters, nextSort, nextSearch, activeTab, categoryMapping, nextLocation);
-    return calcTotalPages(newFiltered.length);
+    const filtered = getFilteredCars(cars, nextFilters, nextSearch, activeTab, categoryMapping, nextLocation);
+    const sorted = getSortedCars(filtered, nextSort);
+    return calcTotalPages(sorted.length);
   };
 
   const { totalPages, paginatedItems } = paginateArray(filteredCars, currentPage);
@@ -143,12 +147,30 @@ export default function AutoPage() {
     setLocationFilter(next);
   };
 
-  const removeFilter = (key: keyof FilterState | 'location', value: string) => {
-    if (key === 'location') {
+  const removeFilter = (key: keyof FilterState | 'location' | 'searchQuery' | keyof SortCriteria, value: string) => {
+    if (key === 'searchQuery') {
+      setSearchQuery(defaultSearchQuery);
+      const newTotal = computeNewTotalPages(filters, sortCriteria, defaultSearchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'location') {
       const next = defaultLocationFilter;
       const newTotal = computeNewTotalPages(filters, sortCriteria, searchQuery, next);
       setCurrentPage((cur) => Math.min(cur, newTotal));
       setLocationFilter(next);
+    } else if (key === 'priceRange') {
+      setFilters((prev) => ({ ...prev, priceRange: defaultFilters.priceRange }));
+      const newTotal = computeNewTotalPages({ ...filters, priceRange: defaultFilters.priceRange }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'yearRange') {
+      setFilters((prev) => ({ ...prev, yearRange: defaultFilters.yearRange }));
+      const newTotal = computeNewTotalPages({ ...filters, yearRange: defaultFilters.yearRange }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'mileageRange') {
+      setFilters((prev) => ({ ...prev, mileageRange: defaultFilters.mileageRange }));
+      const newTotal = computeNewTotalPages({ ...filters, mileageRange: defaultFilters.mileageRange }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key in sortCriteria) {
+      handleSortChange(key as keyof SortCriteria, null);
     } else if (Array.isArray(filters[key as keyof FilterState])) {
       handleMultiFilterChange(key as keyof FilterState, value, false);
     } else {
@@ -182,7 +204,16 @@ export default function AutoPage() {
     }
   };
 
-  const appliedFilters = getAppliedFilters(filters, sortCriteria, searchQuery, locationFilter);
+  const appliedFilters = getAppliedFilters(filters, sortCriteria, searchQuery, locationFilter).filter((filter) => {
+    if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
+    if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
+    if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
+    if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
+    if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
+    if (filter.key in sortCriteria) return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
+    // For other filters (e.g., brand, fuel), assume getAppliedFilters already excludes defaults
+    return true;
+  });
 
   return (
     <div className='container mx-auto max-w-7xl'>
@@ -203,6 +234,7 @@ export default function AutoPage() {
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           className='flex-1'
+          leftIcon={Search}
         />
         <AppLocationInput
           key={resetKey}
@@ -211,6 +243,7 @@ export default function AutoPage() {
           placeholder='Locație'
           className='flex-1'
           filteredCars={filteredCars}
+          leftIcon={MapPin}
         />
         <Button variant='default'>Caută</Button>
       </div>
@@ -224,6 +257,7 @@ export default function AutoPage() {
                 key={`${filter.key}-${filter.value}`}
                 variant='secondary'
                 onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
+                className='cursor-default'
               >
                 {filter.label} ×
               </Badge>
@@ -246,7 +280,7 @@ export default function AutoPage() {
             value={filters.priceRange}
             onValueChange={(value) => handleFilterChange('priceRange', value)}
             min={0}
-            max={100000}
+            max={1000000}
             step={1000}
             className='grow'
           />
@@ -255,7 +289,7 @@ export default function AutoPage() {
             value={filters.yearRange}
             onValueChange={(value) => handleFilterChange('yearRange', value)}
             min={2000}
-            max={2023}
+            max={2025}
             step={1}
             className='grow'
           />
@@ -264,7 +298,7 @@ export default function AutoPage() {
             value={filters.mileageRange}
             onValueChange={(value) => handleFilterChange('mileageRange', value)}
             min={0}
-            max={300000}
+            max={1000000}
             step={5000}
             className='grow'
           />

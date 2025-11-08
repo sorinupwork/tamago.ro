@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -22,6 +25,7 @@ type AppComboboxProps = {
   displayValue?: string;
   onClear?: () => void;
   fullDisplayValue?: string;
+  leftIcon?: LucideIcon;
 };
 
 export const AppCombobox: React.FC<AppComboboxProps> = ({
@@ -35,27 +39,34 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
   displayValue,
   onClear,
   fullDisplayValue,
+  leftIcon: LeftIcon,
 }) => {
   const [open, setOpen] = useState(false);
 
   return (
     <TooltipProvider>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant='outline' role='combobox' aria-expanded={open} className={`w-full justify-between ${className}`}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className='truncate'>{displayValue || placeholder}</span>
-              </TooltipTrigger>
-              {fullDisplayValue && (
-                <TooltipContent>
-                  <p>{fullDisplayValue}</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-          </Button>
-        </PopoverTrigger>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <div className={className}>
+                <Button variant='outline' role='combobox' aria-expanded={open} className={`w-full justify-between`}>
+                  <div className='flex items-center'>
+                    {LeftIcon && <LeftIcon className='w-4 h-4 text-muted-foreground mr-2' />}
+                    <span className='truncate'>{displayValue || placeholder}</span>
+                  </div>
+
+                  <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
+                </Button>
+              </div>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          {fullDisplayValue && (
+            <TooltipContent>
+              <p>{fullDisplayValue}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
         <PopoverContent className='w-(--radix-popover-trigger-width) p-0'>
           <div className='relative'>
             {onClear && (

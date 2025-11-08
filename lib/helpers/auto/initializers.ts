@@ -14,9 +14,9 @@ export const defaultFilters: FilterState = {
   transmission: [],
   bodyType: [],
   color: [],
-  priceRange: [0, 100000],
-  yearRange: [2000, 2023],
-  mileageRange: [0, 300000],
+  priceRange: [0, 1000000],
+  yearRange: [2000, new Date().getFullYear()],
+  mileageRange: [0, 1000000],
   engineCapacityRange: [0, 5000],
   horsepowerRange: [0, 1000],
 };
