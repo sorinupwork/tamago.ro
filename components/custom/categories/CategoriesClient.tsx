@@ -12,6 +12,7 @@ import { Preview } from './Preview';
 import { categories } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import LoadingIndicator from '../loading/LoadingIndicator';
 const SellAutoForm = dynamic(() => import('@/components/custom/form/auto/SellAutoForm').then((mod) => ({ default: mod.SellAutoForm })), {
   ssr: false,
 });
@@ -29,12 +30,18 @@ const AuctionAutoForm = dynamic(
 export type PreviewData = {
   title: string;
   description: string;
-  price?: number;
+  price: string;
+  currency: string;
   startingBid?: number;
   location: string;
   category: string;
   uploadedFiles: string[];
   duration?: string;
+  fuel: string;
+  mileage: number;
+  year: number;
+  features: string;
+  options: string[];
 };
 
 type CategoriesClientProps = {
@@ -65,10 +72,16 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
   const [previewData, setPreviewData] = useState<PreviewData>({
     title: '',
     description: '',
-    price: 0,
+    price: '',
+    currency: 'EUR',
     location: '',
     category: 'sell',
     uploadedFiles: [],
+    fuel: '',
+    mileage: 0,
+    year: 0,
+    features: '',
+    options: [],
   });
 
   const onPreviewUpdate = useCallback((data: PreviewData) => {
@@ -116,10 +129,10 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         />
       </header>
       <ScrollArea className='flex-1'>
-        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-hidden'>
+        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-hidden p-2'>
           <div className='flex-1 overflow-visible'>
             {selectedSubcategory ? (
-              <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-lg'>
+              <Card className='h-full overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md'>
                 <CardHeader className='shrink-0'>
                   <CardTitle className='text-2xl font-bold text-center'>
                     Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
@@ -127,7 +140,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className='flex-1 overflow-auto'>
-                  <Suspense fallback={<div>Loading...</div>}>{getForm()}</Suspense>
+                  <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
                 </CardContent>
               </Card>
             ) : (
@@ -135,9 +148,9 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
             )}
           </div>
           {selectedSubcategory === 'auto' && (
-            <div className='flex-1 p-4 overflow-hidden'>
+            <div className='flex-1 overflow-hidden'>
               <div className='h-full'>
-                <Preview {...previewData} price={previewData.price || previewData.startingBid || 0} />
+                <Preview {...previewData} price={previewData.price || previewData.startingBid?.toString() || '0'} />
               </div>
             </div>
           )}

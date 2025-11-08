@@ -4,18 +4,20 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
+import { Car, Fuel, Settings, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import FormTextarea from '@/components/custom/form/controls/FormTextarea';
+import { AutoPriceSelector } from '@/components/custom/form/controls/AutoPriceSelector';
 import { MediaUploader } from '@/components/custom/media/MediaUploader';
-import { auto, AutoSellFormData } from '@/lib/validations';
-import { Car, Fuel, Settings, Calendar } from 'lucide-react';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitSellAutoForm } from '@/actions/auto/actions';
-import { toast } from 'sonner';
+import { auto, AutoSellFormData } from '@/lib/validations';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -30,7 +32,8 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     defaultValues: {
       title: '',
       description: '',
-      price: 0,
+      price: '',
+      currency: 'EUR',
       location: '',
       features: '',
       fuel: '',
@@ -47,12 +50,31 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || 0,
+      price: watchedValues.price || '',
+      currency: watchedValues.currency || 'EUR',
       location: watchedValues.location || '',
       category: 'sell',
       uploadedFiles,
+      fuel: watchedValues.fuel || '',
+      mileage: watchedValues.mileage || 0,
+      year: watchedValues.year || 0,
+      features: watchedValues.features || '',
+      options,
     });
-  }, [watchedValues.title, watchedValues.description, watchedValues.price, watchedValues.location, uploadedFiles, onPreviewUpdate]);
+  }, [
+    watchedValues.title,
+    watchedValues.description,
+    watchedValues.price,
+    watchedValues.currency,
+    watchedValues.location,
+    watchedValues.fuel,
+    watchedValues.mileage,
+    watchedValues.year,
+    watchedValues.features,
+    uploadedFiles,
+    options,
+    onPreviewUpdate,
+  ]);
 
   const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {
     setOptions((prev) => {
@@ -88,27 +110,25 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-6 max-w-full'>
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-4 max-w-full'>
       <FieldSet>
         <FieldGroup>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <Field className='min-w-0'>
+          <div className='flex flex-col md:flex-row gap-4'>
+            <Field className='min-w-0 flex-1'>
               <FieldLabel htmlFor='title' className='flex items-center gap-2'>
                 <Car className='h-4 w-4' /> Titlu
               </FieldLabel>
-              <Input {...form.register('title')} placeholder='Introduceți titlul mașinii' className="break-words max-w-full" />
+              <Input {...form.register('title')} placeholder='Introduceți titlul mașinii' className='wrap-break-word max-w-full' />
               <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
             </Field>
-            <Field className='min-w-0'>
-              <FieldLabel htmlFor='price'>Preț</FieldLabel>
-              <Input {...form.register('price', { valueAsNumber: true })} type='number' placeholder='0' min={0} step={0.01} className="break-words max-w-full" />
-              <FieldError errors={form.formState.errors.price ? [form.formState.errors.price] : undefined} />
-            </Field>
+            <div className='min-w-0 flex-1'>
+              <AutoPriceSelector form={form} />
+            </div>
           </div>
 
           <Field className='min-w-0'>
             <FieldLabel htmlFor='location'>Locație</FieldLabel>
-            <Input {...form.register('location')} placeholder='Introduceți locația' className="break-words max-w-full" />
+            <Input {...form.register('location')} placeholder='Introduceți locația' className='wrap-break-word max-w-full' />
             <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
           </Field>
 
@@ -118,7 +138,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             </FieldLabel>
             <FormTextarea
               value={form.watch('description')}
-              onChange={(v) => form.setValue('description', v)}
+              onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
               placeholder='Descrieți mașina detaliat...'
             />
             <FieldError errors={form.formState.errors.description ? [form.formState.errors.description] : undefined} />
@@ -129,7 +149,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               <FieldLabel htmlFor='fuel' className='flex items-center gap-2' aria-required='true'>
                 <Fuel className='h-4 w-4' /> Combustibil <span className='text-red-600'>*</span>
               </FieldLabel>
-              <Select value={form.watch('fuel')} onValueChange={(v) => form.setValue('fuel', v)}>
+              <Select value={form.watch('fuel')} onValueChange={(v) => form.setValue('fuel', v, { shouldValidate: true })}>
                 <SelectTrigger>
                   <SelectValue placeholder='Selectați combustibil' />
                 </SelectTrigger>
@@ -146,14 +166,28 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               <FieldLabel htmlFor='mileage' className='flex items-center gap-2'>
                 <Settings className='h-4 w-4' /> Kilometraj <span className='text-red-600'>*</span>
               </FieldLabel>
-              <Input {...form.register('mileage', { valueAsNumber: true })} type='number' placeholder='0' min={1} required className="break-words max-w-full" />
+              <Input
+                {...form.register('mileage', { valueAsNumber: true })}
+                type='number'
+                placeholder='0'
+                min={1}
+                required
+                className='wrap-break-word max-w-full'
+              />
               <FieldError errors={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined} />
             </Field>
             <Field className='min-w-0'>
               <FieldLabel htmlFor='year' className='flex items-center gap-2'>
                 <Calendar className='h-4 w-4' /> An Fabricație
               </FieldLabel>
-              <Input {...form.register('year', { valueAsNumber: true })} type='number' placeholder='2020' min={1900} max={CURRENT_YEAR} className="break-words max-w-full" />
+              <Input
+                {...form.register('year', { valueAsNumber: true })}
+                type='number'
+                placeholder='2020'
+                min={1900}
+                max={CURRENT_YEAR}
+                className='wrap-break-word max-w-full'
+              />
               <FieldError errors={form.formState.errors.year ? [form.formState.errors.year] : undefined} />
             </Field>
           </div>
@@ -164,7 +198,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             </FieldLabel>
             <FormTextarea
               value={form.watch('features')}
-              onChange={(v) => form.setValue('features', v)}
+              onChange={(v) => form.setValue('features', v, { shouldValidate: true })}
               placeholder='Listează caracteristicile mașinii...'
             />
             <FieldError errors={form.formState.errors.features ? [form.formState.errors.features] : undefined} />
@@ -192,7 +226,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
                 category='sell'
                 onUpload={(urls) => {
                   setUploadedFiles(urls);
-                  form.setValue('uploadedFiles', urls);
+                  form.setValue('uploadedFiles', urls, { shouldValidate: true });
                   if (urls.length > 0) setUploadError(false);
                 }}
               />
@@ -206,7 +240,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         type='submit'
         onClick={() => form.trigger()}
         disabled={isSubmitting}
-        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
+        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-102 shadow-lg'
       >
         {isSubmitting ? 'Se trimite...' : 'Trimite Vânzare Auto'}
       </Button>

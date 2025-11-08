@@ -4,7 +4,8 @@ export const auto = {
   sellSchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),
     description: z.string().min(10, 'Descrierea trebuie să aibă cel puțin 10 caractere'),
-    price: z.coerce.number().positive({ message: 'Prețul trebuie să fie un număr pozitiv' }),
+    price: z.string().regex(/^\d+(\.\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }).min(1, 'Prețul este obligatoriu'),
+    currency: z.enum(['EUR', 'USD', 'RON'], { message: 'Moneda trebuie să fie EUR, USD sau RON' }),
     location: z.string().min(1, 'Locația este obligatorie'),
     features: z.string().min(1, 'Caracteristicile sunt obligatorii'),
     status: z.string().optional(),
