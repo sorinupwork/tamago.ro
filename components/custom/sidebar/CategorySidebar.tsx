@@ -48,7 +48,7 @@ export function CategorySidebar({
   const searchParams = useSearchParams();
 
   const searchCategory = (searchParams?.get('tip') as string) ?? undefined;
-  const searchSubcategory = searchParams?.get('subcategory') ?? undefined;
+  const searchSubcategory = searchParams?.get('subcategorie') ?? undefined;
 
   const selectedCategory =
     selectedCategoryProp ?? (searchCategory ? categoryMapping[searchCategory as keyof typeof categoryMapping] : 'sell') ?? 'sell';
@@ -58,7 +58,7 @@ export function CategorySidebar({
     onCategoryChange ??
     ((cat: string, sub?: string) => {
       const tipValue = reverseMapping[cat as keyof typeof reverseMapping] || cat;
-      router.push(`/categorii?tip=${tipValue}${sub ? `&subcategory=${sub}` : ''}`);
+      router.push(`/categorii?tip=${tipValue}${sub ? `&subcategorie=${sub}` : ''}`);
     });
 
   const [openCategory, setOpenCategory] = useState<string | null>(selectedCategory);

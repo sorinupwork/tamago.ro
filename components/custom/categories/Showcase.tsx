@@ -32,7 +32,7 @@ export function Showcase({ category }: { category: string }) {
   const reverseMapping: Record<string, string> = { sell: 'vanzare', buy: 'cumparare', rent: 'inchiriere', auction: 'licitatie' };
   const navigateTo = (catKey: string, sub?: string) => {
     const tip = reverseMapping[catKey] ?? catKey;
-    const url = `/categorii?tip=${tip}${sub ? `&subcategory=${sub}` : ''}`;
+    const url = `/categorii?tip=${tip}${sub ? `&subcategorie=${sub}` : ''}`;
     router.push(url);
   };
 

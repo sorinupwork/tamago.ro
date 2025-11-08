@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { CategorySidebar } from '@/components/custom/sidebar/CategorySidebar';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 export function CategoryLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -19,7 +20,9 @@ export function CategoryLayout({ children }: { children: React.ReactNode }) {
       <main className='flex flex-col flex-1'>
         <div className='flex w-full items-start h-full'>
           <div className='shrink-0'>
-            <CategorySidebar />
+            <Suspense fallback={<LoadingIndicator />}>
+              <CategorySidebar />
+            </Suspense>
           </div>
 
           <div className='flex-1 flex flex-col justify-between gap-6 h-full'>

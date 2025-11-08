@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useState, useCallback, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -13,19 +12,10 @@ import { categories } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import LoadingIndicator from '../loading/LoadingIndicator';
-const SellAutoForm = dynamic(() => import('@/components/custom/form/auto/SellAutoForm').then((mod) => ({ default: mod.SellAutoForm })), {
-  ssr: false,
-});
-const BuyAutoForm = dynamic(() => import('@/components/custom/form/auto/BuyAutoForm').then((mod) => ({ default: mod.BuyAutoForm })), {
-  ssr: false,
-});
-const RentAutoForm = dynamic(() => import('@/components/custom/form/auto/RentAutoForm').then((mod) => ({ default: mod.RentAutoForm })), {
-  ssr: false,
-});
-const AuctionAutoForm = dynamic(
-  () => import('@/components/custom/form/auto/AuctionAutoForm').then((mod) => ({ default: mod.AuctionAutoForm })),
-  { ssr: false }
-);
+import { SellAutoForm } from '@/components/custom/form/auto/SellAutoForm';
+import { BuyAutoForm } from '@/components/custom/form/auto/BuyAutoForm';
+import { RentAutoForm } from '@/components/custom/form/auto/RentAutoForm';
+import { AuctionAutoForm } from '@/components/custom/form/auto/AuctionAutoForm';
 
 export type PreviewData = {
   title: string;
@@ -59,7 +49,7 @@ const categoryMapping = {
 export default function CategoriesClient({ initialCategory, initialSubcategory }: CategoriesClientProps) {
   const searchParams = useSearchParams();
   const tipParam = useMemo(() => searchParams?.get('tip') ?? initialCategory ?? undefined, [searchParams, initialCategory]);
-  const subParam = useMemo(() => searchParams?.get('subcategory') ?? initialSubcategory ?? undefined, [searchParams, initialSubcategory]);
+  const subParam = useMemo(() => searchParams?.get('subcategorie') ?? initialSubcategory ?? undefined, [searchParams, initialSubcategory]);
 
   const selectedCategory = useMemo(() => {
     return tipParam && tipParam in categoryMapping
@@ -93,15 +83,35 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     if (selectedSubcategory === 'auto') {
       switch (selectedCategory) {
         case 'sell':
-          return <SellAutoForm {...props} />;
+          return (
+            <Suspense fallback={<LoadingIndicator />}>
+              <SellAutoForm {...props} />
+            </Suspense>
+          );
         case 'buy':
-          return <BuyAutoForm {...props} />;
+          return (
+            <Suspense fallback={<LoadingIndicator />}>
+              <BuyAutoForm {...props} />
+            </Suspense>
+          );
         case 'rent':
-          return <RentAutoForm {...props} />;
+          return (
+            <Suspense fallback={<LoadingIndicator />}>
+              <RentAutoForm {...props} />
+            </Suspense>
+          );
         case 'auction':
-          return <AuctionAutoForm {...props} />;
+          return (
+            <Suspense fallback={<LoadingIndicator />}>
+              <AuctionAutoForm {...props} />
+            </Suspense>
+          );
         default:
-          return <SellAutoForm {...props} />;
+          return (
+            <Suspense fallback={<LoadingIndicator />}>
+              <SellAutoForm {...props} />
+            </Suspense>
+          );
       }
     } else {
       return <div className='text-center text-gray-500'>Formularul nu este disponibil pentru această subcategorie.</div>;
