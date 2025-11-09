@@ -244,7 +244,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   };
 
   return (
-    <>
+    <div className='flex grow flex-col gap-6'>
       {RenderRow({
         items: rowAItems,
         setApi: setApiA,
@@ -262,6 +262,6 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         apiKeyPrefix: 'b',
         opts: { align: 'center', loop: true, startIndex: 16 },
       })}
-    </>
+    </div>
   );
 }

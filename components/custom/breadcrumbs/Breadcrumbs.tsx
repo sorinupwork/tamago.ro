@@ -32,7 +32,13 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
           <div key={index} className='flex items-center'>
             {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
-              {item.href ? <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink> : <BreadcrumbPage>{item.label}</BreadcrumbPage>}
+              {item.href ? (
+                <BreadcrumbLink className='cursor-default' href={item.href}>
+                  {item.label}
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage className='cursor-default'>{item.label}</BreadcrumbPage>
+              )}
             </BreadcrumbItem>
           </div>
         ))}

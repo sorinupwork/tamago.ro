@@ -64,27 +64,17 @@ export function getAppliedFilters(
     ...(locationFilter.location
       ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }]
       : []),
-    ...(filters.minEngineCapacity || filters.maxEngineCapacity
-      ? [
-          {
-            key: 'engineCapacity',
-            value: `${filters.minEngineCapacity}-${filters.maxEngineCapacity}`,
-            label: `Capacitate: ${filters.minEngineCapacity || filters.engineCapacityRange[0]}-${
-              filters.maxEngineCapacity || filters.engineCapacityRange[1]
-            }`,
-          },
-        ]
+    ...(filters.minEngineCapacity
+      ? [{ key: 'minEngineCapacity', value: filters.minEngineCapacity, label: `Capacitate Motor Min: ${filters.minEngineCapacity}` }]
       : []),
-    ...(filters.minHorsepower || filters.maxHorsepower
-      ? [
-          {
-            key: 'horsepower',
-            value: `${filters.minHorsepower}-${filters.maxHorsepower}`,
-            label: `Cai Putere: ${filters.minHorsepower || filters.horsepowerRange[0]}-${
-              filters.maxHorsepower || filters.horsepowerRange[1]
-            }`,
-          },
-        ]
+    ...(filters.maxEngineCapacity
+      ? [{ key: 'maxEngineCapacity', value: filters.maxEngineCapacity, label: `Capacitate Motor Max: ${filters.maxEngineCapacity}` }]
+      : []),
+    ...(filters.minHorsepower
+      ? [{ key: 'minHorsepower', value: filters.minHorsepower, label: `Cai Putere Min: ${filters.minHorsepower}` }]
+      : []),
+    ...(filters.maxHorsepower
+      ? [{ key: 'maxHorsepower', value: filters.maxHorsepower, label: `Cai Putere Max: ${filters.maxHorsepower}` }]
       : []),
     ...(filters.status ? [{ key: 'status', value: filters.status, label: `Status: ${filters.status}` }] : []),
     ...(searchQuery ? [{ key: 'searchQuery', value: searchQuery, label: `Căutare: ${searchQuery}` }] : []),
@@ -118,7 +108,7 @@ export function getAppliedFilters(
     ...(sortCriteria.price
       ? [
           {
-            key: 'sortPrice',
+            key: 'price',
             value: sortCriteria.price,
             label: `Sortare Preț: ${sortCriteria.price === 'asc' ? 'Crescător' : 'Descrescător'}`,
           },
@@ -127,7 +117,7 @@ export function getAppliedFilters(
     ...(sortCriteria.year
       ? [
           {
-            key: 'sortYear',
+            key: 'year',
             value: sortCriteria.year,
             label: `Sortare An: ${sortCriteria.year === 'asc' ? 'Vechi la Nou' : 'Nou la Vechi'}`,
           },
@@ -136,7 +126,7 @@ export function getAppliedFilters(
     ...(sortCriteria.mileage
       ? [
           {
-            key: 'sortMileage',
+            key: 'mileage',
             value: sortCriteria.mileage,
             label: `Sortare Kilometraj: ${sortCriteria.mileage === 'asc' ? 'Crescător' : 'Descrescător'}`,
           },
@@ -145,7 +135,7 @@ export function getAppliedFilters(
     ...(sortCriteria.date
       ? [
           {
-            key: 'sortDate',
+            key: 'date',
             value: sortCriteria.date,
             label: `Sortare Dată: ${sortCriteria.date === 'asc' ? 'Cele Mai Vechi' : 'Cele Mai Noi'}`,
           },

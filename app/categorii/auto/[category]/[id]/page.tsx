@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useMemo, useState, useRef } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,13 +19,12 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Heart, Phone, Mail, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
+import { Heart, Phone, Mail, MessageCircle } from 'lucide-react';
 import { mockCars } from '@/lib/mockData';
 
 export default function CarDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const category = params.category as string;
   const id = parseInt(params.id as string);
 
@@ -33,6 +32,30 @@ export default function CarDetailPage() {
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
+  const [api, setApi] = useState<CarouselApi>();
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  const handleNext = () => {
+    if (api && !api.canScrollNext() && isMobile) {
+      if (detailsRef.current) {
+        const rect = detailsRef.current.getBoundingClientRect();
+        const top = rect.top + window.scrollY - 60; // offset for nav height
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    } else {
+      api?.scrollNext();
+    }
+  };
+
+  const handlePrev = () => {
+    if (api && !api.canScrollPrev() && isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      api?.scrollPrev();
+    }
+  };
 
   if (!car) return <div>Produsul nu a fost găsit</div>;
 
@@ -44,12 +67,7 @@ export default function CarDetailPage() {
 
   return (
     <div className='container mx-auto max-w-7xl'>
-      <div className='flex items-center gap-4 mb-4'>
-        <Button variant='ghost' onClick={() => router.back()}>
-          <ArrowLeft className='mr-2 h-4 w-4' />
-          Înapoi
-        </Button>
-
+      <div className='flex items-center gap-4 p-4'>
         <Breadcrumbs
           items={[
             { label: 'Acasă', href: '/' },
@@ -60,15 +78,18 @@ export default function CarDetailPage() {
         />
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-        {/* Image Carousel */}
-        <Card className='relative p-0 h-fit'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 px-4'>
+        <Card ref={carouselRef} className='relative p-0 h-fit'>
           <Carousel
             opts={{
               align: 'center',
+              loop: false,
             }}
             orientation='vertical'
-            className='w-full h-full'
+            className='w-full h-full overflow-visible'
+            setApi={setApi}
+            onNext={handleNext}
+            onPrev={handlePrev}
           >
             <CarouselContent className='-mt-1 h-[777px] gap-2 p-2'>
               {car.images.map((image, index) => (
@@ -82,9 +103,8 @@ export default function CarDetailPage() {
           </Carousel>
         </Card>
 
-        {/* Details */}
         <div className='space-y-6'>
-          <Card>
+          <Card ref={detailsRef}>
             <CardHeader>
               <div className='flex justify-between items-start'>
                 <div>
@@ -146,7 +166,6 @@ export default function CarDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Auction Bidding */}
           {isAuction && (
             <Card>
               <CardHeader>
@@ -165,7 +184,6 @@ export default function CarDetailPage() {
             </Card>
           )}
 
-          {/* Description */}
           <Card>
             <CardHeader>
               <CardTitle>Descriere</CardTitle>
@@ -175,7 +193,6 @@ export default function CarDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Features */}
           <Card>
             <CardHeader>
               <CardTitle>Caracteristici</CardTitle>
@@ -193,7 +210,6 @@ export default function CarDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Contact */}
           <Card>
             <CardHeader>
               <CardTitle>Contactează Vânzătorul</CardTitle>

@@ -38,7 +38,11 @@ export const AppSelectWithCheckbox: React.FC<AppSelectWithCheckboxProps> = ({
                 checked={selected.includes(option.value)}
                 onCheckedChange={(checked) => onChange(option.value, checked as boolean)}
               />
-              <label>{option.label}</label>
+              <label
+                onClick={() => onChange(option.value, !selected.includes(option.value))}
+              >
+                {option.label}
+              </label>
             </div>
           ))}
         </div>

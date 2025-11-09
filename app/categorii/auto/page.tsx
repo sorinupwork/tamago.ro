@@ -2,15 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
 import { toast } from 'sonner';
 import { MapPin, Search } from 'lucide-react';
 
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { AppSelect } from '@/components/custom/select/AppSelect';
 import { AppSlider } from '@/components/custom/slider/AppSlider';
@@ -22,7 +18,7 @@ import { mockCars } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AutoTabs } from '@/components/custom/tabs/AutoTabs';
-import { categoryMapping, categoryLabels } from '@/lib/categories';
+import { categoryMapping } from '@/lib/categories';
 import { getFilteredCars, getAppliedFilters } from '@/lib/helpers/auto/filters';
 import { getSortedCars } from '@/lib/helpers/auto/sorting';
 import { calcTotalPages, paginateArray } from '@/lib/helpers/auto/pagination';
@@ -41,6 +37,7 @@ import {
   getInitialCurrentPage,
 } from '@/lib/helpers/auto/initializers';
 import type { FilterState, SortCriteria, LocationData, LocationFilter } from '@/lib/types';
+import { CarCard } from '@/components/custom/auto/CarCard';
 
 export default function AutoPage() {
   const searchParams = useSearchParams();
@@ -59,27 +56,39 @@ export default function AutoPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
-    // For filters, only include changed fields
-    const nonDefaultFilters: Record<string, string | number[] | string[]> = {};
+    // For filters, only include changed fields as individual params
     Object.keys(filters).forEach((key) => {
       const k = key as keyof FilterState;
       if (JSON.stringify(filters[k]) !== JSON.stringify(defaultFilters[k])) {
-        nonDefaultFilters[k] = filters[k];
+        if (k === 'priceRange') {
+          params.set('priceMin', filters[k][0].toString());
+          params.set('priceMax', filters[k][1].toString());
+        } else if (k === 'yearRange') {
+          params.set('yearMin', filters[k][0].toString());
+          params.set('yearMax', filters[k][1].toString());
+        } else if (k === 'mileageRange') {
+          params.set('mileageMin', filters[k][0].toString());
+          params.set('mileageMax', filters[k][1].toString());
+        } else if (Array.isArray(filters[k])) {
+          params.set(k, (filters[k] as string[]).join(','));
+        } else {
+          params.set(k, filters[k].toString());
+        }
       }
     });
-    if (Object.keys(nonDefaultFilters).length > 0) params.set('filters', JSON.stringify(nonDefaultFilters));
-    // For sort, only include changed fields
-    const nonDefaultSort: Record<string, 'asc' | 'desc' | null> = {};
+    // For sort, only include changed fields as individual params
     Object.keys(sortCriteria).forEach((key) => {
       const k = key as keyof SortCriteria;
       if (sortCriteria[k] !== defaultSortCriteria[k]) {
-        nonDefaultSort[k] = sortCriteria[k];
+        params.set(k, sortCriteria[k] || '');
       }
     });
-    if (Object.keys(nonDefaultSort).length > 0) params.set('sortCriteria', JSON.stringify(nonDefaultSort));
     if (searchQuery !== defaultSearchQuery) params.set('searchQuery', searchQuery);
-    if (JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter))
-      params.set('locationFilter', JSON.stringify(locationFilter));
+    if (locationFilter.location) {
+      params.set('lat', locationFilter.location.lat.toString());
+      params.set('lng', locationFilter.location.lng.toString());
+      params.set('radius', locationFilter.radius.toString());
+    }
     if (currentPage !== defaultCurrentPage) params.set('currentPage', currentPage.toString());
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.replace(newUrl || window.location.pathname, { scroll: false });
@@ -157,9 +166,15 @@ export default function AutoPage() {
       const newTotal = computeNewTotalPages(filters, sortCriteria, searchQuery, next);
       setCurrentPage((cur) => Math.min(cur, newTotal));
       setLocationFilter(next);
+      setResetKey((prev) => prev + 1);
     } else if (key === 'priceRange') {
       setFilters((prev) => ({ ...prev, priceRange: defaultFilters.priceRange }));
-      const newTotal = computeNewTotalPages({ ...filters, priceRange: defaultFilters.priceRange }, sortCriteria, searchQuery, locationFilter);
+      const newTotal = computeNewTotalPages(
+        { ...filters, priceRange: defaultFilters.priceRange },
+        sortCriteria,
+        searchQuery,
+        locationFilter
+      );
       setCurrentPage((cur) => Math.min(cur, newTotal));
     } else if (key === 'yearRange') {
       setFilters((prev) => ({ ...prev, yearRange: defaultFilters.yearRange }));
@@ -167,7 +182,28 @@ export default function AutoPage() {
       setCurrentPage((cur) => Math.min(cur, newTotal));
     } else if (key === 'mileageRange') {
       setFilters((prev) => ({ ...prev, mileageRange: defaultFilters.mileageRange }));
-      const newTotal = computeNewTotalPages({ ...filters, mileageRange: defaultFilters.mileageRange }, sortCriteria, searchQuery, locationFilter);
+      const newTotal = computeNewTotalPages(
+        { ...filters, mileageRange: defaultFilters.mileageRange },
+        sortCriteria,
+        searchQuery,
+        locationFilter
+      );
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'minEngineCapacity') {
+      setFilters((prev) => ({ ...prev, minEngineCapacity: '' }));
+      const newTotal = computeNewTotalPages({ ...filters, minEngineCapacity: '' }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'maxEngineCapacity') {
+      setFilters((prev) => ({ ...prev, maxEngineCapacity: '' }));
+      const newTotal = computeNewTotalPages({ ...filters, maxEngineCapacity: '' }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'minHorsepower') {
+      setFilters((prev) => ({ ...prev, minHorsepower: '' }));
+      const newTotal = computeNewTotalPages({ ...filters, minHorsepower: '' }, sortCriteria, searchQuery, locationFilter);
+      setCurrentPage((cur) => Math.min(cur, newTotal));
+    } else if (key === 'maxHorsepower') {
+      setFilters((prev) => ({ ...prev, maxHorsepower: '' }));
+      const newTotal = computeNewTotalPages({ ...filters, maxHorsepower: '' }, sortCriteria, searchQuery, locationFilter);
       setCurrentPage((cur) => Math.min(cur, newTotal));
     } else if (key in sortCriteria) {
       handleSortChange(key as keyof SortCriteria, null);
@@ -208,26 +244,28 @@ export default function AutoPage() {
     if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
     if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
     if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
+    if (filter.key === 'minEngineCapacity') return filters.minEngineCapacity !== defaultFilters.minEngineCapacity;
+    if (filter.key === 'maxEngineCapacity') return filters.maxEngineCapacity !== defaultFilters.maxEngineCapacity;
+    if (filter.key === 'minHorsepower') return filters.minHorsepower !== defaultFilters.minHorsepower;
+    if (filter.key === 'maxHorsepower') return filters.maxHorsepower !== defaultFilters.maxHorsepower;
     if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
     if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
-    if (filter.key in sortCriteria) return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
-    // For other filters (e.g., brand, fuel), assume getAppliedFilters already excludes defaults
+    if (filter.key in sortCriteria)
+      return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
     return true;
   });
 
   return (
-    <div className='container mx-auto max-w-7xl'>
+    <div className='container mx-auto max-w-7xl p-2'>
       <Breadcrumbs
         items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]}
         className='mb-4'
       />
 
-      {/* Tabs */}
       <div className='flex flex-wrap gap-2 mb-4 justify-center md:justify-start'>
         <AutoTabs activeTab={activeTab} onChange={(t) => setActiveTab(t)} />
       </div>
 
-      {/* Search Bar */}
       <div className='mb-4 flex flex-col sm:flex-row gap-2 justify-center md:justify-start'>
         <AppInput
           placeholder='Caută mașini (marcă, model...)'
@@ -238,7 +276,7 @@ export default function AutoPage() {
         />
         <AppLocationInput
           key={resetKey}
-          value={locationFilter.location?.address || ''}
+          location={locationFilter.location}
           onChange={handleLocationChange}
           placeholder='Locație'
           className='flex-1'
@@ -248,19 +286,18 @@ export default function AutoPage() {
         <Button variant='default'>Caută</Button>
       </div>
 
-      {/* Applied Filters Tags */}
       <div className='mb-4 flex flex-wrap gap-2 min-h-8'>
         {appliedFilters.length > 0 && (
           <>
             {appliedFilters.map((filter) => (
-              <Badge
+              <Button
                 key={`${filter.key}-${filter.value}`}
                 variant='secondary'
+                size='sm'
                 onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
-                className='cursor-default'
               >
                 {filter.label} ×
-              </Badge>
+              </Button>
             ))}
             <Button variant='outline' size='sm' onClick={resetAllFilters}>
               Reset All
@@ -272,7 +309,6 @@ export default function AutoPage() {
         )}
       </div>
 
-      {/* Filters */}
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
         <div className='flex items-center gap-4 col-span-full'>
           <AppSlider
@@ -370,17 +406,17 @@ export default function AutoPage() {
         />
         <AppSelect
           options={[
+            { value: 'all', label: 'Status' },
             { value: 'new', label: 'Nou' },
             { value: 'used', label: 'Second Hand' },
             { value: 'damaged', label: 'Deteriorat' },
           ]}
-          value={filters.status}
-          onValueChange={(value) => handleFilterChange('status', value)}
+          value={filters.status || 'all'}
+          onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)}
           placeholder='Status'
         />
       </div>
 
-      {/* Sort */}
       <div className='mb-4 flex justify-center md:justify-start'>
         <div className='flex grow flex-col sm:flex-row sm:flex-wrap gap-2'>
           <AppSelect
@@ -430,7 +466,6 @@ export default function AutoPage() {
         </div>
       </div>
 
-      {/* Car List */}
       <div
         className={cn(
           'grid gap-6',
@@ -444,41 +479,10 @@ export default function AutoPage() {
         )}
       >
         {paginatedItems.map((car) => (
-          <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`} className=''>
-            <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-102 animate-in fade-in-0 slide-in-from-bottom-4'>
-              <Image src={car.images[0]} alt={car.title} width={400} height={192} className='w-full h-48 object-cover' />
-              <CardHeader className='pb-2'>
-                <div className='flex justify-between items-start'>
-                  <CardTitle className='text-lg font-semibold line-clamp-2'>{car.title}</CardTitle>
-                  <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='ml-2'>
-                    {categoryLabels[car.category as keyof typeof categoryLabels]}
-                  </Badge>
-                </div>
-                <p className='text-2xl font-bold text-green-600'>${car.price.toLocaleString('en-US')}</p>
-              </CardHeader>
-              <CardContent className='pt-0'>
-                <div className='space-y-1 text-sm text-muted-foreground'>
-                  <p>
-                    An: {car.year} | Kilometraj: {car.mileage.toLocaleString('en-US')} km
-                  </p>
-                  <p>
-                    Combustibil: {car.fuel} | Transmisie: {car.transmission}
-                  </p>
-                  <p>
-                    Locație: {car.location} | Caroserie: {car.bodyType}
-                  </p>
-                  <p className='text-xs'>
-                    Culoare: {car.color} | Vânzător: {car.sellerType}
-                  </p>
-                </div>
-                <p className='text-xs text-muted-foreground mt-2'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
-              </CardContent>
-            </Card>
-          </Link>
+          <CarCard key={car.id} car={car} />
         ))}
       </div>
 
-      {/* Pagination */}
       <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />
     </div>
   );

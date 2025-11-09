@@ -139,7 +139,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         />
       </header>
       <ScrollArea className='flex-1'>
-        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto'>
+        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto p-2'>
           <div className='flex-1 overflow-visible min-w-0'>
             {selectedSubcategory ? (
               <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md w-full'>

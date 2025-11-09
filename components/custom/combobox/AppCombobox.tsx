@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 type Option = {
   value: string;
@@ -26,6 +27,8 @@ type AppComboboxProps = {
   onClear?: () => void;
   fullDisplayValue?: string;
   leftIcon?: LucideIcon;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export const AppCombobox: React.FC<AppComboboxProps> = ({
@@ -40,20 +43,34 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
   onClear,
   fullDisplayValue,
   leftIcon: LeftIcon,
+  open,
+  onOpenChange,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open !== undefined ? open : internalOpen;
+  const handleOpenChange = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    } else {
+      setInternalOpen(newOpen);
+    }
+  };
+
+  const selectedOption = options.find((option) => option.value === value);
+  const effectiveDisplayValue = displayValue || selectedOption?.label || placeholder;
+  const effectiveFullDisplayValue = fullDisplayValue || selectedOption?.label;
 
   return (
     <TooltipProvider>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <div className={className}>
-                <Button variant='outline' role='combobox' aria-expanded={open} className={`w-full justify-between`} type="button">
+                <Button variant='outline' role='combobox' aria-expanded={isOpen} className={`w-full justify-between`} type='button'>
                   <div className='flex items-center'>
                     {LeftIcon && <LeftIcon className='w-4 h-4 text-muted-foreground mr-2' />}
-                    <span className='truncate'>{displayValue || placeholder}</span>
+                    <span className='truncate'>{effectiveDisplayValue}</span>
                   </div>
 
                   <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
@@ -61,16 +78,16 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
               </div>
             </PopoverTrigger>
           </TooltipTrigger>
-          {fullDisplayValue && (
+          {effectiveFullDisplayValue && (
             <TooltipContent>
-              <p>{fullDisplayValue}</p>
+              <p>{effectiveFullDisplayValue}</p>
             </TooltipContent>
           )}
         </Tooltip>
         <PopoverContent className='w-(--radix-popover-trigger-width) p-0'>
           <div className='relative'>
             {onClear && (
-              <Button variant='ghost' size='sm' className='absolute top-2 right-2 z-10 h-6 w-6 p-0' onClick={() => onClear()} type="button">
+              <Button variant='ghost' size='sm' className='absolute top-2 right-2 z-10 h-6 w-6 p-0' onClick={() => onClear()} type='button'>
                 <X className='h-4 w-4' />
               </Button>
             )}
@@ -85,7 +102,12 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
                       value={option.label}
                       className={cn('mb-1', value === option.value && 'bg-accent')}
                       onSelect={() => {
-                        onValueChange(option.value);
+                        if (value === option.value) {
+                          onValueChange('');
+                        } else {
+                          onValueChange(option.value);
+                        }
+                        handleOpenChange(false);
                       }}
                     >
                       <Check className={cn('mr-2 h-4 w-4', value === option.value ? 'opacity-100' : 'opacity-0')} />

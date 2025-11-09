@@ -178,11 +178,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
           <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='location'>Locație</FieldLabel>
             <AppLocationInput
+              location={null}
               value={form.watch('location')}
-              onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+              onChange={(loc, radius) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
               placeholder='Introduceți locația'
               leftIcon={MapPin}
               showMap={false}
+              onClear={() => form.setValue('location', '')}
             />
             <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
           </Field>

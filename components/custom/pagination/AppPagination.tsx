@@ -22,17 +22,17 @@ export const AppPagination: React.FC<AppPaginationProps> = ({ currentPage, total
     <Pagination className={className}>
       <PaginationContent className='flex-wrap justify-center'>
         <PaginationItem>
-          <PaginationPrevious onClick={() => onPageChange(Math.max(1, currentPage - 1))} />
+          <PaginationPrevious onClick={() => onPageChange(Math.max(1, currentPage - 1))} className='cursor-default' />
         </PaginationItem>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <PaginationItem key={page}>
-            <PaginationLink onClick={() => onPageChange(page)} isActive={page === currentPage}>
+            <PaginationLink onClick={() => onPageChange(page)} isActive={page === currentPage} className='cursor-default'>
               {page}
             </PaginationLink>
           </PaginationItem>
         ))}
         <PaginationItem>
-          <PaginationNext onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} />
+          <PaginationNext onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} className='cursor-default' />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

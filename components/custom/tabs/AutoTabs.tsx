@@ -21,7 +21,7 @@ export const AutoTabs: React.FC<Props> = ({ activeTab, onChange, className }) =>
             <TabsTrigger
               key={tab}
               value={tab}
-              className='text-sm sm:text-base md:text-lg lg:text-xl font-medium data-[state=active]:bg-primary data-[state=active]:text-black'
+              className='text-sm sm:text-base md:text-lg lg:text-xl font-medium data-[state=active]:bg-primary data-[state=active]:text-black shine'
             >
               {label}
             </TabsTrigger>

@@ -20,6 +20,8 @@ type CarouselProps = {
   autoplay?: boolean;
   autoplayInterval?: number;
   pauseOnHover?: boolean;
+  onNext?: () => void;
+  onPrev?: () => void;
 };
 
 type CarouselContextProps = {
@@ -53,6 +55,8 @@ function Carousel({
   autoplay = false,
   autoplayInterval = 3000,
   pauseOnHover = true,
+  onNext,
+  onPrev,
   ...props
 }: React.ComponentProps<'div'> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
@@ -147,6 +151,8 @@ function Carousel({
         scrollNext,
         canScrollPrev,
         canScrollNext,
+        onNext,
+        onPrev,
       }}
     >
       <div
@@ -198,7 +204,15 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CarouselPrevious({ className, variant = 'outline', size = 'icon', ...props }: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+  const { orientation, scrollPrev, canScrollPrev, onPrev } = useCarousel();
+
+  const handleClick = () => {
+    if (onPrev) {
+      onPrev();
+    } else {
+      scrollPrev();
+    }
+  };
 
   return (
     <Button
@@ -210,8 +224,8 @@ function CarouselPrevious({ className, variant = 'outline', size = 'icon', ...pr
         orientation === 'horizontal' ? 'top-1/2 -left-8 sm:-left-12 -translate-y-1/2' : '-top-12 left-1/2 -translate-x-1/2 rotate-90',
         className
       )}
-      disabled={!canScrollPrev}
-      onClick={scrollPrev}
+      disabled={!canScrollPrev && !onPrev}
+      onClick={handleClick}
       {...props}
     >
       <ArrowLeft />
@@ -221,7 +235,15 @@ function CarouselPrevious({ className, variant = 'outline', size = 'icon', ...pr
 }
 
 function CarouselNext({ className, variant = 'outline', size = 'icon', ...props }: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollNext, canScrollNext } = useCarousel();
+  const { orientation, scrollNext, canScrollNext, onNext } = useCarousel();
+
+  const handleClick = () => {
+    if (onNext) {
+      onNext();
+    } else {
+      scrollNext();
+    }
+  };
 
   return (
     <Button
@@ -233,8 +255,8 @@ function CarouselNext({ className, variant = 'outline', size = 'icon', ...props 
         orientation === 'horizontal' ? 'top-1/2 -right-8 sm:-right-12 -translate-y-1/2' : '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
         className
       )}
-      disabled={!canScrollNext}
-      onClick={scrollNext}
+      disabled={!canScrollNext && !onNext}
+      onClick={handleClick}
       {...props}
     >
       <ArrowRight />
