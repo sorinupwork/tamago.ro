@@ -45,9 +45,9 @@ export function Showcase({ category }: { category: string }) {
   if (!cat) return null;
 
   return (
-    <div className='flex-1 relative w-full mx-auto animate-fade-in overflow-hidden'>
+    <div className='flex-1 relative w-full mx-auto animate-fade-in overflow-hidden overflow-x-hidden'>
       <div
-        className={`relative w-full h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg transition-opacity duration-1000 ${
+        className={`relative w-full max-w-screen h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg transition-opacity duration-1000 ${
           isVisible ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -61,10 +61,14 @@ export function Showcase({ category }: { category: string }) {
         />
         <div className='absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent backdrop-blur-sm' />
 
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <div className='text-center'>
-            <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg'>{cat.label}</h1>
-            <p className='text-sm sm:text-lg text-gray-200 mt-1 drop-shadow'>{`Explorează opțiunile pentru ${cat.label.toLowerCase()}.`}</p>
+        <div className='absolute inset-0 flex items-center justify-center px-4'>
+          <div className='text-center max-w-full'>
+            <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg break-words'>
+              {cat.label}
+            </h1>
+            <p className='text-sm sm:text-base md:text-lg text-gray-200 mt-1 drop-shadow break-words'>
+              {`Explorează opțiunile pentru ${cat.label.toLowerCase()}.`}
+            </p>
           </div>
         </div>
       </div>
