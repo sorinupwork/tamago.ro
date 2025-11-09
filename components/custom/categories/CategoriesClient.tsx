@@ -120,7 +120,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
 
   return (
     <SidebarInset className='flex-1'>
-      <header className='sticky top-[52px] z-10 bg-background border-b flex h-16 items-center gap-2 px-2 overflow-x-hidden'>
+      <header className='sticky top-14 z-10 bg-background border-b flex h-16 items-center gap-2 px-2 overflow-x-hidden'>
         <SidebarTrigger className='-ml-1' />
         <Breadcrumbs
           items={[
@@ -136,14 +136,14 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                 ]
               : []),
           ]}
-          className='break-words'
+          className='break-words overflow-hidden'
         />
       </header>
-      <ScrollArea className='flex-1'>
-        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto p-2'>
+      <ScrollArea className='flex-1 overflow-x-hidden'>
+        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto p-2 overflow-x-hidden'>
           <div className='flex-1 overflow-visible min-w-0'>
             {selectedSubcategory ? (
-              <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md w-full'>
+              <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
                 <CardHeader className='shrink-0'>
                   <CardTitle className='text-2xl font-bold text-center'>
                     Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
@@ -155,7 +155,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                 </CardContent>
               </Card>
             ) : (
-              <div className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md w-full'>
+              <div className='overflow-hidden overflow-x-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
                 <Showcase category={selectedCategory} />
               </div>
             )}
