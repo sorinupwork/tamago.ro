@@ -4,10 +4,19 @@ import { subcategories } from '@/lib/subcategories';
 import { posts } from '@/lib/mockData';
 
 export default function Home() {
+  const serializedPosts = posts.map(post => ({
+    id: post.id,
+    title: post.title,
+    desc: post.desc,
+    verified: post.verified,
+    isNew: post.isNew,
+    imageUrl: post.imageUrl,
+  }));
+
   return (
     <div className='flex flex-col items-center justify-center grow gap-4 text-center'>
       <AppCarousel title='Categorii Populare' items={subcategories} />
-      <AppGoldenSection title='Anunțuri Verificate' posts={posts} />
+      <AppGoldenSection title='Anunțuri Verificate' posts={serializedPosts} />
     </div>
   );
 }

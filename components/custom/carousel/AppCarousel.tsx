@@ -24,6 +24,7 @@ type AppCarouselProps = {
 export default function AppCarousel({ title, items, autoplay = true, interval = 3000, pauseOnHover = true }: AppCarouselProps) {
   return (
     <section className='py-8'>
+      <h2 className='text-2xl text-secondary font-bold mb-4 text-center sm:text-end w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>{title}</h2>
       <Carousel
         className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-full'
         autoplay={autoplay}
