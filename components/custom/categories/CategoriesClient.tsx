@@ -155,7 +155,9 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                 </CardContent>
               </Card>
             ) : (
-              <Showcase category={selectedCategory} />
+              <div className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-md w-full'>
+                <Showcase category={selectedCategory} />
+              </div>
             )}
           </div>
           {selectedSubcategory === 'auto' && (
