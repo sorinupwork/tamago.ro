@@ -45,7 +45,7 @@ export function Showcase({ category }: { category: string }) {
   if (!cat) return null;
 
   return (
-    <div className='flex-1 relative w-full mx-auto px-4 sm:px-8 md:px-0 animate-fade-in overflow-hidden'>
+    <div className='flex-1 relative w-full mx-auto animate-fade-in overflow-hidden'>
       <div
         className={`relative w-full h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg transition-opacity duration-1000 ${
           isVisible ? 'opacity-100' : 'opacity-0'
