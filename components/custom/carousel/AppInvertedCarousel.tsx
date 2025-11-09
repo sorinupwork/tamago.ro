@@ -221,7 +221,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
                 return (
                   <CarouselItem
                     key={`${apiKeyPrefix}-${origIndex}`}
-                    className='basis-full sm:basis-1/2 lg:basis-1/3 flex-justify-center relative'
+                    className='basis-full sm:basis-1/2 lg:basis-1/3 justify-center relative'
                   >
                     <CarouselCard
                       origIndex={origIndex}
