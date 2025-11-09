@@ -51,7 +51,7 @@ export default function RootLayout({
         <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
           <div className='flex flex-col min-h-screen'>
             <AppNavigation />
-            <div className='flex-1 flex flex-col'>
+            <div className='flex-1 flex flex-col overflow-x-hidden'>
               <CategoryLayout>
                 {children}
                 <MoreInfo />

@@ -67,7 +67,7 @@ export default function CarDetailPage() {
 
   return (
     <div className='container mx-auto max-w-7xl'>
-      <div className='flex items-center gap-4 p-4'>
+      <div className='flex items-center gap-4 p-4 overflow-x-hidden'>
         <Breadcrumbs
           items={[
             { label: 'Acasă', href: '/' },
@@ -75,6 +75,7 @@ export default function CarDetailPage() {
             { label: 'Auto', href: '/categorii/auto' },
             { label: car.title },
           ]}
+          className='break-words'
         />
       </div>
 

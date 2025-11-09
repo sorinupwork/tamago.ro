@@ -120,7 +120,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
 
   return (
     <SidebarInset className='flex-1'>
-      <header className='sticky top-[52px] z-10 bg-background border-b flex h-16 items-center gap-2 px-2'>
+      <header className='sticky top-[52px] z-10 bg-background border-b flex h-16 items-center gap-2 px-2 overflow-x-hidden'>
         <SidebarTrigger className='-ml-1' />
         <Breadcrumbs
           items={[
@@ -136,6 +136,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                 ]
               : []),
           ]}
+          className='break-words'
         />
       </header>
       <ScrollArea className='flex-1'>

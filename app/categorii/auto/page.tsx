@@ -257,10 +257,12 @@ export default function AutoPage() {
 
   return (
     <div className='container mx-auto max-w-7xl p-2'>
-      <Breadcrumbs
-        items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]}
-        className='mb-4'
-      />
+      <div className='overflow-x-hidden'>
+        <Breadcrumbs
+          items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]}
+          className='break-words mb-4'
+        />
+      </div>
 
       <div className='flex flex-wrap gap-2 mb-4 justify-center md:justify-start'>
         <AutoTabs activeTab={activeTab} onChange={(t) => setActiveTab(t)} />
