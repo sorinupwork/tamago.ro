@@ -20,15 +20,15 @@ import { subcategories } from '@/lib/subcategories';
 export function AppNavigation() {
   return (
     <nav className='sticky top-0 z-50 bg-background border-b'>
-      <div className='flex justify-between items-center px-4 py-2 gap-1'>
-        <div className='flex items-center gap-4'>
+      <div className='flex justify-between items-center px-2 sm:px-4 py-2 gap-1'>
+        <div className='flex items-center gap-2 md:gap-4'>
           <AppLogo />
 
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className='flex items-center gap-2 p-2'>
-                  <Home className='w-4 h-4' />
+                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-1 md:p-2'>
+                  <Home className='w-3 h-3 md:w-4 md:h-4' />
                   <span className='hidden md:inline'>Acasa</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -59,8 +59,8 @@ export function AppNavigation() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className='flex items-center gap-2 p-2'>
-                  <Folder className='w-4 h-4' />
+                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-1 md:p-2'>
+                  <Folder className='w-3 h-3 md:w-4 md:h-4' />
                   <span className='hidden md:inline'>Categorii</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
