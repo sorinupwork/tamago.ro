@@ -61,7 +61,7 @@ export function Showcase({ category }: { category: string }) {
         />
         <div className='absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent backdrop-blur-sm' />
 
-        <div className='absolute inset-0 flex items-center justify-center px-4'>
+        <div className='absolute inset-0 flex items-center justify-center'>
           <div className='text-center'>
             <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg'>{cat.label}</h1>
             <p className='text-sm sm:text-lg text-gray-200 mt-1 drop-shadow'>{`Explorează opțiunile pentru ${cat.label.toLowerCase()}.`}</p>
