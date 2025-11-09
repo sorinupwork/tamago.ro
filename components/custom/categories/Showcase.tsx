@@ -63,10 +63,10 @@ export function Showcase({ category }: { category: string }) {
 
         <div className='absolute inset-0 flex items-center justify-center px-4'>
           <div className='text-center max-w-full'>
-            <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg break-words'>
+            <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg wrap-break-word'>
               {cat.label}
             </h1>
-            <p className='text-sm sm:text-base md:text-lg text-gray-200 mt-1 drop-shadow break-words'>
+            <p className='text-sm sm:text-base md:text-lg text-gray-200 mt-1 drop-shadow wrap-break-word'>
               {`Explorează opțiunile pentru ${cat.label.toLowerCase()}.`}
             </p>
           </div>

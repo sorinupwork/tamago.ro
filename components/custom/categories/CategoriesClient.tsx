@@ -136,7 +136,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                 ]
               : []),
           ]}
-          className='break-words overflow-hidden'
+          className='wrap-break-word overflow-hidden'
         />
       </header>
       <ScrollArea className='flex-1 overflow-x-hidden'>
