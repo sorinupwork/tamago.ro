@@ -212,7 +212,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
           <Carousel
             setApi={setApi}
             opts={opts}
-            className='w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-visible'
+            className='w-full max-w-3xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-visible'
           >
             <CarouselContent className='gap-6' containerClassName='overflow-visible'>
               {items.map((sub, i) => {

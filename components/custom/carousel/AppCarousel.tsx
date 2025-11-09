@@ -2,6 +2,8 @@ import Link from 'next/link';
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 type Category = {
   id: number;
@@ -22,26 +24,31 @@ type AppCarouselProps = {
 export default function AppCarousel({ title, items, autoplay = true, interval = 3000, pauseOnHover = true }: AppCarouselProps) {
   return (
     <section className='py-8'>
-      <h2 className='text-2xl font-bold text-end mb-4 text-secondary'>{title}</h2>
       <Carousel
-        className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'
+        className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-full'
         autoplay={autoplay}
         autoplayInterval={interval}
         pauseOnHover={pauseOnHover}
+        opts={{
+          loop: true,
+        }}
       >
         <CarouselContent className='py-4 px-2'>
           {items.map((category) => {
             const Icon = category.icon as React.ComponentType<{ className?: string }>;
             return (
-              <CarouselItem key={category.id} className='basis-1/1 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4'>
+              <CarouselItem key={category.id} className='basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6'>
                 <Link href={category.href}>
-                  <Card className='lift'>
-                    <CardContent className='flex items-center gap-2 px-2 sm:px-6'>
-                      {Icon && <Icon className='w-12 h-12 text-primary shrink-0' />}
-                      <div className='flex flex-col flex-1'>
-                        <h3 className='font-bold text-lg truncate text-start'>{category.title}</h3>
-                        <p className='text-sm text-muted-foreground line-clamp-2 text-start'>{category.description}</p>
+                  <Card className='lift hover:shadow-lg transition-shadow duration-300 h-64'>
+                    <CardContent className='flex flex-col items-center gap-2 px-2 sm:px-4 h-full'>
+                      {Icon && <Icon className='w-8 h-8 sm:w-10 sm:h-10 text-primary shrink-0 mt-2 sm:mt-4' />}
+                      <div className='flex flex-col flex-1 text-center'>
+                        <h3 className='font-bold text-base sm:text-lg truncate'>{category.title}</h3>
+                        <p className='text-xs sm:text-sm text-muted-foreground line-clamp-3'>{category.description}</p>
                       </div>
+                      <Button variant='outline' size='sm' className='mt-2 mb-2 sm:mb-4 hover:bg-primary hover:text-white transition-colors'>
+                        Alege acum <ArrowRight className='ml-1 h-3 w-3 sm:h-4 sm:w-4' />
+                      </Button>
                     </CardContent>
                   </Card>
                 </Link>
