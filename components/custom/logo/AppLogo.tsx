@@ -4,7 +4,7 @@ import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 export function AppLogo() {
   return (
-    <Link href='/'>
+    <Link href='/' className='cursor-default'>
       <Avatar className="aspect-square rounded">
         <AvatarImage src='/tamago.png' alt='Tamago Logo' />
       </Avatar>

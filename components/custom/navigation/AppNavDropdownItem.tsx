@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
+import { cn } from '@/lib/utils';
 
 export function AppNavDropdownItem({
   title,
@@ -19,7 +20,7 @@ export function AppNavDropdownItem({
   return (
     <li {...props}>
       <NavigationMenuLink asChild>
-        <Link href={href} className={linkClassName}>
+        <Link href={href} className={cn('cursor-default', linkClassName)}>
           <div className={`text-sm leading-none font-medium ${titleClass || ''}`}>{title}</div>
           <p className={`text-muted-foreground line-clamp-2 text-sm leading-snug ${pClass || ''}`}>{children}</p>
         </Link>

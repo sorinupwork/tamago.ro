@@ -59,7 +59,7 @@ export function MediaUploader({
     <div className='space-y-4'>
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-default transition-colors ${
           errorMessage ? 'border-red-500 bg-red-50' : isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
         }`}
       >

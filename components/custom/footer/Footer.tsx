@@ -9,17 +9,17 @@ export function Footer() {
           <h3 className='font-semibold mb-2'>Despre noi</h3>
           <ul className='space-y-1 text-sm'>
             <li>
-              <Link href='/despre-noi' className='hover:underline'>
+              <Link href='/despre-noi' className='hover:underline cursor-default'>
                 Echipa noastră
               </Link>
             </li>
             <li>
-              <Link href='/politica-confidentialitate' className='hover:underline'>
+              <Link href='/politica-confidentialitate' className='hover:underline cursor-default'>
                 Politica de confidențialitate
               </Link>
             </li>
             <li>
-              <Link href='/termeni-conditii' className='hover:underline'>
+              <Link href='/termeni-conditii' className='hover:underline cursor-default'>
                 Termeni și condiții
               </Link>
             </li>
@@ -31,7 +31,7 @@ export function Footer() {
             <li>Email: contact@tamago.ro</li>
             <li>Telefon: +40 123 456 789</li>
             <li>
-              <Link href='/contact' className='hover:underline'>
+              <Link href='/contact' className='hover:underline cursor-default'>
                 Formular de contact
               </Link>
             </li>
@@ -49,13 +49,13 @@ export function Footer() {
           <h3 className='font-semibold mb-2'>Social Media</h3>
           <ul className='space-y-1 text-sm flex flex-col items-center'>
             <li>
-              <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center'>
+              <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center cursor-default'>
                 <Image src='/icons/facebook.svg' alt='Facebook' width={16} height={16} className='mr-2' />
                 Facebook
               </Link>
             </li>
             <li>
-              <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center'>
+              <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center cursor-default'>
                 <Image src='/icons/instagram.svg' alt='Instagram' width={16} height={16} className='mr-2' />
                 Instagram
               </Link>

@@ -42,7 +42,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[5]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[5]?.imageUrl})` }}
               onClick={() => displayedPosts[5] && router.push(`/post/${displayedPosts[5].id}`)}
             >
@@ -91,7 +91,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[4]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[4]?.imageUrl})` }}
               onClick={() => displayedPosts[4] && router.push(`/post/${displayedPosts[4].id}`)}
             >
@@ -140,7 +140,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[0]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[0]?.imageUrl})` }}
               onClick={() => displayedPosts[0] && router.push(`/post/${displayedPosts[0].id}`)}
             >
@@ -189,7 +189,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[1]?.id}
-              className='relative bg-cover bg-center pinch cursor-pointer'
+              className='relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[1]?.imageUrl})` }}
               onClick={() => displayedPosts[1] && router.push(`/post/${displayedPosts[1].id}`)}
             >
@@ -238,7 +238,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[2]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[2]?.imageUrl})` }}
               onClick={() => displayedPosts[2] && router.push(`/post/${displayedPosts[2].id}`)}
             >
@@ -287,7 +287,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             )}
             <Card
               key={displayedPosts[3]?.id}
-              className='h-full relative bg-cover bg-center pinch cursor-pointer'
+              className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[3]?.imageUrl})` }}
               onClick={() => displayedPosts[3] && router.push(`/post/${displayedPosts[3].id}`)}
             >

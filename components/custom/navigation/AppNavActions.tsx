@@ -41,7 +41,7 @@ export function AppNavActions() {
           className={cn(' w-10 h-10 justify-start text-left xl:w-auto')}
           asChild
         >
-          <Link href='/autentificare'>
+          <Link href='/autentificare' className='cursor-default'>
             <LogIn className='h-4 w-4' />
             <span className='hidden xl:inline ml-2'>Autentificare</span>
             <span className='sr-only'>Autentificare</span>

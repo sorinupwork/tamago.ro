@@ -39,7 +39,7 @@ export default function AppCarousel({ title, items, autoplay = true, interval = 
             const Icon = category.icon as React.ComponentType<{ className?: string }>;
             return (
               <CarouselItem key={category.id} className='basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6'>
-                <Link href={category.href}>
+                <Link href={category.href} className='cursor-default'>
                   <Card className='lift hover:shadow-lg transition-shadow duration-300 h-64'>
                     <CardContent className='flex flex-col items-center gap-2 px-2 sm:px-4 h-full'>
                       {Icon && <Icon className='w-8 h-8 sm:w-10 sm:h-10 text-primary shrink-0 mt-2 sm:mt-4' />}
