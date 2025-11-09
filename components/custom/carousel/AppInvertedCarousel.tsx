@@ -245,7 +245,6 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
 
   return (
     <>
-      {/* Top carousel */}
       {RenderRow({
         items: rowAItems,
         setApi: setApiA,
@@ -255,7 +254,6 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         opts: { align: 'center', loop: true, startIndex: 0 },
       })}
 
-      {/* Bottom carousel */}
       {RenderRow({
         items: rowBItems,
         setApi: setApiB,

@@ -20,7 +20,7 @@ import { AuctionAutoForm } from '@/components/custom/form/auto/AuctionAutoForm';
 export type PreviewData = {
   title: string;
   description: string;
-  price: string; // Keep as string for display
+  price: string;
   currency: string;
   startingBid?: number;
   location: string;
@@ -28,8 +28,8 @@ export type PreviewData = {
   uploadedFiles: string[];
   duration?: string;
   fuel: string;
-  mileage: string; // Changed to string
-  year: string; // Changed to string
+  mileage: string;
+  year: string;
   features: string;
   options: string[];
 };
@@ -62,14 +62,14 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
   const [previewData, setPreviewData] = useState<PreviewData>({
     title: '',
     description: '',
-    price: '', // Keep as string
+    price: '',
     currency: 'EUR',
     location: '',
     category: 'sell',
-    uploadedFiles: [], // Keep empty until after upload/submit
+    uploadedFiles: [],
     fuel: '',
-    mileage: '', // Changed to string
-    year: '', // Changed to string
+    mileage: '',
+    year: '',
     features: '',
     options: [],
   });
@@ -160,7 +160,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           {selectedSubcategory === 'auto' && (
             <div className='flex-1 overflow-visible w-full md:w-auto min-w-0'>
               <div className='w-full min-w-0'>
-                <Preview {...previewData} price={previewData.price} /> {/* Pass string directly */}
+                <Preview {...previewData} price={previewData.price} />
               </div>
             </div>
           )}
