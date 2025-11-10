@@ -52,7 +52,7 @@ export function AppNavActions() {
               <Link href='/'>Acasă</Link>
             </CommandItem>
             <CommandItem asChild>
-              <Link href='/despre'>Despre noi</Link>
+              <Link href='/suport'>Despre noi</Link>
             </CommandItem>
             <CommandItem asChild>
               <Link href='/contact'>Contact</Link>

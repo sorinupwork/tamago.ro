@@ -75,9 +75,9 @@ export function AppNavigation() {
               </NavigationMenuItem>
               <NavigationMenuItem className='hidden md:flex'>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href='/despre' className='flex flex-row items-center gap-2 cursor-default'>
+                  <Link href='/suport' className='flex flex-row items-center gap-2 cursor-default'>
                     <BadgeInfo className='w-4 h-4' />
-                    <span className='hidden lg:inline'>Despre</span>
+                    <span className='hidden lg:inline'>Suport</span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

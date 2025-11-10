@@ -3,7 +3,7 @@ import { KeyRound, Wrench, CreditCard, CheckCircle } from 'lucide-react';
 import MarketplaceContactSection from '@/components/custom/marketplace/MarketplaceContactSection';
 import AppPlatinumSection from '@/components/custom/section/AppPlatinumSection';
 
-export default function DespreNoi() {
+export default function Suport() {
   const servicesCards = [
     {
       icon: <KeyRound className='text-blue-500' />,
