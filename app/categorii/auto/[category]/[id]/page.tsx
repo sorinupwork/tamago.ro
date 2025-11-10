@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,8 +26,11 @@ import { mockCars } from '@/lib/mockData';
 
 export default function CarDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const category = params.category as string;
   const id = parseInt(params.id as string);
+  const queryString = searchParams.toString();
+  const autoHref = `/categorii/auto${queryString ? '?' + queryString : ''}`;
 
   const car = useMemo(() => mockCars.find((c) => c.id === id && c.category === category) || null, [id, category]);
 
@@ -72,10 +76,10 @@ export default function CarDetailPage() {
           items={[
             { label: 'Acasă', href: '/' },
             { label: 'Categorii', href: '/categorii' },
-            { label: 'Auto', href: '/categorii/auto' },
+            { label: 'Auto', href: autoHref },
             { label: car.title },
           ]}
-          className='break-words'
+          className='wrap-break-word'
         />
       </div>
 

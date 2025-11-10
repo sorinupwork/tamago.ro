@@ -1,14 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface BreadcrumbItem {
   label: string;
@@ -33,9 +27,15 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
             {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
               {item.href ? (
-                <BreadcrumbLink className='cursor-default' href={item.href}>
-                  {item.label}
-                </BreadcrumbLink>
+                item.href.startsWith('/') ? (
+                  <Link href={item.href} className='cursor-default text-muted-foreground hover:text-foreground'>
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a href={item.href} className='cursor-default text-muted-foreground hover:text-foreground'>
+                    {item.label}
+                  </a>
+                )
               ) : (
                 <BreadcrumbPage className='cursor-default'>{item.label}</BreadcrumbPage>
               )}

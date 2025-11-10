@@ -260,7 +260,7 @@ export default function AutoPage() {
       <div className='overflow-x-hidden'>
         <Breadcrumbs
           items={[{ label: 'Acasă', href: '/' }, { label: 'Categorii', href: '/categorii' }, { label: 'Auto' }]}
-          className='break-words mb-4'
+          className='wrap-break-word mb-4'
         />
       </div>
 

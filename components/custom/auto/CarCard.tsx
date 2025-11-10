@@ -1,17 +1,23 @@
+'use client';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { categoryLabels } from '@/lib/categories';
-import type { Car } from '@/lib/types'; // Assuming Car type is defined here; adjust if needed
+import type { Car } from '@/lib/types';
 
 interface CarCardProps {
   car: Car;
 }
 
 export function CarCard({ car }: CarCardProps) {
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
+  const href = `/categorii/auto/${car.category}/${car.id}${queryString ? '?' + queryString : ''}`;
+
   return (
-    <Link key={car.id} href={`/categorii/auto/${car.category}/${car.id}`} className='cursor-default'>
+    <Link key={car.id} href={href} className='cursor-default'>
       <Card className='overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-102 animate-in fade-in-0 slide-in-from-bottom-4'>
         <Image src={car.images[0]} alt={car.title} width={400} height={192} className='w-full h-48 object-cover' />
         <CardHeader className='pb-2'>
