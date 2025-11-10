@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Search, LogIn } from 'lucide-react';
+import { Search, ShieldCheck, UserCog2 } from 'lucide-react';
 
 import {
   CommandDialog,
@@ -27,24 +27,16 @@ export function AppNavActions() {
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button
-          variant='outline'
-          className='w-10 h-10 justify-start text-left sm:w-52'
-          onClick={() => setOpen(true)}
-        >
+        <Button variant='outline' className='w-10 h-10 justify-start text-left sm:w-52' onClick={() => setOpen(true)}>
           <Search className='h-4 w-4' />
           <span className='hidden sm:inline ml-2'>Caută...</span>
           <span className='sr-only'>Search</span>
         </Button>
-        <Button
-          variant='outline'
-          className={cn(' w-10 h-10 justify-start text-left xl:w-auto')}
-          asChild
-        >
+        <Button variant='outline' className={cn(' w-10 h-10 justify-start text-left xl:w-auto')} asChild>
           <Link href='/autentificare' className='cursor-default'>
-            <LogIn className='h-4 w-4' />
-            <span className='hidden xl:inline ml-2'>Autentificare</span>
-            <span className='sr-only'>Autentificare</span>
+            <ShieldCheck className='h-4 w-4' />
+            <span className='hidden xl:inline'>Cont</span>
+            <span className='sr-only'>Cont</span>
           </Link>
         </Button>
 
@@ -60,7 +52,7 @@ export function AppNavActions() {
               <Link href='/'>Acasă</Link>
             </CommandItem>
             <CommandItem asChild>
-              <Link href='/despre-noi'>Despre noi</Link>
+              <Link href='/despre'>Despre noi</Link>
             </CommandItem>
             <CommandItem asChild>
               <Link href='/contact'>Contact</Link>

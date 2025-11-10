@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Folder, Info, Mail } from 'lucide-react';
+import { BadgePlus, BadgeInfo, BadgeCheck, AtSign } from 'lucide-react';
 
 import {
   NavigationMenu,
@@ -27,12 +27,12 @@ export function AppNavigation() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-1 md:p-2'>
-                  <Home className='w-3 h-3 md:w-4 md:h-4' />
-                  <span className='hidden md:inline'>Acasa</span>
+                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-2'>
+                  <BadgePlus className='w-4 h-4' />
+                  <span className='hidden md:inline'>Anunț</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className='grid space-x-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
+                  <ul className='grid gap-2 min-w-3xs md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
                     <AppNavDropdownItem
                       href='/'
                       className='row-span-3 min-h-24 md:min-h-72 shine'
@@ -59,9 +59,9 @@ export function AppNavigation() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-1 md:p-2'>
-                  <Folder className='w-3 h-3 md:w-4 md:h-4' />
-                  <span className='hidden md:inline'>Categorii</span>
+                <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-2'>
+                  <BadgeCheck className='w-4 h-4' />
+                  <span className='hidden md:inline'>Alege</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className='grid gap-2 sm:w-[400px] md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
@@ -75,16 +75,16 @@ export function AppNavigation() {
               </NavigationMenuItem>
               <NavigationMenuItem className='hidden md:flex'>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href='/despre-noi' className='flex flex-row items-center gap-2 cursor-default'>
-                    <Info className='w-4 h-4' />
-                    <span className='hidden lg:inline'>Despre noi</span>
+                  <Link href='/despre' className='flex flex-row items-center gap-2 cursor-default'>
+                    <BadgeInfo className='w-4 h-4' />
+                    <span className='hidden lg:inline'>Despre</span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem className='hidden md:flex'>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link href='/contact' className='flex flex-row items-center gap-2 cursor-default'>
-                    <Mail className='w-4 h-4' />
+                    <AtSign className='w-4 h-4' />
                     <span className='hidden lg:inline'>Contact</span>
                   </Link>
                 </NavigationMenuLink>

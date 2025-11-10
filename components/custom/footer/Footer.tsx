@@ -9,7 +9,7 @@ export function Footer() {
           <h3 className='font-semibold mb-2'>Despre noi</h3>
           <ul className='space-y-1 text-sm'>
             <li>
-              <Link href='/despre-noi' className='hover:underline cursor-default'>
+              <Link href='/despre' className='hover:underline cursor-default'>
                 Echipa noastră
               </Link>
             </li>
