@@ -64,7 +64,7 @@ export function AppNavigation() {
                   <span className='hidden md:inline'>Alege</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className='grid gap-2 sm:w-[400px] md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
+                  <ul className='grid gap-2 min-w-3xs sm:w-[400px] md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
                     {subcategories.map((component) => (
                       <AppNavDropdownItem key={component.title} title={component.title} href={component.href}>
                         {component.description}

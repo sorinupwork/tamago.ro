@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Search, ShieldCheck, UserCog2 } from 'lucide-react';
+import { Search, ShieldCheck } from 'lucide-react';
 
 import {
   CommandDialog,
