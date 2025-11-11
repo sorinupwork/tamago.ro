@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from 'lucide-react';
+import { User, Search, Mail, ArrowRight } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -43,21 +43,22 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
         </CardHeader>
         <CardContent className='flex-1 flex flex-col'>
           <ChatFilters search={search} setSearch={setSearch} sort={sort} setSort={setSort} />
+          {/* Add search icon to input if not present */}
           {/* Categories */}
           <Tabs value={category} onValueChange={setCategory} className='mb-4'>
             <TabsList className='grid w-full grid-cols-3'>
-              <TabsTrigger value='Toți' className='transition-all duration-200 hover:scale-105'>
+              <TabsTrigger value='Toți' className='transition-all duration-200 hover:scale-105 active:scale-95'>
                 Toți
               </TabsTrigger>
-              <TabsTrigger value='Prieteni' className='transition-all duration-200 hover:scale-105'>
+              <TabsTrigger value='Prieteni' className='transition-all duration-200 hover:scale-105 active:scale-95'>
                 Prieteni
               </TabsTrigger>
-              <TabsTrigger value='Recenți' className='transition-all duration-200 hover:scale-105'>
+              <TabsTrigger value='Recenți' className='transition-all duration-200 hover:scale-105 active:scale-95'>
                 Recenți
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          {/* Scrollable user list */}
+          {/* Scrollable user list - make touch-friendly */}
           <ScrollArea className='flex-1'>
             {filteredUsers.map((user) => (
               <AppListItem
@@ -66,7 +67,7 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
                 selectedUser={selectedUser}
                 setSelectedUser={setSelectedUser}
                 leftIcon={
-                  <Avatar className='transition-all duration-200 hover:scale-110'>
+                  <Avatar className='transition-all duration-200 hover:scale-110 active:scale-95'>
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback>{user.name[0]}</AvatarFallback>
                   </Avatar>
@@ -74,8 +75,8 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
                 title={user.name}
                 description={user.status}
                 rightButton={
-                  <Button variant='outline' size='sm' className='transition-all duration-200 hover:scale-105'>
-                    Contactează
+                  <Button variant='ghost'>
+                    <ArrowRight />
                   </Button>
                 }
               />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Send } from 'lucide-react';
+import { Send, Smile } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,9 +36,12 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({ selectedUserName, messag
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              className='flex-1'
+              className='flex-1 min-h-[40px]' // Larger for mobile
             />
-            <Button onClick={sendMessage} className='transition-all duration-200 hover:scale-105'>
+            <Button variant='ghost' size='sm' className='transition-all duration-200 hover:scale-105 active:scale-95'>
+              <Smile className='w-4 h-4' />
+            </Button>
+            <Button onClick={sendMessage} className='transition-all duration-200 hover:scale-105 active:scale-95'>
               <Send className='w-4 h-4' />
             </Button>
           </div>
