@@ -1,4 +1,4 @@
-import { Car as CarIcon, Home as HomeIcon, Briefcase, Smartphone, Zap, Wrench, Users } from 'lucide-react';
+import { Car as CarIcon, Home as HomeIcon, Briefcase, Smartphone, Zap, Wrench } from 'lucide-react';
 
 import { Car, Post, User } from './types';
 

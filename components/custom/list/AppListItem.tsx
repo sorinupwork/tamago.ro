@@ -4,8 +4,8 @@ import { User as UserType } from '@/lib/types';
 
 type AppListItemProps = {
   user: UserType;
-  selectedUser: UserType;
-  setSelectedUser: (user: UserType) => void;
+  selectedUser: UserType | null;
+  setSelectedUser: (user: UserType | null) => void;
   leftIcon?: React.ReactNode;
   title: string;
   description?: string;
@@ -26,9 +26,9 @@ export const AppListItem: React.FC<AppListItemProps> = ({
   return (
     <div
       className={`flex items-center gap-3 p-2 hover:bg-muted transition-all duration-200 pinch ${
-        selectedUser.id === user.id ? 'bg-accent animate-pulse' : ''
+        selectedUser?.id === user.id ? 'bg-accent animate-pulse' : ''
       }`}
-      onClick={() => setSelectedUser(user)}
+      onClick={() => selectedUser?.id === user.id ? setSelectedUser(null) : setSelectedUser(user)}
     >
       {leftIcon}
       <div className='flex-1'>

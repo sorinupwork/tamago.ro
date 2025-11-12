@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ type AppInputProps = {
   min?: number;
 };
 
-export const AppInput: React.FC<AppInputProps> = ({
+export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(({
   type = 'text',
   placeholder,
   value,
@@ -25,11 +25,12 @@ export const AppInput: React.FC<AppInputProps> = ({
   className = '',
   onKeyDown,
   min,
-}) => {
+}, ref) => {
   return (
     <div className={`relative ${className}`}>
       {LeftIcon && <LeftIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />}
       <Input
+        ref={ref}
         type={type}
         placeholder={placeholder}
         value={value}
@@ -41,4 +42,6 @@ export const AppInput: React.FC<AppInputProps> = ({
       {RightIcon && <RightIcon className='absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />}
     </div>
   );
-};
+});
+
+AppInput.displayName = 'AppInput';

@@ -29,7 +29,7 @@ export function Showcase({ category }: { category: string }) {
     auction: { text: 'text-purple-600', icon: 'text-purple-600', arrow: 'text-purple-600' },
   };
 
-  const reverseMapping: Record<string, string> = { sell: 'vanzare', buy: 'cumparare', rent: 'inchiriere', auction: 'licitatie' };
+  const reverseMapping: Record<string, string> = { sell: 'oferta', buy: 'cerere', rent: 'inchiriere', auction: 'licitatie' };
   const navigateTo = (catKey: string, sub?: string) => {
     const tip = reverseMapping[catKey] ?? catKey;
     const url = `/categorii?tip=${tip}${sub ? `&subcategorie=${sub}` : ''}`;

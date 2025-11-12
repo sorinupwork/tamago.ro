@@ -1,11 +1,11 @@
-import React from 'react';
-import { User, Search, Mail, ArrowRight } from 'lucide-react';
+import React, { useRef } from 'react';
+import { User, Search, Mail, ArrowRight, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ChatFilters } from './ChatFilters';
 import { AppListItem } from '../list/AppListItem';
 import { User as UserType } from '@/lib/types';
@@ -17,8 +17,8 @@ type AppChatFilterProps = {
   setSort: (value: string) => void;
   category: string;
   setCategory: (value: string) => void;
-  selectedUser: UserType;
-  setSelectedUser: (user: UserType) => void;
+  selectedUser: UserType | null;
+  setSelectedUser: (user: UserType | null) => void;
   filteredUsers: UserType[];
 };
 
@@ -33,9 +33,18 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
   setSelectedUser,
   filteredUsers,
 }) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+    if (viewport) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className='flex-1 lg:flex-[0.382] space-y-4'>
-      <Card className='h-full flex flex-col transition-all duration-300 hover:shadow-lg'>
+    <div className='flex flex-1 space-y-4 min-w-0'>
+      <Card className='flex-1 flex flex-col min-h-[200px] transition-all duration-300 hover:shadow-lg'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <User className='w-5 h-5' /> Contacte Utilizatori
@@ -43,8 +52,7 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
         </CardHeader>
         <CardContent className='flex-1 flex flex-col'>
           <ChatFilters search={search} setSearch={setSearch} sort={sort} setSort={setSort} />
-          {/* Add search icon to input if not present */}
-          {/* Categories */}
+
           <Tabs value={category} onValueChange={setCategory} className='mb-4'>
             <TabsList className='grid w-full grid-cols-3'>
               <TabsTrigger value='Toți' className='transition-all duration-200 hover:scale-105 active:scale-95'>
@@ -58,8 +66,8 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          {/* Scrollable user list - make touch-friendly */}
-          <ScrollArea className='flex-1'>
+
+          <ScrollArea ref={scrollAreaRef} className='h-96'>
             {filteredUsers.map((user) => (
               <AppListItem
                 key={user.id}
@@ -81,7 +89,13 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
                 }
               />
             ))}
+            <ScrollBar />
           </ScrollArea>
+          <div className='flex justify-center mt-2'>
+            <Button onClick={scrollToBottom} variant='ghost' size='sm' className='transition-all duration-200 hover:scale-105 active:scale-95'>
+              <ChevronDown className='w-4 h-4' />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

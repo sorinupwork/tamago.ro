@@ -26,15 +26,15 @@ type CategorySidebarProps = {
 };
 
 const categoryMapping = {
-  vanzare: 'sell',
-  cumparare: 'buy',
+  oferta: 'sell',
+  cerere: 'buy',
   inchiriere: 'rent',
   licitatie: 'auction',
 } as const;
 
 const reverseMapping = {
-  sell: 'vanzare',
-  buy: 'cumparare',
+  sell: 'oferta',
+  buy: 'cerere',
   rent: 'inchiriere',
   auction: 'licitatie',
 } as const;

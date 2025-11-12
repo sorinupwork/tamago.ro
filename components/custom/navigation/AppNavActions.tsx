@@ -33,7 +33,7 @@ export function AppNavActions() {
           <span className='sr-only'>Search</span>
         </Button>
         <Button variant='outline' className={cn(' w-10 h-10 justify-start text-left xl:w-auto')} asChild>
-          <Link href='/autentificare' className='cursor-default'>
+          <Link href='/cont' className='cursor-default'>
             <ShieldCheck className='h-4 w-4' />
             <span className='hidden xl:inline'>Cont</span>
             <span className='sr-only'>Cont</span>

@@ -40,8 +40,8 @@ type CategoriesClientProps = {
 };
 
 const categoryMapping = {
-  vanzare: 'sell',
-  cumparare: 'buy',
+  oferta: 'sell',
+  cerere: 'buy',
   inchiriere: 'rent',
   licitatie: 'auction',
 } as const;

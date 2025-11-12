@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 import LoginForm from '@/components/custom/form/LoginForm';
 import SignupForm from '@/components/custom/form/SignupForm';
@@ -10,7 +9,7 @@ import SocialMediaForm from '@/components/custom/form/SocialMediaForm';
 import AuthInfo from '@/components/custom/auth/AuthInfo';
 import Image from 'next/image';
 
-export default function Autentificare() {
+export default function Cont() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'social'>('login');
   const [isLg, setIsLg] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -25,7 +24,7 @@ export default function Autentificare() {
   useEffect(() => {
     const updateIsDark = () => setIsDark(document.documentElement.classList.contains('dark'));
     updateIsDark();
-    // Optional: Listen for theme changes if your app supports dynamic toggling
+    // listen for theme changes
     const observer = new MutationObserver(updateIsDark);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
@@ -33,11 +32,11 @@ export default function Autentificare() {
 
   const imageSrc = {
     login:
-      'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bG9naW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=90&w=2500',
+      'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bG9naW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=80&w=2000',
     signup:
-      'https://images.unsplash.com/photo-1529539795054-3c162aab037a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bG9naW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=90&w=2500',
+      'https://images.unsplash.com/photo-1529539795054-3c162aab037a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bG9naW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=80&w=2000',
     social:
-      'https://images.unsplash.com/photo-1603145733146-ae562a55031e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c29jaWFsJTIwbWVkaWF8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=90&w=2500',
+      'https://images.unsplash.com/photo-1603145733146-ae562a55031e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c29jaWFsJTIwbWVkaWF8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=80&w=2000',
   }[activeTab];
 
   return (
@@ -179,10 +178,8 @@ export default function Autentificare() {
         </div>
       </div>
 
-      <div className='hidden lg:block min-h-full relative'>
-        <AspectRatio ratio={1} className='w-full'>
-          <Image fill src={imageSrc} alt='Image' className='object-cover dark:brightness-[0.2] dark:grayscale' />
-        </AspectRatio>
+      <div className='hidden lg:block h-full relative'>
+        <Image fill src={imageSrc} alt='Image' className='object-cover object-center dark:brightness-[0.2] dark:grayscale' />
       </div>
     </div>
   );

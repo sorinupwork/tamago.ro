@@ -1,13 +1,35 @@
 'use client';
 
-import ErrorAlert from '../components/custom/error/ErrorAlert';
+import { Button } from '@/components/ui/button';
+import { AlertTriangleIcon } from 'lucide-react';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/custom/empty/Empty';
 
 export default function Error({ reset }: { reset: () => void }) {
   return (
     <div className='flex grow items-center justify-center bg-background p-4'>
-      <div className='text-center'>
-        <ErrorAlert message='Ceva nu a mers bine.' onClose={reset} buttonText='Încearcă din nou' />
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <AlertTriangleIcon className="size-8" />
+          </EmptyMedia>
+          <EmptyTitle>Eroare</EmptyTitle>
+          <EmptyDescription>
+            Ceva nu a mers bine. Încearcă să reîncarci pagina.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button onClick={reset} variant='secondary'>
+            Încearcă din nou
+          </Button>
+        </EmptyContent>
+      </Empty>
     </div>
   );
 }

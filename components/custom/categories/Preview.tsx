@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 interface PreviewProps {
   title: string;
   description: string;
-  price: string; // Changed to string
+  price: string;
   currency: string;
   startingBid?: number;
   location: string;
@@ -17,8 +17,8 @@ interface PreviewProps {
   uploadedFiles: string[];
   duration?: string;
   fuel: string;
-  mileage: string; // Changed to string
-  year: string; // Changed to string
+  mileage: string;
+  year: string;
   features: string;
   options: string[];
 }
@@ -46,11 +46,11 @@ export function Preview({
         <div className='flex flex-col md:flex-row gap-2'>
           <h3 className='min-w-0 text-lg font-semibold break-all overflow-wrap-break-word'>{title || 'Titlu Postare'}</h3>
           <Badge variant={category === 'auction' ? 'destructive' : 'secondary'} className='self-start'>
-            {category === 'sell' ? 'Vânzare' : category === 'buy' ? 'Cumpărare' : category === 'rent' ? 'Închiriere' : 'Licitație'}
+            {category === 'sell' ? 'Ofertă' : category === 'buy' ? 'Cerere' : category === 'rent' ? 'Închiriere' : 'Licitație'}
           </Badge>
         </div>
         <p className='text-2xl font-bold text-primary break-all overflow-wrap-break-word max-w-full'>
-          {price} {currency} {/* Display exact string without truncation */}
+          {price} {currency}
         </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
 
@@ -74,9 +74,8 @@ export function Preview({
           </Carousel>
         )}
 
-        {/* Ensure same wrapping as editor: pre-wrap + break-word */}
         <div
-          className='prose prose-sm max-w-none w-full break-words overflow-wrap-break-word min-w-0'
+          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word min-w-0'
           style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
           dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }}
         />
@@ -88,11 +87,11 @@ export function Preview({
           <p className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
             <strong>Kilometraj:</strong> {mileage} km
           </p>
-          <p className='text-sm break-words overflow-wrap-break-word'>
+          <p className='text-sm wrap-break-word overflow-wrap-break-word'>
             <strong>An Fabricație:</strong> {year}
           </p>
           <div
-            className='prose prose-sm max-w-none w-full break-words overflow-wrap-break-word break-all min-w-0'
+            className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'
             style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
             dangerouslySetInnerHTML={{ __html: `<strong>Caracteristici:</strong> ${features || 'Nespecificate'}` }}
           />

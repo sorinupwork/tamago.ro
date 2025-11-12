@@ -42,14 +42,14 @@ export function AppNavigation() {
                     />
 
                     <div>
-                      <AppNavDropdownItem href='/categorii?tip=vanzare' title='Vânzare'>
-                        Oferim servicii de vânzare pentru proiectele dumneavoastră.
+                      <AppNavDropdownItem href='/categorii?tip=oferta' title='Ofertă'>
+                        Oferă servicii pentru proiectele dumneavoastră.
                       </AppNavDropdownItem>
-                      <AppNavDropdownItem href='/categorii?tip=cumparare' title='Cumpărare'>
-                        Cumpărați servicii pentru nevoile dumneavoastră.
+                      <AppNavDropdownItem href='/categorii?tip=cerere' title='Cerere'>
+                        Caută servicii pentru nevoile dumneavoastră.
                       </AppNavDropdownItem>
                       <AppNavDropdownItem href='/categorii?tip=inchiriere' title='Închiriere'>
-                        Servicii de inchiriat pentru proiectele temporare.
+                        Servicii de închiriere pentru proiectele temporare.
                       </AppNavDropdownItem>
                       <AppNavDropdownItem href='/categorii?tip=licitatie' title='Licitație'>
                         Participați la licitații pentru cele mai bune oferte.

@@ -94,3 +94,11 @@ export type LocationFilter = {
   location: LocationData | null;
   radius: number;
 };
+
+export type FeedPost = {
+  id: number;
+  user: User;
+  text: string;
+  image?: string;
+  likes: number;
+};

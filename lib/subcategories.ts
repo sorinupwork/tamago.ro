@@ -1,4 +1,4 @@
-import { Car as CarIcon, Home as HomeIcon, Briefcase, Smartphone, Zap, Wrench, Users } from 'lucide-react';
+import { Car as CarIcon, Home as HomeIcon, Briefcase, Smartphone, Zap, Wrench, Users, Construction } from 'lucide-react';
 
 import { Subcategory } from './types';
 
@@ -51,5 +51,12 @@ export const subcategories: Subcategory[] = [
     href: '/categorii/servicii',
     description: 'Servicii profesionale pentru diverse nevoi.',
     icon: Users,
+  },
+  {
+    id: 8,
+    title: 'Construcții',
+    href: '/categorii/construcții',
+    description: 'Servicii și materiale pentru construcții.',
+    icon: Construction,
   },
 ].filter((sub) => sub.title);

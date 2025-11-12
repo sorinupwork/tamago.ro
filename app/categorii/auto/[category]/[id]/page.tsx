@@ -125,9 +125,9 @@ export default function CarDetailPage() {
               <div className='flex items-center gap-2'>
                 <Badge variant={isAuction ? 'destructive' : 'secondary'}>
                   {car.category === 'sell'
-                    ? 'Vânzare'
+                    ? 'Ofertă'
                     : car.category === 'buy'
-                    ? 'Cumpărare'
+                    ? 'Cerere'
                     : car.category === 'rent'
                     ? 'Închiriere'
                     : 'Licitație'}
