@@ -25,7 +25,6 @@ type MapComponentProps = {
   zoom?: number;
 };
 
-// Child component to handle map bounds
 function MapBounds({ users }: { users: User[] }) {
   const map = useMap();
 
@@ -49,12 +48,7 @@ export default function MapComponent({ users, center = [45.9432, 24.9668], zoom 
   if (!L) return <div className='flex items-center justify-center h-full'>Loading map...</div>;
 
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height: '100%', width: '100%' }}
-      scrollWheelZoom={false}
-    >
+    <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
       <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
       <MapBounds users={users} />
       {users.map((user) => {

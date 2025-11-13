@@ -1,15 +1,13 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { MapPin, Camera, Filter } from 'lucide-react';
+import { MapPin, Filter } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MapComponent from '@/components/custom/map/MapComponent';
 import { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type CardData = {
   icon: ReactNode;
@@ -22,7 +20,7 @@ type MarketplaceContactSectionProps = {
   description: string;
   cards: CardData[];
   users?: User[];
-  stories?: User[]; // Add stories prop
+  stories?: User[];
   showMap?: boolean;
   gridCols?: string;
   className?: string;

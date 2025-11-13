@@ -56,10 +56,15 @@ interface MapComponentProps {
   radius?: number;
 }
 
-export const MapComponent: React.FC<MapComponentProps> = ({ mapPosition, selectedLocation, onMapClick, filteredCars = [], radius = 50 }) => {
+export const MapComponent: React.FC<MapComponentProps> = ({
+  mapPosition,
+  selectedLocation,
+  onMapClick,
+  filteredCars = [],
+  radius = 50,
+}) => {
   const mapRef = useRef<L.Map>(null);
 
-  // Invalidate map size after mount to fix rendering issues in dynamic containers
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (mapRef.current) {
@@ -77,9 +82,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({ mapPosition, selecte
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
-      {selectedLocation && (
-        <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />
-      )}
+      {selectedLocation && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
       {filteredCars.map((car) =>
         car.lat && car.lng ? (
           <Marker key={car.id} position={[car.lat, car.lng]}>

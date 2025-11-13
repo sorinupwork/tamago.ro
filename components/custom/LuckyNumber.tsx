@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 type LuckyNumberProps = {
   number: number;
   isActive: boolean;
@@ -24,8 +22,8 @@ export function LuckyNumber({ number, isActive, category, className }: LuckyNumb
       aria-hidden
       className={`absolute -left-4 -top-8 text-9xl font-extrabold select-none z-20 transition-colors w-fit line-height-[0.9] ${
         isActive ? 'glow' : 'text-foreground/60 dark:text-white/30'
-      }`}
-      style={isActive ? { '--glow-color': glowColor } as React.CSSProperties : {}}
+      } ${className || ''}`}
+      style={isActive ? ({ '--glow-color': glowColor } as React.CSSProperties) : {}}
     >
       {number}
     </span>
