@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import FormTextarea from '@/components/custom/form/controls/FormTextarea';
 import { AutoPriceSelector } from '@/components/custom/form/controls/AutoPriceSelector';
@@ -20,9 +20,6 @@ import { submitSellAutoForm } from '@/actions/auto/actions';
 import { auto, AutoSellFormData } from '@/lib/validations';
 import { Progress } from '@/components/ui/progress';
 import { AppLocationInput } from '../../input/AppLocationInput';
-import { Textarea } from '@/components/ui/textarea';
-
-const CURRENT_YEAR = new Date().getFullYear();
 
 export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -36,13 +33,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     defaultValues: {
       title: '',
       description: '',
-      price: '', // Changed to string
+      price: '',
       currency: 'EUR',
       location: '',
       features: '',
       fuel: '',
-      mileage: '', // Changed to string
-      year: '', // Changed to string
+      mileage: '',
+      year: '',
       uploadedFiles: [],
     },
   });
@@ -52,25 +49,24 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
 
   const handleFilesChange = (newFiles: File[]) => {
     setFiles(newFiles);
-    // Generate object URLs for preview (client-side only)
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
-    setUploadedFiles(previewUrls); // Update for preview immediately
-    form.setValue('uploadedFiles', previewUrls); // Update form value for Zod validation
-    form.trigger('uploadedFiles'); // Trigger live validation
+    setUploadedFiles(previewUrls);
+    form.setValue('uploadedFiles', previewUrls);
+    form.trigger('uploadedFiles');
   };
 
   useEffect(() => {
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      price: watchedValues.price || '', // Pass as string
+      price: watchedValues.price || '',
       currency: watchedValues.currency || 'EUR',
       location: watchedValues.location || '',
       category: 'sell',
-      uploadedFiles, // Now shows local URLs for preview
+      uploadedFiles,
       fuel: watchedValues.fuel || '',
-      mileage: watchedValues.mileage || '', // Pass as string
-      year: watchedValues.year || '', // Pass as string
+      mileage: watchedValues.mileage || '',
+      year: watchedValues.year || '',
       features: watchedValues.features || '',
       options,
     });
@@ -84,7 +80,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     watchedValues.mileage,
     watchedValues.year,
     watchedValues.features,
-    uploadedFiles, // Reacts to local URLs
+    uploadedFiles,
     options,
     onPreviewUpdate,
   ]);
@@ -103,7 +99,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
   const onSubmit: SubmitHandler<AutoSellFormData> = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-    setUploadProgress(0); // Ensure starts at 0
+    setUploadProgress(0);
 
     try {
       let urls: string[] = [];
@@ -111,13 +107,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         const formData = new FormData();
         files.forEach((file) => formData.append('files', file));
         formData.append('category', 'sell');
-        formData.append('subcategory', 'auto'); // Add subcategory
+        formData.append('subcategory', 'auto');
 
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const percentComplete = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress(percentComplete); // Update progressively
+            setUploadProgress(percentComplete);
           }
         };
 
@@ -141,7 +137,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
       if (result.success) {
         toast.success('Formular trimis cu succes!');
         form.reset();
-        setUploadedFiles([]); // Clear preview images
+        setUploadedFiles([]);
         setOptions([]);
         setFiles([]);
         setUploaderKey((k) => k + 1);
@@ -149,14 +145,12 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         toast.error('Eroare la trimiterea formularului.');
       }
     } catch {
-      toast.error('Eroare la încărcarea fișierelor.'); // Server-side error toast
+      toast.error('Eroare la încărcarea fișierelor.');
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
     }
   };
-
-  const mediaError = files.length < 1;
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-4 w-full'>
@@ -180,7 +174,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             <AppLocationInput
               location={null}
               value={form.watch('location')}
-              onChange={(loc, radius) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+              onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
               placeholder='Introduceți locația'
               leftIcon={MapPin}
               showMap={false}
@@ -211,21 +205,26 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
                   <SelectValue placeholder='Selectați combustibil' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='Petrol'>Benzină</SelectItem>
-                  <SelectItem value='Diesel'>Motorină</SelectItem>
-                  <SelectItem value='Hybrid'>Hibrid</SelectItem>
-                  <SelectItem value='Electric'>Electric</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel>Combustibil</SelectLabel>
+                    <SelectItem value='Petrol'>Benzină</SelectItem>
+                    <SelectItem value='Diesel'>Motorină</SelectItem>
+                    <SelectItem value='Hybrid'>Hibrid</SelectItem>
+                    <SelectItem value='Electric'>Electric</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <FieldError errors={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined} />
             </Field>
+
             <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='mileage' className='flex items-center gap-2'>
                 <Settings className='h-4 w-4' /> Kilometraj <span className='text-red-600'>*</span>
               </FieldLabel>
-              <Input {...form.register('mileage')} type='text' step='0.01' placeholder='22.500' className='break-all w-full' />
+              <Input {...form.register('mileage')} type='number' step='0.01' placeholder='22.500' className='break-all w-full' />
               <FieldError errors={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined} />
             </Field>
+
             <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='year' className='flex items-center gap-2'>
                 <Calendar className='h-4 w-4' /> An Fabricație
@@ -235,7 +234,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
                 type='text'
                 inputMode='numeric'
                 placeholder='2020'
-                className='break-words overflow-wrap-break-word w-full'
+                className='wrap-break-word overflow-wrap-break-word w-full'
                 onKeyDown={(e) => {
                   if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                     e.preventDefault();
@@ -264,7 +263,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               {availableOptions.map((option) => (
                 <Field key={option} orientation='horizontal' className='min-w-0 w-full'>
                   <Checkbox id={option} checked={options.includes(option)} onCheckedChange={(c) => toggleOption(option, c)} />
-                  <FieldLabel htmlFor={option} className='font-normal'>
+                  <FieldLabel htmlFor={option} className='font-normal' lift={false}>
                     {option}
                   </FieldLabel>
                 </Field>

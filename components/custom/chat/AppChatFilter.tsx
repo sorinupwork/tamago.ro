@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { User, Search, Mail, ArrowRight, ChevronDown } from 'lucide-react';
+import { User, ArrowRight, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -92,7 +92,12 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
             <ScrollBar />
           </ScrollArea>
           <div className='flex justify-center mt-2'>
-            <Button onClick={scrollToBottom} variant='ghost' size='sm' className='transition-all duration-200 hover:scale-105 active:scale-95'>
+            <Button
+              onClick={scrollToBottom}
+              variant='ghost'
+              size='sm'
+              className='transition-all duration-200 hover:scale-105 active:scale-95'
+            >
               <ChevronDown className='w-4 h-4' />
             </Button>
           </div>

@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 interface PreviewProps {
   title: string;
   description: string;
-  price: string;
+  price?: string;
+  minPrice?: string;
+  maxPrice?: string;
   currency: string;
   startingBid?: number;
   location: string;
@@ -17,8 +19,12 @@ interface PreviewProps {
   uploadedFiles: string[];
   duration?: string;
   fuel: string;
-  mileage: string;
-  year: string;
+  mileage?: string;
+  minMileage?: string;
+  maxMileage?: string;
+  year?: string;
+  minYear?: string;
+  maxYear?: string;
   features: string;
   options: string[];
 }
@@ -27,13 +33,19 @@ export function Preview({
   title,
   description,
   price,
+  minPrice,
+  maxPrice,
   currency,
   location,
   category,
   uploadedFiles,
   fuel,
   mileage,
+  minMileage,
+  maxMileage,
   year,
+  minYear,
+  maxYear,
   features,
   options,
 }: PreviewProps) {
@@ -50,7 +62,14 @@ export function Preview({
           </Badge>
         </div>
         <p className='text-2xl font-bold text-primary break-all overflow-wrap-break-word max-w-full'>
-          {price} {currency}
+          {category === 'buy' ? (
+            minPrice && maxPrice ? `${minPrice} - ${maxPrice} ${currency}` :
+            minPrice ? `De la ${minPrice} ${currency}` :
+            maxPrice ? `Până la ${maxPrice} ${currency}` :
+            'Buget nespecificat'
+          ) : (
+            `${price} ${currency}`
+          )}
         </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
 
@@ -85,10 +104,24 @@ export function Preview({
             <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
           </p>
           <p className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
-            <strong>Kilometraj:</strong> {mileage} km
+            <strong>Kilometraj:</strong> {category === 'buy' ? (
+              minMileage && maxMileage ? `${minMileage} - ${maxMileage} km` :
+              minMileage ? `De la ${minMileage} km` :
+              maxMileage ? `Până la ${maxMileage} km` :
+              'Nespecificat'
+            ) : (
+              `${mileage} km`
+            )}
           </p>
           <p className='text-sm wrap-break-word overflow-wrap-break-word'>
-            <strong>An Fabricație:</strong> {year}
+            <strong>An Fabricație:</strong> {category === 'buy' ? (
+              minYear && maxYear ? `${minYear} - ${maxYear}` :
+              minYear ? `Din ${minYear}` :
+              maxYear ? `Până în ${maxYear}` :
+              'Nespecificat'
+            ) : (
+              year
+            )}
           </p>
           <div
             className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'

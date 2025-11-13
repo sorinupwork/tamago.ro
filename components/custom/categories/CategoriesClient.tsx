@@ -20,7 +20,9 @@ import { AuctionAutoForm } from '@/components/custom/form/auto/AuctionAutoForm';
 export type PreviewData = {
   title: string;
   description: string;
-  price: string;
+  price?: string;
+  minPrice?: string;
+  maxPrice?: string;
   currency: string;
   startingBid?: number;
   location: string;
@@ -28,8 +30,12 @@ export type PreviewData = {
   uploadedFiles: string[];
   duration?: string;
   fuel: string;
-  mileage: string;
-  year: string;
+  mileage?: string;
+  minMileage?: string;
+  maxMileage?: string;
+  year?: string;
+  minYear?: string;
+  maxYear?: string;
   features: string;
   options: string[];
 };
@@ -59,20 +65,26 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
 
   const selectedSubcategory = subParam ?? undefined;
 
-  const [previewData, setPreviewData] = useState<PreviewData>({
+  const [previewData, setPreviewData] = useState<PreviewData>(() => ({
     title: '',
     description: '',
     price: '',
+    minPrice: '',
+    maxPrice: '',
     currency: 'EUR',
     location: '',
-    category: 'sell',
+    category: selectedCategory,
     uploadedFiles: [],
     fuel: '',
     mileage: '',
+    minMileage: '',
+    maxMileage: '',
     year: '',
+    minYear: '',
+    maxYear: '',
     features: '',
     options: [],
-  });
+  }));
 
   const onPreviewUpdate = useCallback((data: PreviewData) => {
     setPreviewData(data);
@@ -85,25 +97,25 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         case 'sell':
           return (
             <Suspense fallback={<LoadingIndicator />}>
-              <SellAutoForm {...props} />
+              <SellAutoForm key={selectedCategory} {...props} />
             </Suspense>
           );
         case 'buy':
           return (
             <Suspense fallback={<LoadingIndicator />}>
-              <BuyAutoForm {...props} />
+              <BuyAutoForm key={selectedCategory} {...props} />
             </Suspense>
           );
         case 'rent':
           return (
             <Suspense fallback={<LoadingIndicator />}>
-              <RentAutoForm {...props} />
+              <RentAutoForm key={selectedCategory} {...props} />
             </Suspense>
           );
         case 'auction':
           return (
             <Suspense fallback={<LoadingIndicator />}>
-              <AuctionAutoForm {...props} />
+              <AuctionAutoForm key={selectedCategory} {...props} />
             </Suspense>
           );
         default:
@@ -150,7 +162,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
                     {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className='flex-1 overflow-auto min-w-0'>
+                <CardContent className='flex-1 min-w-0'>
                   <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
                 </CardContent>
               </Card>
@@ -163,7 +175,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           {selectedSubcategory === 'auto' && (
             <div className='flex-1 overflow-visible w-full md:w-auto min-w-0'>
               <div className='w-full min-w-0'>
-                <Preview {...previewData} price={previewData.price} />
+                <Preview key={selectedCategory} {...previewData} />
               </div>
             </div>
           )}

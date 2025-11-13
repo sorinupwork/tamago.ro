@@ -1,8 +1,24 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import {
+  EditorProvider,
+  Toolbar,
+  BtnUndo,
+  BtnRedo,
+  Separator,
+  BtnBold,
+  BtnItalic,
+  BtnUnderline,
+  BtnStrikeThrough,
+  BtnNumberedList,
+  BtnBulletList,
+  BtnLink,
+  BtnClearFormatting,
+  HtmlButton,
+} from 'react-simple-wysiwyg';
 
-const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => ({ default: mod.default })), { ssr: false });
+const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => mod.Editor), { ssr: false });
 
 type Props = {
   value?: string;
@@ -28,36 +44,36 @@ export default function FormTextarea({ value = '', onChange, placeholder }: Prop
   };
 
   return (
-    <div className='rsw-root w-full min-w-0 break-words overflow-hidden'>
-      <style>{`
-        /* Target any nested element the editor may render */
-        .rsw-root * {
-          white-space: pre-wrap !important;
-          overflow-wrap: break-word !important;
-          word-break: break-word !important;
-          box-sizing: border-box !important;
-          min-width: 0 !important;
-          max-width: none !important;
-        }
-        /* Also specifically target contenteditable if present */
-        .rsw-root [contenteditable="true"] {
-          width: 100% !important;
-        }
-      `}</style>
-
-      <Editor
-        className='break-words overflow-wrap-break-word w-full'
-        style={{
-          maxWidth: 'none',
-          width: '100%',
-          wordBreak: 'break-word',
-          overflowWrap: 'break-word',
-          whiteSpace: 'pre-wrap',
-        }}
-        value={value}
-        onChange={(p: unknown) => handleChange(p)}
-        placeholder={placeholder}
-      />
+    <div className='rsw-root w-full min-w-0 wrap-break-word overflow-hidden'>
+      <EditorProvider>
+        <Editor
+          className='wrap-break-word overflow-wrap-break-word w-full'
+          containerProps={{ style: { minHeight: '150px' } }}
+          style={{
+            maxWidth: 'none',
+            width: '100%',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+          }}
+          value={value}
+          onChange={(p: unknown) => handleChange(p)}
+          placeholder={placeholder}
+        >
+          <Toolbar>
+            <BtnUndo />
+            <BtnRedo />
+            <Separator />
+            <BtnBold />
+            <BtnItalic />
+            <BtnUnderline />
+            <BtnStrikeThrough />
+            <Separator />
+            <BtnLink />
+            <BtnClearFormatting />
+          </Toolbar>
+        </Editor>
+      </EditorProvider>
     </div>
   );
 }

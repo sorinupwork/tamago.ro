@@ -226,10 +226,29 @@ body {
   }
 }
 
+/* Leaflet Map Styles */
 .leaflet-control-attribution {
   display: none !important;
 }
 
 .leaflet-container {
   z-index: 0;
+}
+
+/* React Simple WYSIWYG Dark Mode Styles */
+.dark .rsw-toolbar {
+  background-color: #374151;
+}
+
+.dark .rsw-btn {
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.dark .rsw-btn:hover {
+  background-color: #374151;
+}
+
+.dark .rsw-btn[data-active='true'] {
+  background-color: #1f2937;
 }
