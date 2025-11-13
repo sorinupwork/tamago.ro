@@ -12,13 +12,17 @@ interface PreviewProps {
   price?: string;
   minPrice?: string;
   maxPrice?: string;
-  currency: string;
-  startingBid?: number;
+  currency?: string;
+  period?: string;
+  startingBid?: string;
   location: string;
   category: string;
   uploadedFiles: string[];
   duration?: string;
+  startDate?: string;
+  endDate?: string;
   fuel: string;
+  status?: string;
   mileage?: string;
   minMileage?: string;
   maxMileage?: string;
@@ -27,6 +31,19 @@ interface PreviewProps {
   maxYear?: string;
   features: string;
   options: string[];
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  brand?: string;
+  color?: string;
+  engineCapacity?: string;
+  minEngineCapacity?: string;
+  maxEngineCapacity?: string;
+  carType?: string;
+  horsePower?: string;
+  transmission?: string;
+  is4x4?: boolean;
 }
 
 export function Preview({
@@ -36,10 +53,15 @@ export function Preview({
   minPrice,
   maxPrice,
   currency,
+  period,
+  startingBid,
   location,
   category,
   uploadedFiles,
+  startDate,
+  endDate,
   fuel,
+  status,
   mileage,
   minMileage,
   maxMileage,
@@ -48,9 +70,22 @@ export function Preview({
   maxYear,
   features,
   options,
+  withDriver,
+  driverName,
+  driverContact,
+  driverTelephone,
+  brand,
+  color,
+  engineCapacity,
+  minEngineCapacity,
+  maxEngineCapacity,
+  carType,
+  horsePower,
+  transmission,
+  is4x4,
 }: PreviewProps) {
   return (
-    <Card className='animate-in fade-in-0 slide-in-from-right-4 bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 shadow-md w-full'>
+    <Card className='animate-in fade-in-0 slide-in-from-right-4 shadow-md w-full'>
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
       </CardHeader>
@@ -62,16 +97,31 @@ export function Preview({
           </Badge>
         </div>
         <p className='text-2xl font-bold text-primary break-all overflow-wrap-break-word max-w-full'>
-          {category === 'buy' ? (
-            minPrice && maxPrice ? `${minPrice} - ${maxPrice} ${currency}` :
-            minPrice ? `De la ${minPrice} ${currency}` :
-            maxPrice ? `Până la ${maxPrice} ${currency}` :
-            'Buget nespecificat'
-          ) : (
-            `${price} ${currency}`
-          )}
+          {category === 'buy'
+            ? minPrice && maxPrice
+              ? `${minPrice} - ${maxPrice} ${currency || ''}`
+              : minPrice
+              ? `De la ${minPrice} ${currency || ''}`
+              : maxPrice
+              ? `Până la ${maxPrice} ${currency || ''}`
+              : 'Buget nespecificat'
+            : category === 'auction'
+            ? `Licitație de start: ${startingBid} ${currency || ''}`
+            : category === 'rent'
+            ? `${price} ${currency || ''} pe ${
+                period === 'day' ? 'zi' : period === 'week' ? 'săptămână' : period === 'month' ? 'lună' : 'zi'
+              }`
+            : `${price} ${currency || ''}`}
         </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
+        {category === 'rent' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
+        {category === 'rent' && startDate && endDate && (
+          <p className='text-sm text-muted-foreground'>
+            Perioada: {startDate} - {endDate}
+          </p>
+        )}
+        {category === 'auction' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
+        {category === 'auction' && endDate && <p className='text-sm text-muted-foreground'>Data sfârșit: {endDate}</p>}
 
         {uploadedFiles.length > 0 && (
           <Carousel className='w-full'>
@@ -103,25 +153,59 @@ export function Preview({
           <p className='text-sm'>
             <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
           </p>
+          <p className='text-sm'>
+            <strong>Marca:</strong> {brand || 'Nespecificat'}
+          </p>
+          <p className='text-sm'>
+            <strong>Culoare:</strong> {color || 'Nespecificat'}
+          </p>
+          <p className='text-sm'>
+            <strong>Capacitate Cilindrică:</strong>{' '}
+            {category === 'buy'
+              ? minEngineCapacity && maxEngineCapacity
+                ? `${minEngineCapacity} - ${maxEngineCapacity} L`
+                : minEngineCapacity
+                ? `De la ${minEngineCapacity} L`
+                : maxEngineCapacity
+                ? `Până la ${maxEngineCapacity} L`
+                : 'Nespecificat'
+              : `${engineCapacity} L`}
+          </p>
+          <p className='text-sm'>
+            <strong>Tip Mașină:</strong> {carType || 'Nespecificat'}
+          </p>
+          <p className='text-sm'>
+            <strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}
+          </p>
+          <p className='text-sm'>
+            <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
+          </p>
+          <p className='text-sm'>
+            <strong>4x4:</strong> {is4x4 ? 'Da' : 'Nu'}
+          </p>
           <p className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
-            <strong>Kilometraj:</strong> {category === 'buy' ? (
-              minMileage && maxMileage ? `${minMileage} - ${maxMileage} km` :
-              minMileage ? `De la ${minMileage} km` :
-              maxMileage ? `Până la ${maxMileage} km` :
-              'Nespecificat'
-            ) : (
-              `${mileage} km`
-            )}
+            <strong>Kilometraj:</strong>{' '}
+            {category === 'buy'
+              ? minMileage && maxMileage
+                ? `${minMileage} - ${maxMileage} km`
+                : minMileage
+                ? `De la ${minMileage} km`
+                : maxMileage
+                ? `Până la ${maxMileage} km`
+                : 'Nespecificat'
+              : `${mileage} km`}
           </p>
           <p className='text-sm wrap-break-word overflow-wrap-break-word'>
-            <strong>An Fabricație:</strong> {category === 'buy' ? (
-              minYear && maxYear ? `${minYear} - ${maxYear}` :
-              minYear ? `Din ${minYear}` :
-              maxYear ? `Până în ${maxYear}` :
-              'Nespecificat'
-            ) : (
-              year
-            )}
+            <strong>An Fabricație:</strong>{' '}
+            {category === 'buy'
+              ? minYear && maxYear
+                ? `${minYear} - ${maxYear}`
+                : minYear
+                ? `Din ${minYear}`
+                : maxYear
+                ? `Până în ${maxYear}`
+                : 'Nespecificat'
+              : year}
           </p>
           <div
             className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'
@@ -138,6 +222,14 @@ export function Preview({
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+          {withDriver && (
+            <div className='text-sm mt-2'>
+              <strong>Șofer Inclus:</strong>
+              <p>Nume: {driverName || 'Nespecificat'}</p>
+              <p>Contact: {driverContact || 'Nespecificat'}</p>
+              <p>Telefon: {driverTelephone || 'Nespecificat'}</p>
             </div>
           )}
         </div>

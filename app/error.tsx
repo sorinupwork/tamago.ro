@@ -17,7 +17,7 @@ export default function Error({ reset }: { reset: () => void }) {
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <AlertTriangleIcon className="size-8" />
+            <AlertTriangleIcon className="size-8 text-destructive" />
           </EmptyMedia>
           <EmptyTitle>Eroare</EmptyTitle>
           <EmptyDescription>

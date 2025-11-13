@@ -11,11 +11,8 @@ import {
   BtnItalic,
   BtnUnderline,
   BtnStrikeThrough,
-  BtnNumberedList,
-  BtnBulletList,
   BtnLink,
   BtnClearFormatting,
-  HtmlButton,
 } from 'react-simple-wysiwyg';
 
 const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => mod.Editor), { ssr: false });

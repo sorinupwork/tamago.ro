@@ -23,13 +23,17 @@ export type PreviewData = {
   price?: string;
   minPrice?: string;
   maxPrice?: string;
-  currency: string;
-  startingBid?: number;
+  currency?: string;
+  period?: string;
+  startingBid?: string;
   location: string;
   category: string;
   uploadedFiles: string[];
   duration?: string;
+  startDate?: string;
+  endDate?: string;
   fuel: string;
+  status?: string;
   mileage?: string;
   minMileage?: string;
   maxMileage?: string;
@@ -38,6 +42,19 @@ export type PreviewData = {
   maxYear?: string;
   features: string;
   options: string[];
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  brand?: string;
+  color?: string;
+  engineCapacity?: string;
+  minEngineCapacity?: string;
+  maxEngineCapacity?: string;
+  carType?: string;
+  horsePower?: string;
+  transmission?: string;
+  is4x4?: boolean;
 };
 
 type CategoriesClientProps = {
@@ -72,10 +89,12 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     minPrice: '',
     maxPrice: '',
     currency: 'EUR',
+    startingBid: '',
     location: '',
     category: selectedCategory,
     uploadedFiles: [],
     fuel: '',
+    status: '',
     mileage: '',
     minMileage: '',
     maxMileage: '',

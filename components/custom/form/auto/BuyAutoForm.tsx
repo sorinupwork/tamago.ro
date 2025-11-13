@@ -17,8 +17,8 @@ import type { PreviewData } from '@/components/custom/categories/CategoriesClien
 import { submitBuyAutoForm } from '@/actions/auto/actions';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
 import { AppLocationInput } from '../../input/AppLocationInput';
+import LoadingIndicator from '../../loading/LoadingIndicator';
 
 export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -35,7 +35,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       minPrice: '',
       maxPrice: '',
       currency: 'EUR',
-      location: '',
+      location: { lat: 0, lng: 0, address: '', fullAddress: '' },
       features: '',
       status: '',
       fuel: '',
@@ -43,8 +43,16 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       maxMileage: '',
       minYear: '',
       maxYear: '',
+      brand: '',
+      color: '',
+      minEngineCapacity: '',
+      maxEngineCapacity: '',
+      carType: undefined,
+      horsePower: '',
+      transmission: undefined,
+      is4x4: false,
       uploadedFiles: [],
-    }, // price as string
+    },
   });
 
   const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
@@ -54,8 +62,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls); // Update form value for Zod validation
-    form.trigger('uploadedFiles'); // Trigger live validation
+    form.setValue('uploadedFiles', previewUrls);
+    form.trigger('uploadedFiles');
   };
 
   useEffect(() => {
@@ -65,7 +73,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       minPrice: watchedValues.minPrice || '',
       maxPrice: watchedValues.maxPrice || '',
       currency: watchedValues.currency || 'EUR',
-      location: watchedValues.location || '',
+      location: watchedValues.location?.address || '',
       category: 'buy',
       uploadedFiles: uploadedFiles.length > 0 ? uploadedFiles : ['/placeholder.svg'],
       fuel: watchedValues.fuel || '',
@@ -75,6 +83,14 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       maxYear: watchedValues.maxYear || '',
       features: watchedValues.features || '',
       options,
+      brand: watchedValues.brand || '',
+      color: watchedValues.color || '',
+      minEngineCapacity: watchedValues.minEngineCapacity || '',
+      maxEngineCapacity: watchedValues.maxEngineCapacity || '',
+      carType: watchedValues.carType || '',
+      horsePower: watchedValues.horsePower || '',
+      transmission: watchedValues.transmission || '',
+      is4x4: watchedValues.is4x4 || false,
     });
   }, [
     watchedValues.title,
@@ -89,6 +105,14 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     watchedValues.minYear,
     watchedValues.maxYear,
     watchedValues.features,
+    watchedValues.brand,
+    watchedValues.color,
+    watchedValues.minEngineCapacity,
+    watchedValues.maxEngineCapacity,
+    watchedValues.carType,
+    watchedValues.horsePower,
+    watchedValues.transmission,
+    watchedValues.is4x4,
     uploadedFiles,
     options,
     onPreviewUpdate,
@@ -102,9 +126,6 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     if (isSubmitting) return;
     setIsSubmitting(true);
     setUploadProgress(0);
-
-    console.log('Form data:', data);
-    console.log('Files:', files);
 
     try {
       let urls: string[] = [];
@@ -138,9 +159,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
         urls = await uploadPromise;
       }
 
-      console.log('Submitting to action with:', { ...data, uploadedFiles: urls, options });
       const result = await submitBuyAutoForm({ ...data, uploadedFiles: urls, options });
-      console.log('Result:', result);
 
       if (result.success) {
         toast.success('Formular trimis cu succes!');
@@ -163,8 +182,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit, (errors) => {
-        console.log('Validation errors:', errors);
+      onSubmit={form.handleSubmit(onSubmit, () => {
         toast.error('Formularul conține erori. Verificați câmpurile.');
       })}
       noValidate
@@ -172,12 +190,12 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     >
       <FieldSet>
         <FieldGroup>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='title'>Caută mașină</FieldLabel>
-              <Input {...form.register('title')} placeholder='Introduceți titlul' className='break-all w-full' />
-              <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
-            </Field>
+          <Field className='min-w-0 w-full'>
+            <FieldLabel htmlFor='title'>Caută mașină</FieldLabel>
+            <Input {...form.register('title')} placeholder='Introduceți titlul' className='break-all w-full' />
+            <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
+          </Field>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0'>
             <Field className='min-w-0 w-full'>
               <FieldLabel htmlFor='minPrice'>Buget Minim</FieldLabel>
               <Input {...form.register('minPrice')} type='number' step='0.01' placeholder='0' className='break-all w-full' />
@@ -210,13 +228,13 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
           <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='location'>Locație</FieldLabel>
             <AppLocationInput
-              location={null}
-              value={form.watch('location')}
-              onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+              location={form.watch('location')}
+              onChange={(location) => form.setValue('location', location)}
               placeholder='Introduceți locația'
               leftIcon={MapPin}
               showMap={false}
-              onClear={() => form.setValue('location', '')}
+              value={form.watch('location').address}
+              onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '', fullAddress: '' })}
             />
             <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
           </Field>
@@ -309,6 +327,79 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             </Field>
           </div>
 
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='brand'>Marcă</FieldLabel>
+              <Input {...form.register('brand')} placeholder='BMW' className='w-full' />
+              <FieldError errors={form.formState.errors.brand ? [form.formState.errors.brand] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='color'>Culoare</FieldLabel>
+              <Input {...form.register('color')} placeholder='Alb' className='w-full' />
+              <FieldError errors={form.formState.errors.color ? [form.formState.errors.color] : undefined} />
+            </Field>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='minEngineCapacity'>Capacitate Cilindrică Minimă (L)</FieldLabel>
+              <Input {...form.register('minEngineCapacity')} type='number' step='0.1' placeholder='1.5' className='w-full' />
+              <FieldError errors={form.formState.errors.minEngineCapacity ? [form.formState.errors.minEngineCapacity] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='maxEngineCapacity'>Capacitate Cilindrică Maximă (L)</FieldLabel>
+              <Input {...form.register('maxEngineCapacity')} type='number' step='0.1' placeholder='3.0' className='w-full' />
+              <FieldError errors={form.formState.errors.maxEngineCapacity ? [form.formState.errors.maxEngineCapacity] : undefined} />
+            </Field>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='carType'>Tip Mașină</FieldLabel>
+              <Select value={form.watch('carType')} onValueChange={(v) => form.setValue('carType', v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other')}>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selectați tipul' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='SUV'>SUV</SelectItem>
+                  <SelectItem value='Coupe'>Coupe</SelectItem>
+                  <SelectItem value='Sedan'>Sedan</SelectItem>
+                  <SelectItem value='Hatchback'>Hatchback</SelectItem>
+                  <SelectItem value='Convertible'>Convertible</SelectItem>
+                  <SelectItem value='Wagon'>Wagon</SelectItem>
+                  <SelectItem value='Pickup'>Pickup</SelectItem>
+                  <SelectItem value='Van'>Van</SelectItem>
+                  <SelectItem value='Other'>Altul</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.carType ? [form.formState.errors.carType] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='horsePower'>Putere (CP)</FieldLabel>
+              <Input {...form.register('horsePower')} type='number' placeholder='150' className='w-full' />
+              <FieldError errors={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='transmission'>Transmisie</FieldLabel>
+              <Select value={form.watch('transmission')} onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selectați transmisia' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='Manual'>Manuală</SelectItem>
+                  <SelectItem value='Automatic'>Automată</SelectItem>
+                  <SelectItem value='Semi-Automatic'>Semi-automată</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined} />
+            </Field>
+            <Field orientation='horizontal' className='max-w-full'>
+              <Checkbox id='is4x4' {...form.register('is4x4')} />
+              <FieldLabel htmlFor='is4x4' className='font-normal'>4x4</FieldLabel>
+              <FieldError errors={form.formState.errors.is4x4 ? [form.formState.errors.is4x4] : undefined} />
+            </Field>
+          </div>
+
           <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='features' className='flex items-center gap-2'>
               <Settings className='h-4 w-4' /> Cerințe suplimentare
@@ -351,14 +442,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
           <Progress value={uploadProgress} className='w-full' />
         </div>
       )}
-
-      <Button
-        type='submit'
-        onClick={() => form.trigger()}
-        disabled={isSubmitting}
-        className='w-full bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg'
-      >
-        {isSubmitting ? 'Se trimite...' : 'Caută Mașină'}
+      <Button type='submit' size={'lg'} className='w-full' disabled={isSubmitting}>
+        {isSubmitting ? <LoadingIndicator inline size={16} text='Se trimite...' /> : 'Trimite'}
       </Button>
     </form>
   );

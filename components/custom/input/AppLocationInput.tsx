@@ -30,7 +30,7 @@ type Suggestion = {
 
 type AppLocationInputProps = {
   location: Location | null;
-  onChange: (location: Location | null, radius: number) => void;
+  onChange: (location: Location, radius: number) => void;
   placeholder?: string;
   className?: string;
   filteredCars?: Car[];

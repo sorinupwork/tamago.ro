@@ -20,6 +20,7 @@ import { submitSellAutoForm } from '@/actions/auto/actions';
 import { auto, AutoSellFormData } from '@/lib/validations';
 import { Progress } from '@/components/ui/progress';
 import { AppLocationInput } from '../../input/AppLocationInput';
+import LoadingIndicator from '../../loading/LoadingIndicator';
 
 export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -40,6 +41,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
       fuel: '',
       mileage: '',
       year: '',
+      brand: '',
+      color: '',
+      engineCapacity: '',
+      carType: undefined,
+      horsePower: '',
+      transmission: undefined,
+      is4x4: false,
       uploadedFiles: [],
     },
   });
@@ -69,6 +77,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
       year: watchedValues.year || '',
       features: watchedValues.features || '',
       options,
+      brand: watchedValues.brand || '',
+      color: watchedValues.color || '',
+      engineCapacity: watchedValues.engineCapacity || '',
+      carType: watchedValues.carType || '',
+      horsePower: watchedValues.horsePower || '',
+      transmission: watchedValues.transmission || '',
+      is4x4: watchedValues.is4x4 || false,
     });
   }, [
     watchedValues.title,
@@ -80,6 +95,13 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
     watchedValues.mileage,
     watchedValues.year,
     watchedValues.features,
+    watchedValues.brand,
+    watchedValues.color,
+    watchedValues.engineCapacity,
+    watchedValues.carType,
+    watchedValues.horsePower,
+    watchedValues.transmission,
+    watchedValues.is4x4,
     uploadedFiles,
     options,
     onPreviewUpdate,
@@ -245,6 +267,68 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             </Field>
           </div>
 
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='brand'>Marcă</FieldLabel>
+              <Input {...form.register('brand')} placeholder='BMW' className='w-full' />
+              <FieldError errors={form.formState.errors.brand ? [form.formState.errors.brand] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='color'>Culoare</FieldLabel>
+              <Input {...form.register('color')} placeholder='Alb' className='w-full' />
+              <FieldError errors={form.formState.errors.color ? [form.formState.errors.color] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='engineCapacity'>Capacitate Cilindrică (L)</FieldLabel>
+              <Input {...form.register('engineCapacity')} type='number' step='0.1' placeholder='2.0' className='w-full' />
+              <FieldError errors={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='carType'>Tip Mașină</FieldLabel>
+              <Select value={form.watch('carType')} onValueChange={(v) => form.setValue('carType', v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other')}>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selectați tipul' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='SUV'>SUV</SelectItem>
+                  <SelectItem value='Coupe'>Coupe</SelectItem>
+                  <SelectItem value='Sedan'>Sedan</SelectItem>
+                  <SelectItem value='Hatchback'>Hatchback</SelectItem>
+                  <SelectItem value='Convertible'>Convertible</SelectItem>
+                  <SelectItem value='Wagon'>Wagon</SelectItem>
+                  <SelectItem value='Pickup'>Pickup</SelectItem>
+                  <SelectItem value='Van'>Van</SelectItem>
+                  <SelectItem value='Other'>Altul</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.carType ? [form.formState.errors.carType] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='horsePower'>Putere (CP)</FieldLabel>
+              <Input {...form.register('horsePower')} type='number' placeholder='150' className='w-full' />
+              <FieldError errors={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined} />
+            </Field>
+            <Field className='min-w-0 w-full'>
+              <FieldLabel htmlFor='transmission'>Transmisie</FieldLabel>
+              <Select value={form.watch('transmission')} onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selectați transmisia' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='Manual'>Manuală</SelectItem>
+                  <SelectItem value='Automatic'>Automată</SelectItem>
+                  <SelectItem value='Semi-Automatic'>Semi-automată</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError errors={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined} />
+            </Field>
+            <Field orientation='horizontal' className='max-w-full'>
+              <Checkbox id='is4x4' {...form.register('is4x4')} />
+              <FieldLabel htmlFor='is4x4' className='font-normal'>4x4</FieldLabel>
+              <FieldError errors={form.formState.errors.is4x4 ? [form.formState.errors.is4x4] : undefined} />
+            </Field>
+          </div>
+
           <Field className='min-w-0 w-full'>
             <FieldLabel htmlFor='features' className='flex items-center gap-2' aria-required='true'>
               <Settings className='h-4 w-4' /> Caracteristici <span className='text-red-600'>*</span>
@@ -274,10 +358,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
           <Field className='min-w-0 w-full'>
             <FieldLabel>Fișiere</FieldLabel>
             <div>
-              <MediaUploader
-                key={uploaderKey}
-                onFilesChange={handleFilesChange} // Use new handler
-              />
+              <MediaUploader key={uploaderKey} onFilesChange={handleFilesChange} />
             </div>
             <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
           </Field>
@@ -291,8 +372,8 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         </div>
       )}
 
-      <Button type='submit' className='w-full' disabled={isSubmitting}>
-        {isSubmitting ? 'Se trimite...' : 'Trimite Formularul'}
+      <Button type='submit' size={'lg'} className='w-full' disabled={isSubmitting}>
+        {isSubmitting ? <LoadingIndicator inline size={16} text='Se trimite...' /> : 'Trimite'}
       </Button>
     </form>
   );
