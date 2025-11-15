@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Heart, Share } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -13,8 +14,34 @@ type FeedSectionProps = {
 };
 
 export const FeedSection: React.FC<FeedSectionProps> = ({ mockPosts }) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+
   return (
-    <ScrollArea className='h-[600px] min-w-0'>
+    <ScrollArea
+      ref={scrollAreaRef}
+      className='flex-1 min-w-0 min-h-0'
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      onMouseDown={(e) => {
+        setIsDragging(true);
+        setStartY(e.clientY);
+        const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+        if (viewport) setScrollTop(viewport.scrollTop);
+      }}
+      onMouseMove={(e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+        if (viewport) {
+          const walk = (e.clientY - startY) * 2; // Adjust speed multiplier as needed
+          viewport.scrollTop = scrollTop - walk;
+        }
+      }}
+      onMouseUp={() => setIsDragging(false)}
+      onMouseLeave={() => setIsDragging(false)}
+    >
       <div className='space-y-2 pr-4'>
         {mockPosts.map((post) => (
           <Card key={post.id} className='transition-all duration-300 hover:shadow-lg'>

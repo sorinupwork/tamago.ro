@@ -1,5 +1,5 @@
 import { Camera } from 'lucide-react';
-import { useId } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +12,10 @@ type StoriesSectionProps = {
 
 export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) => {
   const baseId = useId();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   return (
     <Card className='flex flex-col transition-all duration-300 hover:shadow-lg'>
@@ -21,7 +25,28 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) =
         </CardTitle>
       </CardHeader>
       <CardContent className='flex-1 min-w-0'>
-        <ScrollArea className='w-full min-w-0 whitespace-nowrap'>
+        <ScrollArea
+          ref={scrollAreaRef}
+          className='w-full min-w-0 whitespace-nowrap'
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          onMouseDown={(e) => {
+            setIsDragging(true);
+            setStartX(e.clientX);
+            const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+            if (viewport) setScrollLeft(viewport.scrollLeft);
+          }}
+          onMouseMove={(e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+            if (viewport) {
+              const walk = (e.clientX - startX) * 2; // Adjust speed multiplier as needed
+              viewport.scrollLeft = scrollLeft - walk;
+            }
+          }}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+        >
           <div className='inline-flex min-w-max space-x-4 p-4'>
             {mockStories.map((story, index) => (
               <HoverCard key={`${baseId}-${index}`}>

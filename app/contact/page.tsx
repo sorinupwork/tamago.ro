@@ -28,16 +28,27 @@ const mockPosts: FeedPost[] = mockUsers.slice(0, 20).map((user, index) => ({
   likes: index % 2 === 0 ? 12 : 8,
 }));
 
-const extendedMockUsers = mockUsers.concat(
-  mockUsers.map((u, index) => ({
-    ...u,
-    id: u.id + mockUsers.length + index,
-    name: u.name + ' Copy',
-    avatar: u.avatar,
-    status: u.status,
-    category: u.category,
-  }))
-);
+const extendedMockUsers = mockUsers
+  .concat(
+    mockUsers.map((u, index) => ({
+      ...u,
+      id: u.id + mockUsers.length + index,
+      name: u.name + ' Copy',
+      avatar: u.avatar,
+      status: u.status,
+      category: u.category,
+    }))
+  )
+  .concat(
+    mockUsers.map((u, index) => ({
+      ...u,
+      id: u.id + mockUsers.length * 2 + index,
+      name: u.name + ' Copy 2',
+      avatar: u.avatar,
+      status: u.status,
+      category: u.category,
+    }))
+  );
 
 export default function ContactPage() {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
@@ -109,20 +120,18 @@ export default function ContactPage() {
 
   return (
     <>
-      <div className='flex flex-col min-h-screen gap-4 px-4'>
-        <div>
-          <MarketplaceContactSection
-            title='Conectează-te pentru Tranzacții'
-            description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
-            cards={contactCards}
-            users={mockUsers}
-            showMap={true}
-            stories={mockStories}
-          />
-        </div>
+      <MarketplaceContactSection
+        title='Conectează-te pentru Tranzacții'
+        description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
+        cards={contactCards}
+        users={mockUsers}
+        showMap={true}
+        stories={mockStories}
+      />
 
+      <div className='flex flex-col h-screen'>
         {/* Desktop Layout */}
-        <div className='hidden lg:flex flex-row flex-1 gap-4 w-full min-h-0 min-w-0'>
+        <div className='hidden lg:flex flex-row flex-1 gap-4 min-h-0 min-w-0 overflow-auto px-4'>
           <div className='flex flex-row flex-1 gap-4 min-h-0 min-w-0'>
             <AppChatFilter
               search={search}
@@ -165,7 +174,7 @@ export default function ContactPage() {
         </div>
 
         {/* Mobile Layout */}
-        <div className='lg:hidden flex flex-col flex-1'>
+        <div className='lg:hidden flex flex-col flex-1 px-4'>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='grid w-full grid-cols-3'>
               <TabsTrigger value='stories'>Stories</TabsTrigger>

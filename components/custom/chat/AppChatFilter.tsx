@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { User, ArrowRight, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,9 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
   filteredUsers,
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const scrollToBottom = () => {
     const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
@@ -44,13 +47,13 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
 
   return (
     <div className='flex flex-1 space-y-4 min-w-0'>
-      <Card className='flex-1 flex flex-col min-h-[200px] transition-all duration-300 hover:shadow-lg'>
+      <Card className='flex-1 flex flex-col transition-all duration-300 hover:shadow-lg'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <User className='w-5 h-5' /> Contacte Utilizatori
           </CardTitle>
         </CardHeader>
-        <CardContent className='flex-1 flex flex-col'>
+        <CardContent className='flex-1 flex flex-col min-h-0'>
           <ChatFilters search={search} setSearch={setSearch} sort={sort} setSort={setSort} />
 
           <Tabs value={category} onValueChange={setCategory} className='mb-4'>
@@ -67,7 +70,28 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
             </TabsList>
           </Tabs>
 
-          <ScrollArea ref={scrollAreaRef} className='h-96'>
+          <ScrollArea
+            ref={scrollAreaRef}
+            className='flex-1'
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            onMouseDown={(e) => {
+              setIsDragging(true);
+              setStartY(e.clientY);
+              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+              if (viewport) setScrollTop(viewport.scrollTop);
+            }}
+            onMouseMove={(e) => {
+              if (!isDragging) return;
+              e.preventDefault();
+              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+              if (viewport) {
+                const walk = (e.clientY - startY) * 2; // Adjust speed multiplier as needed
+                viewport.scrollTop = scrollTop - walk;
+              }
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+          >
             {filteredUsers.map((user) => (
               <AppListItem
                 key={user.id}

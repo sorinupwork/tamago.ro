@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Send, Smile, X, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,9 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
   setSelectedUser,
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const scrollToBottom = () => {
     const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
@@ -35,7 +38,7 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
 
   return (
     <div className='flex flex-1 space-y-4 min-w-0'>
-      <Card className='flex-1 flex flex-col min-h-[200px] transition-all duration-300 hover:shadow-lg'>
+      <Card className='flex-1 flex flex-col transition-all duration-300 hover:shadow-lg'>
         <CardHeader>
           <CardTitle className='flex items-center justify-between gap-2'>
             Chat cu {selectedUserName}
@@ -44,8 +47,29 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className='flex-1 flex flex-col'>
-          <ScrollArea ref={scrollAreaRef} className='h-96'>
+        <CardContent className='flex-1 flex flex-col min-h-0'>
+          <ScrollArea
+            ref={scrollAreaRef}
+            className='flex-1'
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            onMouseDown={(e) => {
+              setIsDragging(true);
+              setStartY(e.clientY);
+              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+              if (viewport) setScrollTop(viewport.scrollTop);
+            }}
+            onMouseMove={(e) => {
+              if (!isDragging) return;
+              e.preventDefault();
+              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+              if (viewport) {
+                const walk = (e.clientY - startY) * 2; // Adjust speed multiplier as needed
+                viewport.scrollTop = scrollTop - walk;
+              }
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+          >
             <div className='space-y-4'>
               {messages.map((msg) => (
                 <ChatMessage key={msg.id} message={{ text: msg.text, isUser: msg.sender === 'me' }} />

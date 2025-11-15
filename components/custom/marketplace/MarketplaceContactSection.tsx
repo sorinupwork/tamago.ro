@@ -5,9 +5,9 @@ import { MapPin, Filter } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import MapComponent from '@/components/custom/map/MapComponent';
 import { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import MapComponent from '../map/MapComponent';
 
 type CardData = {
   icon: ReactNode;
@@ -31,7 +31,6 @@ export default function MarketplaceContactSection({
   description,
   cards,
   users = [],
-  stories = [],
   showMap = true,
   gridCols = 'grid-cols-1 md:grid-cols-3',
   className = '',
@@ -40,7 +39,7 @@ export default function MarketplaceContactSection({
   const filteredMapUsers = users.filter((user) => mapFilter === 'Toți' || user.category === mapFilter);
 
   return (
-    <section className={cn(`transition-all duration-300 rounded-lg, ${className}`)}>
+    <section className={cn(`transition-all duration-300 rounded-lg ${className}`)}>
       <div className='text-center'>
         <h3 className='text-xl font-semibold mb-4'>{title}</h3>
         <p className='text-muted-foreground mb-4'>{description}</p>
@@ -56,7 +55,7 @@ export default function MarketplaceContactSection({
           ))}
         </div>
         {showMap && users.length > 0 && (
-          <Card className='transition-all duration-200 hover:shadow-xl max-w-7xl w-full mx-auto'>
+          <Card className='transition-all duration-200 hover:shadow-xl '>
             <CardHeader>
               <CardTitle className='flex flex-col items-center justify-center gap-2'>
                 <div className='flex items-center justify-center gap-2'>
@@ -81,7 +80,7 @@ export default function MarketplaceContactSection({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='h-64 w-full rounded-lg overflow-hidden'>
+              <div className='w-full h-64 rounded-lg overflow-hidden'> {/* Add height for map */}
                 <MapComponent users={filteredMapUsers} />
               </div>
             </CardContent>
