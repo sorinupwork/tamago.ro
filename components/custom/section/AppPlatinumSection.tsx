@@ -14,7 +14,7 @@ type AppPlatinumSectionProps = {
 
 export default function AppPlatinumSection({ images, title, description }: AppPlatinumSectionProps) {
   return (
-    <section className='rounded-lg grow'>
+    <section className='rounded-lg grow p-4'>
       {(title || description) && (
         <div className='text-center mb-4'>
           {title && <h2 className='text-2xl font-bold mb-2'>{title}</h2>}

@@ -174,17 +174,19 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
         <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto overflow-x-hidden'>
           <div className='flex-1 overflow-visible min-w-0'>
             {selectedSubcategory ? (
-              <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
-                <CardHeader className='shrink-0'>
-                  <CardTitle className='text-2xl font-bold text-center'>
-                    Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
-                    {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='flex-1 min-w-0'>
-                  <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
-                </CardContent>
-              </Card>
+              <div className='p-4'>
+                <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
+                  <CardHeader className='shrink-0'>
+                    <CardTitle className='text-2xl font-bold text-center'>
+                      Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
+                      {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='flex-1 min-w-0'>
+                    <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
               <div className='overflow-hidden overflow-x-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
                 <Showcase category={selectedCategory} />
@@ -192,7 +194,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
             )}
           </div>
           {selectedSubcategory === 'auto' && (
-            <div className='flex-1 overflow-visible w-full md:w-auto min-w-0'>
+            <div className='flex-1 overflow-visible w-full md:w-auto min-w-0 p-4'>
               <div className='w-full min-w-0'>
                 <Preview key={selectedCategory} {...previewData} />
               </div>

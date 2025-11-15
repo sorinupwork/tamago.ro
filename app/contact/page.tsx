@@ -123,15 +123,16 @@ export default function ContactPage() {
       <MarketplaceContactSection
         title='Conectează-te pentru Tranzacții'
         description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
+        className='mb-6 p-4'
         cards={contactCards}
         users={mockUsers}
         showMap={true}
         stories={mockStories}
       />
 
-      <div className='flex flex-col h-screen'>
+      <div className='flex flex-col lg:h-screen'>
         {/* Desktop Layout */}
-        <div className='hidden lg:flex flex-row flex-1 gap-4 min-h-0 min-w-0 overflow-auto px-4'>
+        <div className='hidden lg:flex flex-row flex-1 gap-4 min-h-0 min-w-0 overflow-auto px-4 pb-6'>
           <div className='flex flex-row flex-1 gap-4 min-h-0 min-w-0'>
             <AppChatFilter
               search={search}

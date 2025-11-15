@@ -72,7 +72,7 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
 
           <ScrollArea
             ref={scrollAreaRef}
-            className='flex-1'
+            className='flex-1 max-h-64 lg:max-h-none'
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => {
               setIsDragging(true);
@@ -85,7 +85,7 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
               e.preventDefault();
               const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
               if (viewport) {
-                const walk = (e.clientY - startY) * 2; // Adjust speed multiplier as needed
+                const walk = (e.clientY - startY) * 2;
                 viewport.scrollTop = scrollTop - walk;
               }
             }}

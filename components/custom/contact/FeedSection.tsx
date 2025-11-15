@@ -22,7 +22,7 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ mockPosts }) => {
   return (
     <ScrollArea
       ref={scrollAreaRef}
-      className='flex-1 min-w-0 min-h-0'
+      className='min-w-0 min-h-0 max-h-96 lg:max-h-none overflow-auto'
       style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       onMouseDown={(e) => {
         setIsDragging(true);
@@ -42,7 +42,7 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ mockPosts }) => {
       onMouseUp={() => setIsDragging(false)}
       onMouseLeave={() => setIsDragging(false)}
     >
-      <div className='space-y-2 pr-4'>
+      <div className='space-y-2 px-4 pb-6'>
         {mockPosts.map((post) => (
           <Card key={post.id} className='transition-all duration-300 hover:shadow-lg'>
             <CardHeader className='flex flex-row items-center gap-2'>

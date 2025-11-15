@@ -50,7 +50,7 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
         <CardContent className='flex-1 flex flex-col min-h-0'>
           <ScrollArea
             ref={scrollAreaRef}
-            className='flex-1'
+            className='flex-1 max-h-64 lg:max-h-none'
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => {
               setIsDragging(true);
@@ -70,7 +70,7 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
             onMouseUp={() => setIsDragging(false)}
             onMouseLeave={() => setIsDragging(false)}
           >
-            <div className='space-y-4'>
+            <div className='space-y-4 px-2'>
               {messages.map((msg) => (
                 <ChatMessage key={msg.id} message={{ text: msg.text, isUser: msg.sender === 'me' }} />
               ))}

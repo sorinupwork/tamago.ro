@@ -71,7 +71,7 @@ export default function Suport() {
           cards={servicesCards}
           showMap={false}
           gridCols='grid-cols-1 md:grid-cols-4'
-          className='max-w-7xl mx-auto'
+          className='px-4'
         />
       </div>
     </>
