@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import LoginForm from '@/components/custom/form/LoginForm';
-import SignupForm from '@/components/custom/form/SignupForm';
-import SocialMediaForm from '@/components/custom/form/SocialMediaForm';
-import AuthInfo from '@/components/custom/auth/AuthInfo';
+import LoginForm from '@/components/custom/form/auth/LoginForm';
+import SignupForm from '@/components/custom/form/auth/SignupForm';
+import SocialMediaForm from '@/components/custom/form/auth/SocialMediaForm';
+import AuthInfo from '@/components/custom/form/auth/AuthInfo';
 import Image from 'next/image';
 
 export default function Cont() {

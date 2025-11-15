@@ -1,9 +1,9 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { UseFormReturn } from 'react-hook-form';
 import { AutoRentFormData } from '@/lib/validations';
+import { AppInput } from './AppInput';
 
 interface DateRangePickerProps {
   form: UseFormReturn<AutoRentFormData>;
@@ -16,12 +16,22 @@ export function DateRangePicker({ form }: DateRangePickerProps) {
       <div className='flex gap-2'>
         <div className='flex-1'>
           <FieldLabel htmlFor='startDate' className='text-sm'>Data Început</FieldLabel>
-          <Input {...form.register('startDate')} type='date' className='w-full' />
+          <AppInput
+            type='date'
+            value={form.watch('startDate')}
+            onChange={(e) => form.setValue('startDate', e.target.value, { shouldValidate: true })}
+            className='w-full'
+          />
           <FieldError errors={form.formState.errors.startDate ? [form.formState.errors.startDate] : undefined} />
         </div>
         <div className='flex-1'>
           <FieldLabel htmlFor='endDate' className='text-sm'>Data Sfârșit</FieldLabel>
-          <Input {...form.register('endDate')} type='date' className='w-full' />
+          <AppInput
+            type='date'
+            value={form.watch('endDate')}
+            onChange={(e) => form.setValue('endDate', e.target.value, { shouldValidate: true })}
+            className='w-full'
+          />
           <FieldError errors={form.formState.errors.endDate ? [form.formState.errors.endDate] : undefined} />
         </div>
       </div>

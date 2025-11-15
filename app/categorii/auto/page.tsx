@@ -8,10 +8,9 @@ import { MapPin, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { AppInput } from '@/components/custom/input/AppInput';
-import { AppSelect } from '@/components/custom/select/AppSelect';
+import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
 import { AppSlider } from '@/components/custom/slider/AppSlider';
-import { AppSelectWithCheckbox } from '@/components/custom/select/AppSelectWithCheckbox';
-import { AppCombobox } from '@/components/custom/combobox/AppCombobox';
+import { AppCombobox } from '@/components/custom/input/AppCombobox';
 import { AppPagination } from '@/components/custom/pagination/AppPagination';
 import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
 import { mockCars } from '@/lib/mockData';
@@ -375,38 +374,41 @@ export default function AutoPage() {
           onValueChange={(value) => handleFilterChange('brand', value)}
           placeholder='Marcă'
         />
-        <AppSelectWithCheckbox
+        <AppSelectInput
           options={[
             { value: 'Petrol', label: 'Benzină' },
             { value: 'Diesel', label: 'Motorină' },
             { value: 'Hybrid', label: 'Hibrid' },
             { value: 'Electric', label: 'Electric' },
           ]}
-          selected={filters.fuel}
-          onChange={(value, checked) => handleMultiFilterChange('fuel', value, checked)}
+          value={filters.fuel}
+          onValueChange={(value) => handleFilterChange('fuel', value as string[])}
+          multiple={true}
           placeholder='Tip Combustibil'
         />
-        <AppSelectWithCheckbox
+        <AppSelectInput
           options={[
             { value: 'Manual', label: 'Manuală' },
             { value: 'Automatic', label: 'Automată' },
           ]}
-          selected={filters.transmission}
-          onChange={(value, checked) => handleMultiFilterChange('transmission', value, checked)}
+          value={filters.transmission}
+          onValueChange={(value) => handleFilterChange('transmission', value as string[])}
+          multiple={true}
           placeholder='Transmisie'
         />
-        <AppSelectWithCheckbox
+        <AppSelectInput
           options={[
             { value: 'SUV', label: 'SUV' },
             { value: 'Sedan', label: 'Sedan' },
             { value: 'Hatchback', label: 'Hatchback' },
             { value: 'Coupe', label: 'Coupe' },
           ]}
-          selected={filters.bodyType}
-          onChange={(value, checked) => handleMultiFilterChange('bodyType', value, checked)}
+          value={filters.bodyType}
+          onValueChange={(value) => handleFilterChange('bodyType', value as string[])}
+          multiple={true}
           placeholder='Tip Caroserie'
         />
-        <AppSelect
+        <AppSelectInput
           options={[
             { value: 'all', label: 'Status' },
             { value: 'new', label: 'Nou' },
@@ -414,54 +416,61 @@ export default function AutoPage() {
             { value: 'damaged', label: 'Deteriorat' },
           ]}
           value={filters.status || 'all'}
-          onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)}
+          onValueChange={(value) => handleFilterChange('status', (value as string) === 'all' ? '' : (value as string))}
+          multiple={false}
           placeholder='Status'
         />
       </div>
 
       <div className='mb-4 flex justify-center md:justify-start'>
         <div className='flex grow flex-col sm:flex-row sm:flex-wrap gap-2'>
-          <AppSelect
+          <AppSelectInput
             options={[
               { value: 'none', label: 'Sortează după preț' },
               { value: 'asc', label: 'Preț: Crescător' },
               { value: 'desc', label: 'Preț: Descrescător' },
             ]}
             value={sortCriteria.price || 'none'}
-            onValueChange={(value) => handleSortChange('price', value === 'none' ? null : (value as 'asc' | 'desc'))}
+            onValueChange={(value) => handleSortChange('price', (value as string) === 'none' ? null : (value as string as 'asc' | 'desc'))}
+            multiple={false}
             placeholder='Sortează după preț'
             className='flex-1'
           />
-          <AppSelect
+          <AppSelectInput
             options={[
               { value: 'none', label: 'Sortează după an' },
               { value: 'asc', label: 'An: Vechi la Nou' },
               { value: 'desc', label: 'An: Nou la Vechi' },
             ]}
             value={sortCriteria.year || 'none'}
-            onValueChange={(value) => handleSortChange('year', value === 'none' ? null : (value as 'asc' | 'desc'))}
+            onValueChange={(value) => handleSortChange('year', (value as string) === 'none' ? null : (value as string as 'asc' | 'desc'))}
+            multiple={false}
             placeholder='Sortează după an'
             className='flex-1'
           />
-          <AppSelect
+          <AppSelectInput
             options={[
               { value: 'none', label: 'Sortează după kilometraj' },
               { value: 'asc', label: 'Kilometraj: Crescător' },
               { value: 'desc', label: 'Kilometraj: Descrescător' },
             ]}
             value={sortCriteria.mileage || 'none'}
-            onValueChange={(value) => handleSortChange('mileage', value === 'none' ? null : (value as 'asc' | 'desc'))}
+            onValueChange={(value) =>
+              handleSortChange('mileage', (value as string) === 'none' ? null : (value as string as 'asc' | 'desc'))
+            }
+            multiple={false}
             placeholder='Sortează după kilometraj'
             className='flex-1'
           />
-          <AppSelect
+          <AppSelectInput
             options={[
               { value: 'none', label: 'Sortează după dată' },
               { value: 'desc', label: 'Cele Mai Noi' },
               { value: 'asc', label: 'Cele Mai Vechi' },
             ]}
             value={sortCriteria.date || 'none'}
-            onValueChange={(value) => handleSortChange('date', value === 'none' ? null : (value as 'asc' | 'desc'))}
+            onValueChange={(value) => handleSortChange('date', (value as string) === 'none' ? null : (value as string as 'asc' | 'desc'))}
+            multiple={false}
             placeholder='Sortează după dată'
             className='flex-1'
           />

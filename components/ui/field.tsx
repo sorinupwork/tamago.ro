@@ -80,7 +80,7 @@ function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function FieldLabel({ className, lift = true, ...props }: React.ComponentProps<typeof Label> & { lift?: boolean }) {
+function FieldLabel({ className, lift = true, required, ...props }: React.ComponentProps<typeof Label> & { lift?: boolean; required?: boolean }) {
   return (
     <Label
       data-slot='field-label'
@@ -92,7 +92,10 @@ function FieldLabel({ className, lift = true, ...props }: React.ComponentProps<t
         className
       )}
       {...props}
-    />
+    >
+      {props.children}
+      {required && <span className='text-red-600'>*</span>}
+    </Label>
   );
 }
 

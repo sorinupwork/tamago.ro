@@ -7,13 +7,14 @@ import { toast } from 'sonner';
 import { LucideIcon, MapPin } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { AppCombobox } from '@/components/custom/combobox/AppCombobox';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import { AppCombobox } from '@/components/custom/input/AppCombobox';
 import { AppSlider } from '@/components/custom/slider/AppSlider';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const MapComponent = dynamic(() => import('./MapComponent').then((mod) => ({ default: mod.MapComponent })), { ssr: false });
+const MapComponent = dynamic(() => import('../map/MapComponent'), { ssr: false });
 
 type Location = {
   lat: number;
@@ -38,6 +39,10 @@ type AppLocationInputProps = {
   showMap?: boolean;
   value?: string;
   onClear?: () => void;
+  label?: string;
+  error?: { message?: string }[];
+  required?: boolean;
+  htmlFor?: string;
 };
 
 export const AppLocationInput: React.FC<AppLocationInputProps> = ({
@@ -50,6 +55,10 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
   showMap = true,
   value,
   onClear,
+  label,
+  error,
+  required,
+  htmlFor,
 }) => {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [mapPosition, setMapPosition] = useState<[number, number]>([44.4268, 26.1025]); // Default to Bucharest
@@ -115,35 +124,40 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className='flex gap-2'>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className='flex-1'>
-                <AppCombobox
-                  options={suggestions}
-                  value={selectedValue || ''}
-                  displayValue={value || location?.address || ''}
-                  fullDisplayValue={location?.fullAddress || ''}
-                  onValueChange={handleSelect}
-                  onInputChange={debouncedOnInputChange}
-                  placeholder={placeholder}
-                  className='w-full'
-                  leftIcon={leftIcon}
-                  open={isOpen}
-                  onOpenChange={setIsOpen}
-                  onClear={() => {
-                    setSelectedValue(null);
-                    setSuggestions([]);
-                    setIsOpen(false);
-                    onClear?.();
-                  }}
-                  additionalContent={
-                    showMap ? (
-                      <div className='space-y-4 p-4'>
-                        <div className='flex items-center gap-2'>
-                          <TooltipProvider>
+    <Field className={className}>
+      {label && (
+        <FieldLabel htmlFor={htmlFor} required={required}>
+          {label}
+        </FieldLabel>
+      )}
+      <div className='space-y-4'>
+        <div className='flex gap-2'>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='flex-1'>
+                  <AppCombobox
+                    options={suggestions}
+                    value={selectedValue || ''}
+                    displayValue={value || location?.address || ''}
+                    fullDisplayValue={location?.fullAddress || ''}
+                    onValueChange={handleSelect}
+                    onInputChange={debouncedOnInputChange}
+                    placeholder={placeholder}
+                    className='w-full'
+                    leftIcon={leftIcon}
+                    open={isOpen}
+                    onOpenChange={setIsOpen}
+                    onClear={() => {
+                      setSelectedValue(null);
+                      setSuggestions([]);
+                      setIsOpen(false);
+                      onClear?.();
+                    }}
+                    additionalContent={
+                      showMap ? (
+                        <div className='space-y-4 p-4'>
+                          <div className='flex items-center gap-2'>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button onClick={getCurrentLocation} variant='outline' size='sm' type='button'>
@@ -154,31 +168,29 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
                                 <p>Folosește locația mea</p>
                               </TooltipContent>
                             </Tooltip>
-                          </TooltipProvider>
-                          <AppSlider
-                            label={`Search Radius: ${radius} km`}
-                            value={[radius]}
-                            onValueChange={(value) => {
-                              setRadius(value[0]);
-                              if (location) onChange(location, value[0]);
-                            }}
-                            min={10}
-                            max={100}
-                            step={5}
-                            className='w-full'
+                            <AppSlider
+                              label={`Search Radius: ${radius} km`}
+                              value={[radius]}
+                              onValueChange={(value) => {
+                                setRadius(value[0]);
+                                if (location) onChange(location, value[0]);
+                              }}
+                              min={10}
+                              max={100}
+                              step={5}
+                              className='w-full'
+                            />
+                          </div>
+                          <MapComponent
+                            mapPosition={mapPosition}
+                            selectedLocation={location}
+                            onMapClick={handleMapClick}
+                            filteredCars={filteredCars}
+                            radius={radius}
                           />
                         </div>
-                        <MapComponent
-                          mapPosition={mapPosition}
-                          selectedLocation={location}
-                          onMapClick={handleMapClick}
-                          filteredCars={filteredCars}
-                          radius={radius}
-                        />
-                      </div>
-                    ) : (
-                      <div className='p-4'>
-                        <TooltipProvider>
+                      ) : (
+                        <div className='p-4'>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button onClick={getCurrentLocation} variant='outline' size='sm' type='button'>
@@ -189,17 +201,18 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
                               <p>Folosește locația mea</p>
                             </TooltipContent>
                           </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    )
-                  }
-                />
-              </div>
-            </TooltipTrigger>
-            {location?.fullAddress && <TooltipContent>{location.fullAddress}</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+                        </div>
+                      )
+                    }
+                  />
+                </div>
+              </TooltipTrigger>
+              {location?.fullAddress && <TooltipContent>{location.fullAddress}</TooltipContent>}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
-    </div>
+      {error && <FieldError errors={error} />}
+    </Field>
   );
 };

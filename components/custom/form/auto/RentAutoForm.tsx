@@ -9,8 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
-import FormTextarea from '@/components/custom/form/controls/FormTextarea';
-import { MediaUploader } from '@/components/custom/media/MediaUploader';
+import AppTextarea from '../../input/AppTextarea'; 
+import { AppLocationInput } from '../../input/AppLocationInput';
+import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { auto, AutoRentFormData } from '@/lib/validations';
 import { Car, Settings } from 'lucide-react';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
@@ -19,9 +20,8 @@ import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import LoadingIndicator from '../../loading/LoadingIndicator';
 import { DateRangePicker } from '../../input/DateRangePicker';
-import { AutoPriceSelector } from '../controls/AutoPriceSelector';
+import { AutoPriceSelector } from '../../input/AutoPriceSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { AppLocationInput } from '../../input/AppLocationInput';
 
 export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -229,7 +229,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             <FieldLabel htmlFor='description' className='flex items-center gap-2'>
               <Car className='h-4 w-4' /> Descriere
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('description')}
               onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
               placeholder='Descrieți produsul detaliat...'
@@ -364,7 +364,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             <FieldLabel htmlFor='features' className='flex items-center gap-2'>
               <Settings className='h-4 w-4' /> Caracteristici
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('features')}
               onChange={(v) => form.setValue('features', v)}
               placeholder='Listează caracteristicile...'
@@ -429,7 +429,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
           <Field className='min-w-0 w-full'>
             <FieldLabel>Fișiere</FieldLabel>
             <div>
-              <MediaUploader key={uploaderKey} onFilesChange={handleFilesChange} />
+              <AppMediaUploaderInput key={uploaderKey} onFilesChange={handleFilesChange} />
             </div>
             <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
           </Field>

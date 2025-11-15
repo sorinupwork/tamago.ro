@@ -1,20 +1,18 @@
-export interface NominatimResult {
+export type NominatimResult = {
   place_id: number;
   display_name: string;
   lat: string;
   lon: string;
-}
+};
 
 // Geocode address using Nominatim (restricted to Romania)
 export const geocodeAddress = async (query: string): Promise<NominatimResult[]> => {
-  console.log('Geocoding query:', query);
   if (!query) return [];
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=RO&limit=5`
     );
     const data: NominatimResult[] = await response.json();
-    console.log('Geocoding response:', data);
     return data;
   } catch (error) {
     console.error('Geocoding error:', error);
@@ -55,7 +53,7 @@ export const snapToRoad = async (lat: number, lng: number): Promise<{ lat: numbe
       const waypoint = data.waypoints[0];
       return { lat: waypoint.location[1], lng: waypoint.location[0] };
     }
-    return { lat, lng }; // Fallback
+    return { lat, lng };
   } catch (error) {
     console.error('OSRM snap error:', error);
     return { lat, lng };

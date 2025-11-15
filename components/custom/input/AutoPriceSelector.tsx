@@ -1,18 +1,24 @@
-import { UseFormReturn } from 'react-hook-form';
 import { useWatch, Controller } from 'react-hook-form';
+import type { UseFormReturn, Path } from 'react-hook-form';
+
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 
-interface AutoPriceSelectorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: UseFormReturn<any>;
+type AutoPriceSelectorProps<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }> = {
+  form: UseFormReturn<T>;
   showPeriod?: boolean;
   label?: string;
-}
+  className?: string;
+};
 
-export function AutoPriceSelector({ form, showPeriod = false, label }: AutoPriceSelectorProps) {
-  const period = useWatch({ control: form.control, name: 'period' });
+export function AutoPriceSelector<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }>({
+  form,
+  showPeriod = false,
+  label,
+  className = '',
+}: AutoPriceSelectorProps<T>) {
+  const period = useWatch({ control: form.control, name: 'period' as Path<T> });
 
   const getPeriodLabel = () => {
     if (period === 'day') return 'pe zi';
@@ -22,11 +28,11 @@ export function AutoPriceSelector({ form, showPeriod = false, label }: AutoPrice
   };
 
   return (
-    <Field>
-      <FieldLabel>{label || `Preț${showPeriod ? ` ${getPeriodLabel()}` : ''}`}</FieldLabel>
+    <Field className={className}>
+      <FieldLabel required>{label || `Preț${showPeriod ? ` ${getPeriodLabel()}` : ''}`}</FieldLabel>
       <div className='flex items-center gap-2'>
         <Input
-          {...form.register('price')}
+          {...form.register('price' as Path<T>)}
           type='number'
           step='0.01'
           placeholder='22.500'
@@ -34,10 +40,10 @@ export function AutoPriceSelector({ form, showPeriod = false, label }: AutoPrice
         />
         <Controller
           control={form.control}
-          name="currency"
+          name={'currency' as Path<T>}
           render={({ field }) => (
-            <Select value={field.value} onValueChange={(v) => field.onChange(v)}>
-              <SelectTrigger className='w-16'>
+            <Select value={field.value as string} onValueChange={(v) => field.onChange(v)}>
+              <SelectTrigger className='w-24'>
                 <SelectValue placeholder='Valuta' />
               </SelectTrigger>
               <SelectContent>
@@ -54,9 +60,9 @@ export function AutoPriceSelector({ form, showPeriod = false, label }: AutoPrice
         {showPeriod && (
           <Controller
             control={form.control}
-            name="period"
+            name={'period' as Path<T>}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={(v) => field.onChange(v)}>
+              <Select value={field.value as string} onValueChange={(v) => field.onChange(v)}>
                 <SelectTrigger className='w-24'>
                   <SelectValue placeholder='Perioada' />
                 </SelectTrigger>
@@ -73,10 +79,14 @@ export function AutoPriceSelector({ form, showPeriod = false, label }: AutoPrice
           />
         )}
       </div>
-      <FieldError errors={form.formState.errors.price ? [form.formState.errors.price] : undefined} />
-      <FieldError errors={form.formState.errors.currency ? [form.formState.errors.currency] : undefined} />
+      <FieldError errors={form.formState.errors.price ? [form.formState.errors.price as { message?: string | undefined }] : undefined} />
+      <FieldError
+        errors={form.formState.errors.currency ? [form.formState.errors.currency as { message?: string | undefined }] : undefined}
+      />
       {showPeriod && (
-        <FieldError errors={form.formState.errors.period ? [form.formState.errors.period] : undefined} />
+        <FieldError
+          errors={form.formState.errors.period ? [form.formState.errors.period as { message?: string | undefined }] : undefined}
+        />
       )}
     </Field>
   );

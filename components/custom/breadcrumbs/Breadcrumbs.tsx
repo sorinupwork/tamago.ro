@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
-interface BreadcrumbItem {
+type BreadcrumbItem = {
   label: string;
   href?: string;
-}
+};
 
-interface BreadcrumbsProps {
+type BreadcrumbsProps = {
   items: BreadcrumbItem[];
   className?: string;
-}
+};
 
 export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   const pathname = usePathname();

@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+
 import CategoriesClient from '@/components/custom/categories/CategoriesClient';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 

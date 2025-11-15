@@ -2,7 +2,7 @@ import React from 'react';
 import { Search } from 'lucide-react';
 
 import { AppInput } from '@/components/custom/input/AppInput';
-import { AppSelect } from '@/components/custom/select/AppSelect';
+import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
 
 type ChatFiltersProps = {
   search: string;
@@ -22,13 +22,14 @@ export const ChatFilters: React.FC<ChatFiltersProps> = ({ search, setSearch, sor
         className='mb-4'
       />
       <div className='flex gap-2 mb-4'>
-        <AppSelect
+        <AppSelectInput
           options={[
             { value: 'name', label: 'După nume' },
             { value: 'status', label: 'După status' },
           ]}
           value={sort}
-          onValueChange={setSort}
+          onValueChange={(value) => setSort(value as string)}
+          multiple={false}
           placeholder='Sortează'
           className='w-full'
         />

@@ -9,8 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
-import FormTextarea from '@/components/custom/form/controls/FormTextarea';
-import { MediaUploader } from '@/components/custom/media/MediaUploader';
+import AppTextarea from '../../input/AppTextarea';
+import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { auto, AutoAuctionFormData } from '@/lib/validations';
 import { Car, Fuel, Settings } from 'lucide-react';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
@@ -18,7 +18,7 @@ import { submitAuctionAutoForm } from '@/actions/auto/actions';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
-import { AutoPriceSelector } from '../controls/AutoPriceSelector';
+import { AutoPriceSelector } from '../../input/AutoPriceSelector';
 import LoadingIndicator from '../../loading/LoadingIndicator';
 
 export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
@@ -214,7 +214,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             <FieldLabel htmlFor='description' className='flex items-center gap-2'>
               <Car className='h-4 w-4' /> Descriere
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('description')}
               onChange={(v) => form.setValue('description', v)}
               placeholder='Descrieți produsul detaliat...'
@@ -349,7 +349,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             <FieldLabel htmlFor='features' className='flex items-center gap-2'>
               <Settings className='h-4 w-4' /> Caracteristici
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('features')}
               onChange={(v) => form.setValue('features', v)}
               placeholder='Listează caracteristicile...'
@@ -374,7 +374,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
           <Field className='max-w-full'>
             <FieldLabel>Fișiere</FieldLabel>
             <div>
-              <MediaUploader key={uploaderKey} onFilesChange={handleFilesChange} />
+              <AppMediaUploaderInput key={uploaderKey} onFilesChange={handleFilesChange} />
             </div>
             <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
           </Field>

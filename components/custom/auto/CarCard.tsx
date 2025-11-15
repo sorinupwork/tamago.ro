@@ -1,15 +1,17 @@
 'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { categoryLabels } from '@/lib/categories';
 import type { Car } from '@/lib/types';
 
-interface CarCardProps {
+type CarCardProps = {
   car: Car;
-}
+};
 
 export function CarCard({ car }: CarCardProps) {
   const searchParams = useSearchParams();

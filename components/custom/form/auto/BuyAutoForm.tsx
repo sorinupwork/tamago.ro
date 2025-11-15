@@ -9,16 +9,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
-import FormTextarea from '@/components/custom/form/controls/FormTextarea';
-import { MediaUploader } from '@/components/custom/media/MediaUploader';
+import AppTextarea from '../../input/AppTextarea';
+import { AppLocationInput } from '../../input/AppLocationInput';
+import LoadingIndicator from '../../loading/LoadingIndicator';
 import { auto, AutoBuyFormData } from '@/lib/validations';
 import { Car, Fuel, MapPin, Settings } from 'lucide-react';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitBuyAutoForm } from '@/actions/auto/actions';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
-import { AppLocationInput } from '../../input/AppLocationInput';
-import LoadingIndicator from '../../loading/LoadingIndicator';
+import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 
 export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -243,7 +243,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             <FieldLabel htmlFor='description' className='flex items-center gap-2'>
               <Car className='h-4 w-4' /> Descriere
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('description')}
               onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
               placeholder='Descrieți ce căutați...'
@@ -404,7 +404,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             <FieldLabel htmlFor='features' className='flex items-center gap-2'>
               <Settings className='h-4 w-4' /> Cerințe suplimentare
             </FieldLabel>
-            <FormTextarea
+            <AppTextarea
               value={form.watch('features')}
               onChange={(v) => form.setValue('features', v)}
               placeholder='Listează cerințele...'
@@ -426,13 +426,13 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             </FieldGroup>
           </FieldSet>
 
-          <Field className='min-w-0 w-full'>
-            <FieldLabel>Fișiere</FieldLabel>
-            <div>
-              <MediaUploader key={uploaderKey} onFilesChange={handleFilesChange} />
-            </div>
-            <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
-          </Field>
+          <AppMediaUploaderInput
+            label='Fișiere'
+            error={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined}
+            className='min-w-0 w-full'
+            uploaderKey={uploaderKey}
+            onFilesChange={handleFilesChange}
+          />
         </FieldGroup>
       </FieldSet>
 

@@ -11,7 +11,7 @@ interface MediaUploaderProps {
   onFilesChange: (files: File[]) => void;
   acceptedTypes?: string;
   maxFiles?: number;
-  errorMessage?: string; // Add errorMessage prop for validation
+  errorMessage?: string;
 }
 
 interface PreviewFile {
