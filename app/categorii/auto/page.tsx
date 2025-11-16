@@ -42,7 +42,7 @@ export default function AutoPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(getInitialActiveTab(searchParams));
-  const cars = mockCars;
+  const cars = useMemo(() => [...mockCars], []);
   const [filters, setFilters] = useState<FilterState>(getInitialFilters(searchParams));
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(getInitialCurrentPage(searchParams));
@@ -68,6 +68,12 @@ export default function AutoPage() {
         } else if (k === 'mileageRange') {
           params.set('mileageMin', filters[k][0].toString());
           params.set('mileageMax', filters[k][1].toString());
+        } else if (k === 'engineCapacityRange') {
+          params.set('engineCapacityMin', filters[k][0].toString());
+          params.set('engineCapacityMax', filters[k][1].toString());
+        } else if (k === 'horsepowerRange') {
+          params.set('horsepowerMin', filters[k][0].toString());
+          params.set('horsepowerMax', filters[k][1].toString());
         } else if (Array.isArray(filters[k])) {
           params.set(k, (filters[k] as string[]).join(','));
         } else {
@@ -188,21 +194,23 @@ export default function AutoPage() {
         locationFilter
       );
       setCurrentPage((cur) => Math.min(cur, newTotal));
-    } else if (key === 'minEngineCapacity') {
-      setFilters((prev) => ({ ...prev, minEngineCapacity: '' }));
-      const newTotal = computeNewTotalPages({ ...filters, minEngineCapacity: '' }, sortCriteria, searchQuery, locationFilter);
+    } else if (key === 'engineCapacityRange') {
+      setFilters((prev) => ({ ...prev, engineCapacityRange: defaultFilters.engineCapacityRange }));
+      const newTotal = computeNewTotalPages(
+        { ...filters, engineCapacityRange: defaultFilters.engineCapacityRange },
+        sortCriteria,
+        searchQuery,
+        locationFilter
+      );
       setCurrentPage((cur) => Math.min(cur, newTotal));
-    } else if (key === 'maxEngineCapacity') {
-      setFilters((prev) => ({ ...prev, maxEngineCapacity: '' }));
-      const newTotal = computeNewTotalPages({ ...filters, maxEngineCapacity: '' }, sortCriteria, searchQuery, locationFilter);
-      setCurrentPage((cur) => Math.min(cur, newTotal));
-    } else if (key === 'minHorsepower') {
-      setFilters((prev) => ({ ...prev, minHorsepower: '' }));
-      const newTotal = computeNewTotalPages({ ...filters, minHorsepower: '' }, sortCriteria, searchQuery, locationFilter);
-      setCurrentPage((cur) => Math.min(cur, newTotal));
-    } else if (key === 'maxHorsepower') {
-      setFilters((prev) => ({ ...prev, maxHorsepower: '' }));
-      const newTotal = computeNewTotalPages({ ...filters, maxHorsepower: '' }, sortCriteria, searchQuery, locationFilter);
+    } else if (key === 'horsepowerRange') {
+      setFilters((prev) => ({ ...prev, horsepowerRange: defaultFilters.horsepowerRange }));
+      const newTotal = computeNewTotalPages(
+        { ...filters, horsepowerRange: defaultFilters.horsepowerRange },
+        sortCriteria,
+        searchQuery,
+        locationFilter
+      );
       setCurrentPage((cur) => Math.min(cur, newTotal));
     } else if (key in sortCriteria) {
       handleSortChange(key as keyof SortCriteria, null);
@@ -243,10 +251,13 @@ export default function AutoPage() {
     if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
     if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
     if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
-    if (filter.key === 'minEngineCapacity') return filters.minEngineCapacity !== defaultFilters.minEngineCapacity;
-    if (filter.key === 'maxEngineCapacity') return filters.maxEngineCapacity !== defaultFilters.maxEngineCapacity;
-    if (filter.key === 'minHorsepower') return filters.minHorsepower !== defaultFilters.minHorsepower;
-    if (filter.key === 'maxHorsepower') return filters.maxHorsepower !== defaultFilters.maxHorsepower;
+    if (filter.key === 'engineCapacityRange')
+      return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
+    if (filter.key === 'horsepowerRange') return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
+    if (filter.key === 'minEngineCapacity') return false; // Remove as replaced
+    if (filter.key === 'maxEngineCapacity') return false; // Remove as replaced
+    if (filter.key === 'minHorsepower') return false; // Remove as replaced
+    if (filter.key === 'maxHorsepower') return false; // Remove as replaced
     if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
     if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
     if (filter.key in sortCriteria)
@@ -310,8 +321,8 @@ export default function AutoPage() {
         )}
       </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
-        <div className='flex items-center gap-4 col-span-full'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4'>
+        <div className=' col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
           <AppSlider
             label={`Interval Preț`}
             value={filters.priceRange}
@@ -339,35 +350,26 @@ export default function AutoPage() {
             step={5000}
             className='grow'
           />
+          <AppSlider
+            label={`Interval Capacitate Motor (cc)`}
+            value={filters.engineCapacityRange}
+            onValueChange={(value) => handleFilterChange('engineCapacityRange', value)}
+            min={0}
+            max={10000}
+            step={100}
+            className='grow'
+          />
+          <AppSlider
+            label={`Interval Cai Putere`}
+            value={filters.horsepowerRange}
+            onValueChange={(value) => handleFilterChange('horsepowerRange', value)}
+            min={0}
+            max={1000}
+            step={10}
+            className='grow'
+          />
         </div>
-        <AppInput
-          type='number'
-          placeholder='Capacitate Motor Min (cc)'
-          value={filters.minEngineCapacity}
-          onChange={(e) => handleFilterChange('minEngineCapacity', e.target.value)}
-          min={0}
-        />
-        <AppInput
-          type='number'
-          placeholder='Capacitate Motor Max (cc)'
-          value={filters.maxEngineCapacity}
-          onChange={(e) => handleFilterChange('maxEngineCapacity', e.target.value)}
-          min={0}
-        />
-        <AppInput
-          type='number'
-          placeholder='Cai Putere Min'
-          value={filters.minHorsepower}
-          onChange={(e) => handleFilterChange('minHorsepower', e.target.value)}
-          min={0}
-        />
-        <AppInput
-          type='number'
-          placeholder='Cai Putere Max'
-          value={filters.maxHorsepower}
-          onChange={(e) => handleFilterChange('maxHorsepower', e.target.value)}
-          min={0}
-        />
+
         <AppCombobox
           options={uniqueBrands}
           value={filters.brand}

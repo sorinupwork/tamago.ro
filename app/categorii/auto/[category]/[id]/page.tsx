@@ -23,6 +23,9 @@ import {
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
 import { Heart, Phone, Mail, MessageCircle } from 'lucide-react';
 import { mockCars } from '@/lib/mockData';
+import { MediaPreview } from '@/components/custom/MediaPreview';
+import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -34,12 +37,14 @@ export default function CarDetailPage() {
 
   const car = useMemo(() => mockCars.find((c) => c.id === id && c.category === category) || null, [id, category]);
 
+  const [imageSrcs, setImageSrcs] = useState(car?.images.map((img) => img || '/placeholder.svg') || []);
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [api, setApi] = useState<CarouselApi>();
   const carouselRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = useIsMobile();
 
   const handleNext = () => {
     if (api && !api.canScrollNext() && isMobile) {
@@ -66,7 +71,7 @@ export default function CarDetailPage() {
   const isAuction = car.category === 'auction';
 
   const handleBid = () => {
-    alert(`Licitație plasată: $${bidAmount}`);
+    toast.success(`Licitație plasată: $${bidAmount}`);
   };
 
   return (
@@ -84,7 +89,7 @@ export default function CarDetailPage() {
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 px-4'>
-        <Card ref={carouselRef} className='relative p-0 h-fit'>
+        <Card ref={carouselRef} className='relative p-0 h-fit lg:sticky lg:top-0'>
           <Carousel
             opts={{
               align: 'center',
@@ -99,7 +104,25 @@ export default function CarDetailPage() {
             <CarouselContent className='-mt-1 h-[777px] gap-2 p-2'>
               {car.images.map((image, index) => (
                 <CarouselItem key={index} className='relative basis-1/2'>
-                  <Image src={image} alt={`${car.title} ${index + 1}`} fill className='object-cover rounded-xl' />
+                  <MediaPreview
+                    mediaItems={car.images.map((url, i) => ({
+                      type: 'image',
+                      url,
+                      alt: `${car.title} ${i + 1}`,
+                    }))}
+                    initialIndex={index}
+                    trigger={
+                      <Image
+                        fill
+                        src={imageSrcs[index]}
+                        alt={`${car.title} ${index + 1}`}
+                        className='object-cover rounded-xl'
+                        placeholder='blur'
+                        blurDataURL='/placeholder.svg'
+                        onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
+                      />
+                    }
+                  />
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -118,7 +141,13 @@ export default function CarDetailPage() {
                     {car.brand} - {car.year}
                   </p>
                 </div>
-                <Button variant='ghost' onClick={() => setIsFavorite(!isFavorite)}>
+                <Button
+                  variant='ghost'
+                  onClick={() => {
+                    setIsFavorite(!isFavorite);
+                    toast.success(isFavorite ? 'Eliminat din favorite!' : 'Adăugat la favorite!');
+                  }}
+                >
                   <Heart className={`h-6 w-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
                 </Button>
               </div>
