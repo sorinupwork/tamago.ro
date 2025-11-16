@@ -15,12 +15,9 @@ export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFile
 }
 
 export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[] }) {
-  console.log('submitBuyAutoForm called with:', data);
   try {
     const validatedData = auto.buySchema.parse(data);
-    console.log('Validated data:', validatedData);
     const result = await db.collection('buy_auto_cars').insertOne(validatedData);
-    console.log('Insert result:', result);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting buy auto form:', error);

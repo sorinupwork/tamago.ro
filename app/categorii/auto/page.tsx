@@ -43,20 +43,30 @@ type RawCarDoc = {
   _id: string;
   title?: string;
   price?: string | number;
-  year?: number;
+  year?: string; // Updated to string to match DB
   brand?: string;
-  mileage?: number;
+  mileage?: string; // Updated to string to match DB
   fuel?: string;
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
   carType?: string;
   color?: string;
-  engineCapacity?: number;
-  horsePower?: number;
+  engineCapacity?: string; // Updated to string to match DB
+  horsePower?: string; // Updated to string to match DB
   status?: string;
   description?: string;
   features?: string | string[];
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  currency?: string;
+  is4x4?: boolean;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  options?: string[];
 };
 
 export default function AutoPage() {
@@ -81,19 +91,15 @@ export default function AutoPage() {
       switch (activeTab) {
         case 'vanzare':
           carsData = await getSellAutoCars();
-          console.log('Sell Auto Cars:', carsData);
           break;
         case 'cumparare':
           carsData = await getBuyAutoCars();
-          console.log('Buy Auto Cars:', carsData);
           break;
         case 'inchiriere':
           carsData = await getRentAutoCars();
-          console.log('Rent Auto Cars:', carsData);
           break;
         case 'licitatie':
           carsData = await getAuctionAutoCars();
-          console.log('Auction Auto Cars:', carsData);
           break;
         default:
           carsData = [];
@@ -103,11 +109,15 @@ export default function AutoPage() {
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
         id: index + 1, // Use index as id since DB has _id as string
         title: doc.title || '',
-        price: typeof doc.price === 'string' ? parseFloat(doc.price.replace(/[^\d.-]/g, '')) || 0 : doc.price || 0,
-        year: doc.year || 2020,
+        price: String(doc.price || '0'), // Ensure it's always a string
+        currency: doc.currency || 'RON', // Added to match Car type
+        period: doc.period || '',
+        startDate: doc.startDate || '',
+        endDate: doc.endDate || '',
+        year: parseInt(doc.year || '2020') || 2020, // Parse to number
         brand: doc.brand || 'Unknown',
         category: activeTab === 'vanzare' ? 'sell' : activeTab === 'cumparare' ? 'buy' : activeTab === 'inchiriere' ? 'rent' : 'auction',
-        mileage: doc.mileage || 0,
+        mileage: parseInt(doc.mileage || '0') || 0, // Parse to number
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
@@ -118,11 +128,17 @@ export default function AutoPage() {
         contactEmail: 'email@example.com',
         bodyType: doc.carType || 'Sedan',
         color: doc.color || 'Alb',
-        engineCapacity: doc.engineCapacity,
-        horsepower: doc.horsePower,
+        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined, // Parse to number
+        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined, // Parse to number
         status: doc.status || 'used',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+        is4x4: doc.is4x4 || false,
+        withDriver: doc.withDriver || false,
+        driverName: doc.driverName || '',
+        driverContact: doc.driverContact || '',
+        driverTelephone: doc.driverTelephone || '',
+        options: doc.options || [],
         lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
         lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
       }));
@@ -421,7 +437,7 @@ export default function AutoPage() {
             label={`Interval An`}
             value={filters.yearRange}
             onValueChange={(value) => handleFilterChange('yearRange', value)}
-            min={2000}
+            min={1900} // Changed from 2000 to 1900 to include older cars like 1960
             max={2025}
             step={1}
             className='grow'

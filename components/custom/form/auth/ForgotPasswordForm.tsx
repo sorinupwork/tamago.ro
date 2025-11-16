@@ -26,7 +26,6 @@ export default function ForgotPasswordForm() {
   });
 
   const onForgotSubmit = (values: { email: string }) => {
-    console.log('Forgot password for:', values.email);
     toast.success('Coming soon!');
     setIsDialogOpen(false);
   };

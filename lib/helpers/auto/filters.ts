@@ -20,7 +20,7 @@ export function getFilteredCars(
   filtered = filtered.filter((car) => (car.engineCapacity || 0) >= minEC && (car.engineCapacity || 0) <= maxEC);
   filtered = filtered.filter((car) => (car.horsepower || 0) >= minHP && (car.horsepower || 0) <= maxHP);
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
-  filtered = filtered.filter((car) => car.price >= filters.priceRange[0] && car.price <= filters.priceRange[1]);
+  filtered = filtered.filter((car) => parseFloat(car.price.replace(/\./g, '')) >= filters.priceRange[0] && parseFloat(car.price.replace(/\./g, '')) <= filters.priceRange[1]);
   filtered = filtered.filter((car) => car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1]);
   filtered = filtered.filter((car) => car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1]);
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));

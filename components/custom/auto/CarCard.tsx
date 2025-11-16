@@ -41,13 +41,13 @@ export function CarCard({ car }: CarCardProps) {
       case 'auction':
         return [
           { icon: Star, value: 'Licitație Activă', label: 'Status' },
-          { icon: Zap, value: `$${car.price.toLocaleString('en-US')}`, label: 'Bid Curent' },
+          { icon: Zap, value: `$${car.price}`, label: 'Bid Curent' }, // Removed toLocaleString to show raw string
           { icon: Calendar, value: 'În Desfășurare', label: 'Perioadă' },
         ];
       case 'rent':
         return [
           { icon: Star, value: 'Disponibil', label: 'Status' },
-          { icon: Zap, value: `$${car.price.toLocaleString('en-US')}/zi`, label: 'Tarif' },
+          { icon: Zap, value: `$${car.price}/zi`, label: 'Tarif' },
           { icon: Calendar, value: car.year, label: 'An' },
         ];
       default: // sell or buy
@@ -95,7 +95,7 @@ export function CarCard({ car }: CarCardProps) {
           <div className='flex justify-between items-start'>
             <div className='flex-1'>
               <CardTitle className='text-lg md:text-xl font-semibold line-clamp-2'>{car.title}</CardTitle>
-              <p className='text-xl md:text-2xl font-bold text-green-600'>${car.price.toLocaleString('en-US')}</p>
+              <p className='text-xl md:text-2xl font-bold text-green-600'>${car.price}</p> {/* Now displays raw string (e.g., "12.800") */}
             </div>
             <div className='flex items-center gap-1 ml-2'>
               <Button variant='ghost' size='sm' onClick={handleFavorite} className='h-8 w-8 p-0'>

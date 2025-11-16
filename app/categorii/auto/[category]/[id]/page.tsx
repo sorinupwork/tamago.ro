@@ -37,20 +37,30 @@ type RawCarDoc = {
   _id: string;
   title?: string;
   price?: string | number;
-  year?: number;
+  currency?: string;
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  year?: string; // Updated to string to match DB
   brand?: string;
-  mileage?: number;
+  mileage?: string; // Updated to string to match DB
   fuel?: string;
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
   carType?: string;
   color?: string;
-  engineCapacity?: number;
-  horsePower?: number;
+  engineCapacity?: string; // Updated to string to match DB
+  horsePower?: string; // Updated to string to match DB
   status?: string;
   description?: string;
   features?: string | string[];
+  is4x4?: boolean;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  options?: string[];
 };
 
 export default function CarDetailPage() {
@@ -137,11 +147,15 @@ export default function CarDetailPage() {
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
         id: index + 1,
         title: doc.title || '',
-        price: typeof doc.price === 'string' ? parseFloat(doc.price.replace(/[^\d.-]/g, '')) || 0 : doc.price || 0,
-        year: doc.year || 2020,
+        price: String(doc.price || '0'), // Ensure it's always a string
+        currency: doc.currency || 'RON',
+        period: doc.period || '',
+        startDate: doc.startDate || '',
+        endDate: doc.endDate || '',
+        year: parseInt(doc.year || '2020') || 2020, // Parse to number
         brand: doc.brand || 'Unknown',
         category: category as 'sell' | 'buy' | 'rent' | 'auction',
-        mileage: doc.mileage || 0,
+        mileage: parseInt(doc.mileage || '0') || 0, // Parse to number
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
@@ -152,11 +166,17 @@ export default function CarDetailPage() {
         contactEmail: 'email@example.com',
         bodyType: doc.carType || 'Sedan',
         color: doc.color || 'Alb',
-        engineCapacity: doc.engineCapacity,
-        horsepower: doc.horsePower,
+        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined, // Parse to number
+        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined, // Parse to number
         status: doc.status || 'used',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+        is4x4: doc.is4x4 || false,
+        withDriver: doc.withDriver || false,
+        driverName: doc.driverName || '',
+        driverContact: doc.driverContact || '',
+        driverTelephone: doc.driverTelephone || '',
+        options: doc.options || [],
         lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
         lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
       }));
@@ -215,7 +235,8 @@ export default function CarDetailPage() {
 
   const handleBid = () => {
     const bid = parseInt(bidAmount);
-    if (isNaN(bid) || bid <= car.price) {
+    if (isNaN(bid) || bid <= parseFloat(car.price.replace(/\./g, ''))) {
+      // Parse string for comparison
       toast.error('Suma licitației trebuie să fie mai mare decât prețul curent.');
       return;
     }
@@ -325,7 +346,7 @@ export default function CarDetailPage() {
                 </Badge>
                 {isAuction && <Badge variant='outline'>Licitație Activ</Badge>}
               </div>
-              <p className='text-4xl font-bold text-green-600'>${car.price.toLocaleString('en-US')}</p>
+              <p className='text-4xl font-bold text-green-600'>{car.price} {car.currency}</p>
               {isAuction && (
                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
                   <div className='flex items-center gap-2 text-sm font-medium text-red-700'>
@@ -334,7 +355,7 @@ export default function CarDetailPage() {
                   </div>
                 </div>
               )}
-              {isRent && <p className='text-sm text-muted-foreground'>Tarif pe zi</p>}
+              {isRent && <p className='text-sm text-muted-foreground'>Tarif pe {car.period || 'zi'}</p>}
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-2 gap-4 text-sm'>
@@ -365,7 +386,40 @@ export default function CarDetailPage() {
                 <p>
                   <strong>Tip Vânzător:</strong> {car.sellerType}
                 </p>
+                {car.is4x4 !== undefined && (
+                  <p>
+                    <strong>4x4:</strong> {car.is4x4 ? 'Da' : 'Nu'}
+                  </p>
+                )}
+                {isRent && car.startDate && (
+                  <p>
+                    <strong>Data Început:</strong> {car.startDate}
+                  </p>
+                )}
+                {isRent && car.endDate && (
+                  <p>
+                    <strong>Data Sfârșit:</strong> {car.endDate}
+                  </p>
+                )}
+                {car.options && car.options.length > 0 && (
+                  <div className='col-span-2'>
+                    <strong>Opțiuni:</strong>
+                    <div className='flex flex-wrap gap-1 mt-1'>
+                      {car.options.map((option, index) => (
+                        <Badge key={index} variant='outline'>{option}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+              {isRent && car.withDriver && (
+                <div className='mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
+                  <h4 className='font-semibold text-blue-800 dark:text-blue-200'>Șofer Inclus</h4>
+                  <p><strong>Nume Șofer:</strong> {car.driverName}</p>
+                  <p><strong>Contact Șofer:</strong> {car.driverContact}</p>
+                  <p><strong>Telefon Șofer:</strong> {car.driverTelephone}</p>
+                </div>
+              )}
               <p className='text-xs text-muted-foreground mt-4'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
             </CardContent>
           </Card>
@@ -377,7 +431,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>
-                  Licitație curentă: <strong>${car.price.toLocaleString('en-US')}</strong>
+                  Licitație curentă: <strong>${car.price}</strong>
                 </p>
                 <div className='flex gap-2'>
                   <Input
@@ -385,10 +439,10 @@ export default function CarDetailPage() {
                     placeholder='Suma licitației'
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    min={car.price + 1}
+                    min={parseFloat(car.price.replace(/\./g, '')) + 1} // Parse string for min
                     step={1}
                   />
-                  <Button onClick={handleBid} disabled={!bidAmount || parseInt(bidAmount) <= car.price}>
+                  <Button onClick={handleBid} disabled={!bidAmount || parseInt(bidAmount) <= parseFloat(car.price.replace(/\./g, ''))}>
                     Licitează
                   </Button>
                 </div>
@@ -468,9 +522,8 @@ export default function CarDetailPage() {
                 <MapComponent
                   center={car.lat && car.lng ? [car.lat, car.lng] : [45.9432, 24.9668]}
                   zoom={13}
-                  mapPosition={car.lat && car.lng ? [car.lat, car.lng] : undefined}
                   filteredCars={car.lat && car.lng ? [car] : []}
-                  scrollWheelZoom={true}
+                  scrollWheelZoom={false}
                 />
               </div>
             </CardContent>

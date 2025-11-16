@@ -24,7 +24,6 @@ export default function LoginForm() {
   });
 
   const onSubmit = (values: LoginFormData) => {
-    console.log('Autentificare:', values);
     toast.success('Autentificare reușită!');
   };
 

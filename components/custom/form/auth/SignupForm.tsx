@@ -27,7 +27,6 @@ export default function SignupForm() {
   });
 
   const onSubmit = (values: SignupFormData) => {
-    console.log('Înregistrare:', values);
     toast.success('Înregistrare reușită!');
   };
 

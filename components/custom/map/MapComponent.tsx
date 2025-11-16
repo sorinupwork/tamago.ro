@@ -114,6 +114,12 @@ export default function MapComponent({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  useEffect(() => {
+    if (mapRef.current && !scrollWheelZoom) {
+      mapRef.current.scrollWheelZoom.disable();
+    }
+  }, [scrollWheelZoom]);
+
   if (!L) return <div className='flex items-center justify-center h-full'>Loading map...</div>;
 
   const isUserMode = users.length > 0;
@@ -153,7 +159,7 @@ export default function MapComponent({
                 <p>
                   {car.brand} - {car.year}
                 </p>
-                <p>${car.price.toLocaleString('en-US')}</p>
+                <p>${car.price}</p>
               </div>
             </Popup>
           </Marker>

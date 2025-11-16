@@ -1,7 +1,11 @@
 export type Car = {
   id: number;
   title: string;
-  price: number;
+  price: string;
+  currency?: string;
+  period?: string;
+  startDate?: string;
+  endDate?: string;
   year: number;
   brand: string;
   category: 'sell' | 'buy' | 'rent' | 'auction';
@@ -21,6 +25,12 @@ export type Car = {
   status?: string;
   description?: string;
   features?: string[];
+  is4x4?: boolean;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  options?: string[];
   lat?: number;
   lng?: number;
 };

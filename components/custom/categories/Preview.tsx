@@ -149,17 +149,18 @@ export function Preview({
           dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }}
         />
 
-        <div className='space-y-2'>
-          <p className='text-sm'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+          <div className='text-sm'>
             <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+          <div className='text-sm'>
             <strong>Marca:</strong> {brand || 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+
+          <div className='text-sm'>
             <strong>Culoare:</strong> {color || 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+          <div className='text-sm'>
             <strong>Capacitate Cilindrică:</strong>{' '}
             {category === 'buy'
               ? minEngineCapacity && maxEngineCapacity
@@ -169,21 +170,24 @@ export function Preview({
                 : maxEngineCapacity
                 ? `Până la ${maxEngineCapacity} L`
                 : 'Nespecificat'
-              : `${engineCapacity} L`}
-          </p>
-          <p className='text-sm'>
+              : `${engineCapacity || 'Nespecificat'} L`}
+          </div>
+
+          <div className='text-sm'>
             <strong>Tip Mașină:</strong> {carType || 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+          <div className='text-sm'>
             <strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+
+          <div className='text-sm'>
             <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
-          </p>
-          <p className='text-sm'>
+          </div>
+          <div className='text-sm'>
             <strong>4x4:</strong> {is4x4 ? 'Da' : 'Nu'}
-          </p>
-          <p className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
+          </div>
+
+          <div className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
             <strong>Kilometraj:</strong>{' '}
             {category === 'buy'
               ? minMileage && maxMileage
@@ -193,9 +197,9 @@ export function Preview({
                 : maxMileage
                 ? `Până la ${maxMileage} km`
                 : 'Nespecificat'
-              : `${mileage} km`}
-          </p>
-          <p className='text-sm wrap-break-word overflow-wrap-break-word'>
+              : `${mileage ?? 'Nespecificat'} km`}
+          </div>
+          <div className='text-sm wrap-break-word overflow-wrap-break-word'>
             <strong>An Fabricație:</strong>{' '}
             {category === 'buy'
               ? minYear && maxYear
@@ -205,34 +209,35 @@ export function Preview({
                 : maxYear
                 ? `Până în ${maxYear}`
                 : 'Nespecificat'
-              : year}
-          </p>
-          <div
-            className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'
-            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-            dangerouslySetInnerHTML={{ __html: `<strong>Caracteristici:</strong> ${features || 'Nespecificate'}` }}
-          />
-          {options && options.length > 0 && (
-            <div className='text-sm'>
-              <strong>Opțiuni Adiționale:</strong>
-              <div className='flex flex-wrap gap-1 mt-1'>
-                {options.map((opt, index) => (
-                  <Badge key={index} variant='outline'>
-                    {opt}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-          {withDriver && (
-            <div className='text-sm mt-2'>
-              <strong>Șofer Inclus:</strong>
-              <p>Nume: {driverName || 'Nespecificat'}</p>
-              <p>Contact: {driverContact || 'Nespecificat'}</p>
-              <p>Telefon: {driverTelephone || 'Nespecificat'}</p>
-            </div>
-          )}
+              : year || 'Nespecificat'}
+          </div>
         </div>
+
+        <div
+          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'
+          style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+          dangerouslySetInnerHTML={{ __html: `<strong>Caracteristici:</strong> ${features || 'Nespecificate'}` }}
+        />
+        {options && options.length > 0 && (
+          <div className='text-sm'>
+            <strong>Opțiuni Adiționale:</strong>
+            <div className='flex flex-wrap gap-1 mt-1'>
+              {options.map((opt, index) => (
+                <Badge key={index} variant='outline'>
+                  {opt}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        {withDriver && (
+          <div className='text-sm mt-2'>
+            <strong>Șofer Inclus:</strong>
+            <p>Nume: {driverName || 'Nespecificat'}</p>
+            <p>Contact: {driverContact || 'Nespecificat'}</p>
+            <p>Telefon: {driverTelephone || 'Nespecificat'}</p>
+          </div>
+        )}
 
         <p className='text-xs text-muted-foreground'>Adăugat: {new Date().toLocaleDateString('ro-RO')}</p>
       </CardContent>

@@ -15,7 +15,7 @@ export const defaultFilters: FilterState = {
   bodyType: [],
   color: [],
   priceRange: [0, 1000000],
-  yearRange: [2000, new Date().getFullYear()],
+  yearRange: [1900, 2025], // Updated from [2000, 2025] to include older cars like 1960
   mileageRange: [0, 1000000],
   engineCapacityRange: [0, 5000],
   horsepowerRange: [0, 1000],

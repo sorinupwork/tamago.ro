@@ -406,7 +406,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             className='min-w-0 w-full'
           />
 
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <AppSelectInput
               options={brandOptions}
               value={form.watch('brand')}
@@ -425,6 +425,26 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
               className='w-full'
               label='Culoare'
               error={form.formState.errors.color ? [form.formState.errors.color] : undefined}
+              required
+            />
+            <AppSelectInput
+              options={[
+                { value: 'SUV', label: 'SUV' },
+                { value: 'Coupe', label: 'Coupe' },
+                { value: 'Sedan', label: 'Sedan' },
+                { value: 'Hatchback', label: 'Hatchback' },
+                { value: 'Convertible', label: 'Convertible' },
+                { value: 'Wagon', label: 'Wagon' },
+                { value: 'Pickup', label: 'Pickup' },
+                { value: 'Van', label: 'Van' },
+                { value: 'Other', label: 'Altul' },
+              ]}
+              value={form.watch('carType')}
+              onValueChange={(v) => form.setValue('carType', v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other', { shouldValidate: true })}
+              placeholder='Selectați tipul'
+              className='w-full'
+              label='Tip Mașină'
+              error={form.formState.errors.carType ? [form.formState.errors.carType] : undefined}
               required
             />
           </div>
