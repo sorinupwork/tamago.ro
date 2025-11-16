@@ -120,6 +120,16 @@ export default function MapComponent({
   const mapCenter = isUserMode ? center : mapPosition || center;
   const mapZoom = isUserMode ? zoom : 13;
 
+  // Custom car marker icon
+  const carIcon = L.icon({
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // Use default for now, replace with car icon URL
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    shadowSize: [41, 41],
+  });
+
   return (
     <MapContainer
       center={mapCenter}
@@ -136,8 +146,16 @@ export default function MapComponent({
       {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
       {filteredCars.map((car) =>
         car.lat && car.lng ? (
-          <Marker key={car.id} position={[car.lat, car.lng]}>
-            <Popup>{car.title}</Popup>
+          <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
+            <Popup>
+              <div className='text-center'>
+                <h3 className='font-semibold'>{car.title}</h3>
+                <p>
+                  {car.brand} - {car.year}
+                </p>
+                <p>${car.price.toLocaleString('en-US')}</p>
+              </div>
+            </Popup>
           </Marker>
         ) : null
       )}

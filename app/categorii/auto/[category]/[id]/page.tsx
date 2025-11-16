@@ -21,11 +21,15 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
-import { Heart, Phone, Mail, MessageCircle } from 'lucide-react';
+import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
 import { mockCars } from '@/lib/mockData';
 import { MediaPreview } from '@/components/custom/MediaPreview';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import MapComponent from '@/components/custom/map/MapComponent';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CarCard } from '@/components/custom/auto/CarCard';
+import { StoriesSection } from '@/components/custom/contact/StoriesSection';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -45,6 +49,42 @@ export default function CarDetailPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  // Mock auction bidders
+  const mockAuctionBidders = [
+    { id: 1, name: 'Ion Popescu', avatar: '/avatars/01.png', status: 'Bidder', category: 'auction' },
+    { id: 2, name: 'Maria Ionescu', avatar: '/avatars/02.png', status: 'High Bidder', category: 'auction' },
+    { id: 3, name: 'Vasile Georgescu', avatar: '/avatars/03.png', status: 'Watcher', category: 'auction' },
+    { id: 4, name: 'Elena Dumitrescu', avatar: '/avatars/04.png', status: 'Bidder', category: 'auction' },
+  ];
+
+  // Mock bid history for auctions
+  const bidHistory = [
+    { bidder: 'Ion Popescu', amount: 15000, time: '2 ore în urmă' },
+    { bidder: 'Maria Ionescu', amount: 15500, time: '1 oră în urmă' },
+    { bidder: 'Vasile Georgescu', amount: 16000, time: '30 min în urmă' },
+  ];
+
+  // Mock auction end time (24 hours from now)
+  const [auctionEndTime] = useState(() => new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const [timeLeft, setTimeLeft] = useState('');
+
+  // Update countdown every second
+  useState(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = auctionEndTime.getTime() - now.getTime();
+      if (diff > 0) {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft('Licitația s-a încheiat');
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  });
 
   const handleNext = () => {
     if (api && !api.canScrollNext() && isMobile) {
@@ -69,9 +109,50 @@ export default function CarDetailPage() {
   if (!car) return <div>Produsul nu a fost găsit</div>;
 
   const isAuction = car.category === 'auction';
+  const isRent = car.category === 'rent';
+  const isSell = car.category === 'sell';
+  const isBuy = car.category === 'buy';
+
+  // Get similar cars (same category, different id)
+  const similarCars = mockCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
+
+  // Prepare bidders for StoriesSection with bid info
+  const biddersForStories = bidHistory.map((bid, index) => ({
+    id: index + 1,
+    name: bid.bidder,
+    avatar: `/avatars/0${(index % 4) + 1}.png`, // Cycle through avatars
+    status: `Bid: $${bid.amount}`,
+    category: 'auction',
+    location: [45.9432 + index * 0.01, 24.9668 + index * 0.01] as [number, number], // Mock location
+  }));
 
   const handleBid = () => {
-    toast.success(`Licitație plasată: $${bidAmount}`);
+    const bid = parseInt(bidAmount);
+    if (isNaN(bid) || bid <= car.price) {
+      toast.error('Suma licitației trebuie să fie mai mare decât prețul curent.');
+      return;
+    }
+    toast.success(`Licitație plasată: $${bid}`);
+  };
+
+  const handleRent = () => {
+    toast.success('Cerere de închiriere trimisă!');
+  };
+
+  const handleBuy = () => {
+    toast.success('Cerere de cumpărare trimisă!');
+  };
+
+  const handleSellInquiry = () => {
+    toast.success('Întrebare trimisă vânzătorului!');
+  };
+
+  const handleSendMessage = (message: string) => {
+    if (!message.trim()) {
+      toast.error('Mesajul nu poate fi gol.');
+      return;
+    }
+    toast.success('Mesaj trimis!');
   };
 
   return (
@@ -153,18 +234,20 @@ export default function CarDetailPage() {
               </div>
               <div className='flex items-center gap-2'>
                 <Badge variant={isAuction ? 'destructive' : 'secondary'}>
-                  {car.category === 'sell'
-                    ? 'Ofertă'
-                    : car.category === 'buy'
-                    ? 'Cerere'
-                    : car.category === 'rent'
-                    ? 'Închiriere'
-                    : 'Licitație'}
+                  {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
                 </Badge>
                 {isAuction && <Badge variant='outline'>Licitație Activ</Badge>}
               </div>
               <p className='text-4xl font-bold text-green-600'>${car.price.toLocaleString('en-US')}</p>
-              {isAuction && <p className='text-sm text-muted-foreground'>Licitație curentă</p>}
+              {isAuction && (
+                <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
+                  <div className='flex items-center gap-2 text-sm font-medium text-red-700'>
+                    <Clock className='h-4 w-4' />
+                    <span>Timp rămas: {timeLeft}</span>
+                  </div>
+                </div>
+              )}
+              {isRent && <p className='text-sm text-muted-foreground'>Tarif pe zi</p>}
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-2 gap-4 text-sm'>
@@ -210,10 +293,55 @@ export default function CarDetailPage() {
                   Licitație curentă: <strong>${car.price.toLocaleString('en-US')}</strong>
                 </p>
                 <div className='flex gap-2'>
-                  <Input type='number' placeholder='Suma licitației' value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} />
-                  <Button onClick={handleBid}>Licitează</Button>
+                  <Input
+                    type='number'
+                    placeholder='Suma licitației'
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    min={car.price + 1}
+                    step={1}
+                  />
+                  <Button onClick={handleBid} disabled={!bidAmount || parseInt(bidAmount) <= car.price}>
+                    Licitează
+                  </Button>
                 </div>
-                <p className='text-xs text-muted-foreground'>Licitația se încheie în 24h</p>
+                <StoriesSection mockStories={biddersForStories} title='Participanți Licitație' />
+              </CardContent>
+            </Card>
+          )}
+
+          {isRent && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Închiriere</CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <p>Disponibil pentru închiriere. Contactează pentru detalii.</p>
+                <Button onClick={handleRent}>Cere Închiriere</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {isBuy && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Cumpărare</CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <p>Interesat de cumpărare? Trimite o ofertă.</p>
+                <Button onClick={handleBuy}>Cere Ofertă</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {isSell && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Vânzare</CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <p>Întrebări despre vehicul? Contactează vânzătorul.</p>
+                <Button onClick={handleSellInquiry}>Întreabă Vânzătorul</Button>
               </CardContent>
             </Card>
           )}
@@ -241,6 +369,23 @@ export default function CarDetailPage() {
                   </>
                 )}
               </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Hartă Locație</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='h-64 w-full'>
+                <MapComponent
+                  center={car.lat && car.lng ? [car.lat, car.lng] : [45.9432, 24.9668]}
+                  zoom={13}
+                  mapPosition={car.lat && car.lng ? [car.lat, car.lng] : undefined}
+                  filteredCars={car.lat && car.lng ? [car] : []}
+                  scrollWheelZoom={true}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -286,7 +431,7 @@ export default function CarDetailPage() {
                       <Textarea placeholder='Scrie mesajul tău aici...' className='min-h-32' />
                     </div>
                     <DrawerFooter>
-                      <Button>Trimite Mesaj</Button>
+                      <Button onClick={() => handleSendMessage('')}>Trimite Mesaj</Button>
                       <DrawerClose asChild>
                         <Button variant='outline'>Închide</Button>
                       </DrawerClose>
@@ -298,6 +443,29 @@ export default function CarDetailPage() {
           </Card>
         </div>
       </div>
+
+      {similarCars.length > 0 && (
+        <div className='mt-8 p-4'>
+          <Card>
+            <CardHeader>
+              <CardTitle>Masini Similare</CardTitle>
+            </CardHeader>
+            <CardContent className='p-0'>
+              <Carousel className='p-4'>
+                <CarouselContent containerClassName='gap-4 overflow-visible'>
+                  {similarCars.map((c) => (
+                    <CarouselItem key={c.id} className='basis-1/1 md:basis-1/2 lg:basis-1/3'>
+                      <CarCard car={c} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

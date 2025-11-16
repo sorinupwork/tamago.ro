@@ -8,9 +8,10 @@ import { User } from '@/lib/types';
 
 type StoriesSectionProps = {
   mockStories: User[];
+  title?: string;
 };
 
-export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) => {
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories, title = 'Stories' }) => {
   const baseId = useId();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -21,7 +22,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) =
     <Card className='flex flex-col transition-all duration-300 hover:shadow-lg'>
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
-          <Camera className='w-5 h-5' /> Stories
+          <Camera className='w-5 h-5' /> {title}
         </CardTitle>
       </CardHeader>
       <CardContent className='flex-1 min-w-0'>
@@ -40,7 +41,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) =
             e.preventDefault();
             const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
             if (viewport) {
-              const walk = (e.clientX - startX) * 2; // Adjust speed multiplier as needed
+              const walk = (e.clientX - startX) * 2;
               viewport.scrollLeft = scrollLeft - walk;
             }
           }}
@@ -49,7 +50,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ mockStories }) =
         >
           <div className='inline-flex min-w-max space-x-4 p-4'>
             {mockStories.map((story, index) => (
-              <HoverCard key={`${baseId}-${index}`}>
+              <HoverCard key={`${baseId}-${index}`} openDelay={10} closeDelay={10}>
                 <HoverCardTrigger asChild>
                   <div className='flex flex-col items-center gap-2 hover:scale-105 transition-transform shrink-0'>
                     <Avatar className='w-12 h-12 ring-2 ring-primary'>
