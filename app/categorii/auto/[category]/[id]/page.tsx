@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/drawer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
 import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
-import { mockCars } from '@/lib/mockData';
 import { MediaPreview } from '@/components/custom/MediaPreview';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,6 +29,29 @@ import MapComponent from '@/components/custom/map/MapComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CarCard } from '@/components/custom/auto/CarCard';
 import { StoriesSection } from '@/components/custom/contact/StoriesSection';
+import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
+import type { Car } from '@/lib/types';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+
+type RawCarDoc = {
+  _id: string;
+  title?: string;
+  price?: string | number;
+  year?: number;
+  brand?: string;
+  mileage?: number;
+  fuel?: string;
+  transmission?: string;
+  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
+  uploadedFiles?: string[];
+  carType?: string;
+  color?: string;
+  engineCapacity?: number;
+  horsePower?: number;
+  status?: string;
+  description?: string;
+  features?: string | string[];
+};
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -39,9 +61,11 @@ export default function CarDetailPage() {
   const queryString = searchParams.toString();
   const autoHref = `/categorii/auto${queryString ? '?' + queryString : ''}`;
 
-  const car = useMemo(() => mockCars.find((c) => c.id === id && c.category === category) || null, [id, category]);
+  const [car, setCar] = useState<Car | null>(null);
+  const [allCars, setAllCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [imageSrcs, setImageSrcs] = useState(car?.images.map((img) => img || '/placeholder.svg') || []);
+  const [imageSrcs, setImageSrcs] = useState<string[]>([]);
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
@@ -50,7 +74,7 @@ export default function CarDetailPage() {
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Mock auction bidders
+  // Mock auction bidders (keeping as is, since not in DB)
   const mockAuctionBidders = [
     { id: 1, name: 'Ion Popescu', avatar: '/avatars/01.png', status: 'Bidder', category: 'auction' },
     { id: 2, name: 'Maria Ionescu', avatar: '/avatars/02.png', status: 'High Bidder', category: 'auction' },
@@ -58,7 +82,7 @@ export default function CarDetailPage() {
     { id: 4, name: 'Elena Dumitrescu', avatar: '/avatars/04.png', status: 'Bidder', category: 'auction' },
   ];
 
-  // Mock bid history for auctions
+  // Mock bid history for auctions (keeping as is)
   const bidHistory = [
     { bidder: 'Ion Popescu', amount: 15000, time: '2 ore în urmă' },
     { bidder: 'Maria Ionescu', amount: 15500, time: '1 oră în urmă' },
@@ -86,6 +110,65 @@ export default function CarDetailPage() {
     return () => clearInterval(interval);
   });
 
+  // Fetch real cars based on category
+  useEffect(() => {
+    const fetchCars = async () => {
+      setLoading(true);
+      let carsData: RawCarDoc[];
+      const cat = category === 'sell' ? 'vanzare' : category === 'buy' ? 'cumparare' : category === 'rent' ? 'inchiriere' : 'licitatie';
+      switch (cat) {
+        case 'vanzare':
+          carsData = await getSellAutoCars();
+          break;
+        case 'cumparare':
+          carsData = await getBuyAutoCars();
+          break;
+        case 'inchiriere':
+          carsData = await getRentAutoCars();
+          break;
+        case 'licitatie':
+          carsData = await getAuctionAutoCars();
+          break;
+        default:
+          carsData = [];
+          break;
+      }
+
+      const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
+        id: index + 1,
+        title: doc.title || '',
+        price: typeof doc.price === 'string' ? parseFloat(doc.price.replace(/[^\d.-]/g, '')) || 0 : doc.price || 0,
+        year: doc.year || 2020,
+        brand: doc.brand || 'Unknown',
+        category: category as 'sell' | 'buy' | 'rent' | 'auction',
+        mileage: doc.mileage || 0,
+        fuel: doc.fuel || 'Petrol',
+        transmission: doc.transmission || 'Manual',
+        location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
+        images: doc.uploadedFiles || [],
+        dateAdded: new Date().toISOString(),
+        sellerType: 'private',
+        contactPhone: '123456789',
+        contactEmail: 'email@example.com',
+        bodyType: doc.carType || 'Sedan',
+        color: doc.color || 'Alb',
+        engineCapacity: doc.engineCapacity,
+        horsepower: doc.horsePower,
+        status: doc.status || 'used',
+        description: doc.description,
+        features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
+        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+      }));
+      setAllCars(mappedCars);
+      const foundCar = mappedCars.find((c) => c.id === id);
+      setCar(foundCar || null);
+      setImageSrcs(foundCar?.images.map((img) => img || '/placeholder.svg') || []);
+      setLoading(false);
+    };
+    fetchCars();
+  }, [category, id]);
+
   const handleNext = () => {
     if (api && !api.canScrollNext() && isMobile) {
       if (detailsRef.current) {
@@ -106,6 +189,10 @@ export default function CarDetailPage() {
     }
   };
 
+  if (loading) {
+    return <LoadingIndicator />;
+  }
+
   if (!car) return <div>Produsul nu a fost găsit</div>;
 
   const isAuction = car.category === 'auction';
@@ -114,7 +201,7 @@ export default function CarDetailPage() {
   const isBuy = car.category === 'buy';
 
   // Get similar cars (same category, different id)
-  const similarCars = mockCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
+  const similarCars = allCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
 
   // Prepare bidders for StoriesSection with bid info
   const biddersForStories = bidHistory.map((bid, index) => ({

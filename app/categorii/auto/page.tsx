@@ -13,7 +13,6 @@ import { AppSlider } from '@/components/custom/input/AppSlider';
 import { AppCombobox } from '@/components/custom/input/AppCombobox';
 import { AppPagination } from '@/components/custom/pagination/AppPagination';
 import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
-import { mockCars } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AutoTabs } from '@/components/custom/tabs/AutoTabs';
@@ -35,14 +34,37 @@ import {
   getInitialLocationFilter,
   getInitialCurrentPage,
 } from '@/lib/helpers/auto/initializers';
-import type { FilterState, SortCriteria, LocationData, LocationFilter } from '@/lib/types';
+import type { FilterState, SortCriteria, LocationData, LocationFilter, Car } from '@/lib/types';
 import { CarCard } from '@/components/custom/auto/CarCard';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
+
+type RawCarDoc = {
+  _id: string;
+  title?: string;
+  price?: string | number;
+  year?: number;
+  brand?: string;
+  mileage?: number;
+  fuel?: string;
+  transmission?: string;
+  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
+  uploadedFiles?: string[];
+  carType?: string;
+  color?: string;
+  engineCapacity?: number;
+  horsePower?: number;
+  status?: string;
+  description?: string;
+  features?: string | string[];
+};
 
 export default function AutoPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(getInitialActiveTab(searchParams));
-  const cars = useMemo(() => [...mockCars], []);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(getInitialFilters(searchParams));
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(getInitialCurrentPage(searchParams));
@@ -50,6 +72,65 @@ export default function AutoPage() {
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
+
+  // Fetch and console log cars for the active tab's collection, and set cars state
+  useEffect(() => {
+    const fetchCars = async () => {
+      setLoading(true);
+      let carsData: RawCarDoc[];
+      switch (activeTab) {
+        case 'vanzare':
+          carsData = await getSellAutoCars();
+          console.log('Sell Auto Cars:', carsData);
+          break;
+        case 'cumparare':
+          carsData = await getBuyAutoCars();
+          console.log('Buy Auto Cars:', carsData);
+          break;
+        case 'inchiriere':
+          carsData = await getRentAutoCars();
+          console.log('Rent Auto Cars:', carsData);
+          break;
+        case 'licitatie':
+          carsData = await getAuctionAutoCars();
+          console.log('Auction Auto Cars:', carsData);
+          break;
+        default:
+          carsData = [];
+          break;
+      }
+
+      const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
+        id: index + 1, // Use index as id since DB has _id as string
+        title: doc.title || '',
+        price: typeof doc.price === 'string' ? parseFloat(doc.price.replace(/[^\d.-]/g, '')) || 0 : doc.price || 0,
+        year: doc.year || 2020,
+        brand: doc.brand || 'Unknown',
+        category: activeTab === 'vanzare' ? 'sell' : activeTab === 'cumparare' ? 'buy' : activeTab === 'inchiriere' ? 'rent' : 'auction',
+        mileage: doc.mileage || 0,
+        fuel: doc.fuel || 'Petrol',
+        transmission: doc.transmission || 'Manual',
+        location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
+        images: doc.uploadedFiles || [],
+        dateAdded: new Date().toISOString(),
+        sellerType: 'private',
+        contactPhone: '123456789',
+        contactEmail: 'email@example.com',
+        bodyType: doc.carType || 'Sedan',
+        color: doc.color || 'Alb',
+        engineCapacity: doc.engineCapacity,
+        horsepower: doc.horsePower,
+        status: doc.status || 'used',
+        description: doc.description,
+        features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
+        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+      }));
+      setCars(mappedCars);
+      setLoading(false);
+    };
+    fetchCars();
+  }, [activeTab]);
 
   // Update URL when state changes, only include non-default values
   useEffect(() => {
@@ -254,16 +335,20 @@ export default function AutoPage() {
     if (filter.key === 'engineCapacityRange')
       return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
     if (filter.key === 'horsepowerRange') return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
-    if (filter.key === 'minEngineCapacity') return false; // Remove as replaced
-    if (filter.key === 'maxEngineCapacity') return false; // Remove as replaced
-    if (filter.key === 'minHorsepower') return false; // Remove as replaced
-    if (filter.key === 'maxHorsepower') return false; // Remove as replaced
+    if (filter.key === 'minEngineCapacity') return false;
+    if (filter.key === 'maxEngineCapacity') return false;
+    if (filter.key === 'minHorsepower') return false;
+    if (filter.key === 'maxHorsepower') return false;
     if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
     if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
     if (filter.key in sortCriteria)
       return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
     return true;
   });
+
+  if (loading) {
+    return <LoadingIndicator />;
+  }
 
   return (
     <div className='container mx-auto max-w-7xl p-2'>

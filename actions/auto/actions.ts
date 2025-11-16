@@ -1,12 +1,12 @@
 'use server';
 
-import { insertDocument } from '@/lib/mongo';
+import db from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
 
 export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFiles: string[]; options?: string[] }) {
   try {
     const validatedData = auto.sellSchema.parse(data);
-    const result = await insertDocument('sell_auto_cars', validatedData);
+    const result = await db.collection('sell_auto_cars').insertOne(validatedData);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting sell auto form:', error);
@@ -19,7 +19,7 @@ export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles:
   try {
     const validatedData = auto.buySchema.parse(data);
     console.log('Validated data:', validatedData);
-    const result = await insertDocument('buy_auto_cars', validatedData);
+    const result = await db.collection('buy_auto_cars').insertOne(validatedData);
     console.log('Insert result:', result);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
@@ -31,7 +31,7 @@ export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles:
 export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFiles: string[]; options?: string[] }) {
   try {
     const validatedData = auto.rentSchema.parse(data);
-    const result = await insertDocument('rent_auto_cars', validatedData);
+    const result = await db.collection('rent_auto_cars').insertOne(validatedData);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting rent auto form:', error);
@@ -42,10 +42,50 @@ export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFile
 export async function submitAuctionAutoForm(data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[] }) {
   try {
     const validatedData = auto.auctionSchema.parse(data);
-    const result = await insertDocument('auction_auto_cars', validatedData);
+    const result = await db.collection('auction_auto_cars').insertOne(validatedData);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting auction auto form:', error);
     return { success: false, error: 'Failed to save data' };
+  }
+}
+
+export async function getSellAutoCars() {
+  try {
+    const cars = await db.collection('sell_auto_cars').find({}).toArray();
+    return JSON.parse(JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error retrieving sell auto cars:', error);
+    return [];
+  }
+}
+
+export async function getBuyAutoCars() {
+  try {
+    const cars = await db.collection('buy_auto_cars').find({}).toArray();
+    return JSON.parse(JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error retrieving buy auto cars:', error);
+    return [];
+  }
+}
+
+export async function getRentAutoCars() {
+  try {
+    const cars = await db.collection('rent_auto_cars').find({}).toArray();
+    return JSON.parse(JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error retrieving rent auto cars:', error);
+    return [];
+  }
+}
+
+export async function getAuctionAutoCars() {
+  try {
+    const cars = await db.collection('auction_auto_cars').find({}).toArray();
+    return JSON.parse(JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error retrieving auction auto cars:', error);
+    return [];
   }
 }

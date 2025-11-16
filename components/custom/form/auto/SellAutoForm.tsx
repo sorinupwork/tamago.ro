@@ -261,7 +261,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               placeholder='Introduceți titlul mașinii'
               value={form.watch('title')}
               onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-              className='min-w-0 w-full'
+              className='min-w-0 w-full break-words'
               label='Titlu'
               required
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
@@ -291,7 +291,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             label='Descriere'
             required
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
-            className='min-w-0 w-full'
+            className='min-w-0 w-full break-words'
           />
 
           <div className='flex flex-col md:flex-row items-center gap-4 min-w-0'>
@@ -424,7 +424,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             placeholder='Listează caracteristicile mașinii...'
             label='Caracteristici'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
-            className='min-w-0 w-full'
+            className='min-w-0 w-full break-words'
           />
 
           <AppCollapsibleCheckboxGroup

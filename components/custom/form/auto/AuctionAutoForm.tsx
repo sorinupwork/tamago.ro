@@ -251,7 +251,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
               placeholder='Introduceți titlul'
               value={form.watch('title')}
               onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-              className='break-all w-full'
+              className='break-all w-full break-words'
               label='Titlu'
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
               required
@@ -290,6 +290,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
+            className='min-w-0 w-full break-words'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
@@ -445,6 +446,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             placeholder='Listează caracteristicile...'
             label='Caracteristici'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
+            className='min-w-0 w-full break-words'
           />
 
           <AppCollapsibleCheckboxGroup

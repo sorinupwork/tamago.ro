@@ -298,7 +298,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             placeholder='Introduceți titlul'
             value={form.watch('title')}
             onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-            className='break-all w-full'
+            className='break-all w-full break-words'
             label='Titlu'
             error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
             required
@@ -349,6 +349,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
+            className='min-w-0 w-full break-words'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -478,6 +479,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             placeholder='Listează cerințele...'
             label='Cerințe suplimentare'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
+            className='min-w-0 w-full break-words'
           />
 
           <AppCollapsibleCheckboxGroup

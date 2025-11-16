@@ -1,28 +1,21 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 
 const uri = process.env.MONGODB_URI as string;
 
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+if (!uri) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
 
-export async function connectToDatabase() {
-  try {
+const client = new MongoClient(uri);
+
+let db: Db;
+
+async function connectToDatabase(): Promise<Db> {
+  if (!db) {
     await client.connect();
-    return client.db('tamago');
-  } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
-    throw error;
+    db = client.db('tamago');
   }
+  return db;
 }
 
-export async function insertDocument(collectionName: string, document: Record<string, unknown>) {
-  const db = await connectToDatabase();
-  const collection = db.collection(collectionName);
-  const result = await collection.insertOne(document);
-  return result;
-}
+export default await connectToDatabase();

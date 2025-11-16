@@ -282,7 +282,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
               placeholder='Introduceți titlul'
               value={form.watch('title')}
               onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-              className='break-all w-full overflow-wrap-break-word'
+              className='break-all w-full overflow-wrap-break-word break-words'
               label='Titlu'
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
               required
@@ -314,6 +314,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
+            className='min-w-0 w-full break-words'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
@@ -471,6 +472,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             placeholder='Listează caracteristicile...'
             label='Caracteristici'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
+            className='min-w-0 w-full break-words'
           />
 
           <Collapsible
@@ -508,7 +510,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți numele șoferului'
                 value={form.watch('driverName')}
                 onChange={(e) => form.setValue('driverName', e.target.value, { shouldValidate: true })}
-                className='break-all w-full'
+                className='break-all w-full break-words'
                 label='Nume Șofer'
                 error={form.formState.errors.driverName ? [form.formState.errors.driverName] : undefined}
                 required={driverOpen}
@@ -518,7 +520,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți contactul șoferului'
                 value={form.watch('driverContact')}
                 onChange={(e) => form.setValue('driverContact', e.target.value, { shouldValidate: true })}
-                className='break-all w-full'
+                className='break-all w-full break-words'
                 label='Contact Șofer'
                 error={form.formState.errors.driverContact ? [form.formState.errors.driverContact] : undefined}
                 required={driverOpen}
@@ -528,7 +530,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți telefonul șoferului'
                 value={form.watch('driverTelephone')}
                 onChange={(e) => form.setValue('driverTelephone', e.target.value, { shouldValidate: true })}
-                className='break-all w-full'
+                className='break-all w-full break-words'
                 label='Telefon Șofer'
                 error={form.formState.errors.driverTelephone ? [form.formState.errors.driverTelephone] : undefined}
                 required={driverOpen}
