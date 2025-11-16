@@ -35,7 +35,7 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
   onChange,
 }) => {
   if (multiple) {
-    const selected = value as string[] || [];
+    const selected = (value as string[]) || [];
     return (
       <Field className={className}>
         {label && (
@@ -50,16 +50,14 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
                 id={option.value}
                 checked={selected.includes(option.value)}
                 onCheckedChange={(checked) => {
-                  const newSelected = checked
-                    ? [...selected, option.value]
-                    : selected.filter((v) => v !== option.value);
+                  const newSelected = checked ? [...selected, option.value] : selected.filter((v) => v !== option.value);
                   onChange?.(newSelected);
                 }}
               />
               <FieldLabel
                 lift={lift}
                 htmlFor={option.value}
-                className='font-normal cursor-pointer'
+                className='font-normal cursor-default'
                 onClick={() => {
                   const newSelected = selected.includes(option.value)
                     ? selected.filter((v) => v !== option.value)
@@ -77,20 +75,15 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
     );
   }
 
-  // Single checkbox
-  const checked = value as boolean || false;
+  const checked = (value as boolean) || false;
   return (
     <Field orientation='horizontal' className={className}>
-      <Checkbox
-        id={htmlFor}
-        checked={checked}
-        onCheckedChange={(checked) => onChange?.(checked as boolean)}
-      />
+      <Checkbox id={htmlFor} checked={checked} onCheckedChange={(checked) => onChange?.(checked as boolean)} />
       {label && (
         <FieldLabel
           lift={lift}
           htmlFor={htmlFor}
-          className='font-normal cursor-pointer'
+          className='font-normal cursor-default'
           required={required}
           onClick={() => onChange?.(!checked)}
         >

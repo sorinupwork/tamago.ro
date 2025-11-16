@@ -21,6 +21,7 @@ type AppSelectInputProps = {
   error?: { message?: string }[];
   required?: boolean;
   htmlFor?: string;
+  lift?: boolean;
 };
 
 export const AppSelectInput: React.FC<AppSelectInputProps> = ({
@@ -34,6 +35,7 @@ export const AppSelectInput: React.FC<AppSelectInputProps> = ({
   error,
   required,
   htmlFor,
+  lift = false,
 }) => {
   const selectComponent = multiple ? (
     <Popover>
@@ -88,7 +90,7 @@ export const AppSelectInput: React.FC<AppSelectInputProps> = ({
   return (
     <Field className={className}>
       {label && (
-        <FieldLabel htmlFor={htmlFor} required={required}>
+        <FieldLabel htmlFor={htmlFor} required={required} lift={lift}>
           {label}
         </FieldLabel>
       )}

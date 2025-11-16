@@ -26,7 +26,7 @@ export function CategoryLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className='flex-1 flex flex-col justify-between gap-6 h-full'>
-            <div className='flex-1'>{mainContent}</div>
+            <div className='flex flex-1'>{mainContent}</div>
 
             {rest.length > 0 && <div className='w-full'>{rest}</div>}
           </div>

@@ -51,7 +51,7 @@ export const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupPr
               checked={value.includes(option.value)}
               onCheckedChange={(checked) => handleCheckedChange(option.value, checked as boolean)}
             />
-            <label htmlFor={option.value} className='text-sm font-normal cursor-pointer'>
+            <label htmlFor={option.value} className='text-sm font-normal cursor-default'>
               {option.label}
             </label>
           </div>

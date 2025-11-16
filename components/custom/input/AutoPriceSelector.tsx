@@ -35,6 +35,7 @@ export function AutoPriceSelector<T extends { price: string; currency: 'EUR' | '
           {...form.register('price' as Path<T>)}
           type='number'
           step='0.01'
+          min={0.01}
           placeholder='22.500'
           className='wrap-break-word max-w-full'
         />

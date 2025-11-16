@@ -7,7 +7,7 @@ export const auto = {
     price: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Prețul trebuie să fie un număr pozitiv' }),
     currency: z.enum(['EUR', 'USD', 'RON'], { message: 'Moneda trebuie să fie EUR, USD sau RON' }),
     location: z.string().min(1, 'Locația este obligatorie'),
-    features: z.string().min(1, 'Caracteristicile sunt obligatorii'),
+    features: z.string().optional(),
     status: z.string().optional(),
     fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
     mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),

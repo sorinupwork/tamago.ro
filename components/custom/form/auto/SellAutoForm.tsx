@@ -314,28 +314,27 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             <AppInput
               type='number'
               step='0.01'
+              min={0.01}
               placeholder='22.500'
               value={form.watch('mileage')}
               onChange={(e) => form.setValue('mileage', e.target.value, { shouldValidate: true })}
               className='min-w-0 w-full'
               label='Kilometraj'
               error={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined}
+              required
             />
 
             <AppInput
-              type='text'
+              type='number'
+              min={1}
               inputMode='numeric'
               placeholder='2020'
               value={form.watch('year')}
               onChange={(e) => form.setValue('year', e.target.value, { shouldValidate: true })}
               className='min-w-0 w-full'
               label='An Fabricație'
-              onKeyDown={(e) => {
-                if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                  e.preventDefault();
-                }
-              }}
               error={form.formState.errors.year ? [form.formState.errors.year] : undefined}
+              required
             />
           </div>
 
@@ -348,6 +347,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               className='min-w-0 w-full'
               label='Marcă'
               error={form.formState.errors.brand ? [form.formState.errors.brand] : undefined}
+              required
             />
             <AppSelectInput
               options={colorOptions}
@@ -357,16 +357,19 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               className='min-w-0 w-full'
               label='Culoare'
               error={form.formState.errors.color ? [form.formState.errors.color] : undefined}
+              required
             />
             <AppInput
               type='number'
               step='0.1'
+              min={0.1}
               placeholder='2.0'
               value={form.watch('engineCapacity')}
               onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldValidate: true })}
               className='min-w-0 w-full'
               label='Capacitate Cilindrică (L)'
               error={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined}
+              required
             />
             <AppSelectInput
               options={carTypeOptions}
@@ -382,15 +385,18 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               className='min-w-0 w-full'
               label='Tip Mașină'
               error={form.formState.errors.carType ? [form.formState.errors.carType] : undefined}
+              required
             />
             <AppInput
               type='number'
+              min={1}
               placeholder='150'
               value={form.watch('horsePower')}
               onChange={(e) => form.setValue('horsePower', e.target.value, { shouldValidate: true })}
               className='min-w-0 w-full'
               label='Putere (CP)'
               error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
+              required
             />
             <AppSelectInput
               options={transmissionOptions}
@@ -400,6 +406,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
               className='min-w-0 w-full'
               label='Transmisie'
               error={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined}
+              required
             />
             <AppCheckbox
               label='4x4'
@@ -416,7 +423,6 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             onChange={(v) => form.setValue('features', v, { shouldValidate: true })}
             placeholder='Listează caracteristicile mașinii...'
             label='Caracteristici'
-            required
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
             className='min-w-0 w-full'
           />
@@ -435,6 +441,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             className='min-w-0 w-full'
             uploaderKey={uploaderKey}
             onFilesChange={handleFilesChange}
+            required
           />
         </FieldGroup>
       </FieldSet>

@@ -9,7 +9,7 @@ import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
-import { AppSlider } from '@/components/custom/slider/AppSlider';
+import { AppSlider } from '@/components/custom/input/AppSlider';
 import { AppCombobox } from '@/components/custom/input/AppCombobox';
 import { AppPagination } from '@/components/custom/pagination/AppPagination';
 import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
@@ -313,7 +313,7 @@ export default function AutoPage() {
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
         <div className='flex items-center gap-4 col-span-full'>
           <AppSlider
-            label={`Interval Preț: $${filters.priceRange[0]} - $${filters.priceRange[1]}`}
+            label={`Interval Preț`}
             value={filters.priceRange}
             onValueChange={(value) => handleFilterChange('priceRange', value)}
             min={0}
@@ -322,7 +322,7 @@ export default function AutoPage() {
             className='grow'
           />
           <AppSlider
-            label={`Interval An: ${filters.yearRange[0]} - ${filters.yearRange[1]}`}
+            label={`Interval An`}
             value={filters.yearRange}
             onValueChange={(value) => handleFilterChange('yearRange', value)}
             min={2000}
@@ -331,7 +331,7 @@ export default function AutoPage() {
             className='grow'
           />
           <AppSlider
-            label={`Interval Kilometraj: ${filters.mileageRange[0]} - ${filters.mileageRange[1]} km`}
+            label={`Interval Kilometraj`}
             value={filters.mileageRange}
             onValueChange={(value) => handleFilterChange('mileageRange', value)}
             min={0}
