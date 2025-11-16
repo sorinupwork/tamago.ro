@@ -32,7 +32,6 @@ type MapComponentProps = {
   users?: User[];
   center?: [number, number];
   zoom?: number;
-  // For location input mode
   mapPosition?: [number, number];
   selectedLocation?: Location | null;
   onMapClick?: (pos: [number, number]) => void;
@@ -118,22 +117,21 @@ export default function MapComponent({
   if (!L) return <div className='flex items-center justify-center h-full'>Loading map...</div>;
 
   const isUserMode = users.length > 0;
-  const mapCenter = isUserMode ? center : (mapPosition || center);
+  const mapCenter = isUserMode ? center : mapPosition || center;
   const mapZoom = isUserMode ? zoom : 13;
 
   return (
-    <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={scrollWheelZoom} ref={mapRef}>
+    <MapContainer
+      center={mapCenter}
+      zoom={mapZoom}
+      style={{ height: '100%', width: '100%' }}
+      scrollWheelZoom={scrollWheelZoom}
+      ref={mapRef}
+    >
       <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
-      {isUserMode ? (
-        <MapBounds users={users} />
-      ) : (
-        mapPosition && <MapController mapPosition={mapPosition} />
-      )}
+      {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
       {onMapClick && (
-        <LocationMarker
-          position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null}
-          setPosition={onMapClick}
-        />
+        <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
       )}
       {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
       {filteredCars.map((car) =>

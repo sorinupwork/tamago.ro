@@ -1,19 +1,15 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
-import AppTextarea from '../../input/AppTextarea'; 
+import { FieldGroup, FieldSet } from '@/components/ui/field';
+import AppTextarea from '../../input/AppTextarea';
 import { AppLocationInput } from '../../input/AppLocationInput';
 import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { auto, AutoRentFormData } from '@/lib/validations';
-import { Car, Settings } from 'lucide-react';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitRentAutoForm } from '@/actions/auto/actions';
 import { toast } from 'sonner';
@@ -22,6 +18,11 @@ import LoadingIndicator from '../../loading/LoadingIndicator';
 import { DateRangePicker } from '../../input/DateRangePicker';
 import { AutoPriceSelector } from '../../input/AutoPriceSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { AppInput } from '../../input/AppInput';
+import { AppSelectInput } from '../../input/AppSelectInput';
+import { AppCheckbox } from '../../input/AppCheckbox';
+import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
+import { MapPin } from 'lucide-react';
 
 export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -34,15 +35,15 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
   const form = useForm<AutoRentFormData>({
     resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
     mode: 'onChange',
-    defaultValues: { 
-      title: '', 
-      description: '', 
-      price: '', 
+    defaultValues: {
+      title: '',
+      description: '',
+      price: '',
       currency: 'EUR',
       period: 'day',
-      location: { lat: 0, lng: 0, address: '', fullAddress: '' }, 
-      startDate: '', 
-      endDate: '', 
+      location: { lat: 0, lng: 0, address: '', fullAddress: '' },
+      startDate: '',
+      endDate: '',
       status: '',
       fuel: '',
       features: '',
@@ -63,81 +64,157 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
     },
   });
 
+  useEffect(() => {
+    form.register('driverName');
+    form.register('driverContact');
+    form.register('driverTelephone');
+  }, [form]);
+
   const watchedValues = useWatch({ control: form.control });
 
   const handleFilesChange = (newFiles: File[]) => {
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls); // Update form value for Zod validation
-    form.trigger('uploadedFiles'); // Trigger live validation
+    form.setValue('uploadedFiles', previewUrls);
+    form.trigger('uploadedFiles');
   };
 
-  const previewData = useMemo(() => ({
-    title: watchedValues.title || '',
-    description: watchedValues.description || '',
-    price: watchedValues.price || '',
-    currency: watchedValues.currency || 'EUR',
-    period: watchedValues.period || '',
-    location: watchedValues.location?.address || '',
-    category: 'rent',
-    uploadedFiles,
-    fuel: watchedValues.fuel || '',
-    status: watchedValues.status || '',
-    mileage: watchedValues.mileage || '',
-    year: watchedValues.year || '',
-    features: watchedValues.features || '',
-    options,
-    startDate: watchedValues.startDate || '',
-    endDate: watchedValues.endDate || '',
-    withDriver: watchedValues.withDriver || false,
-    driverName: watchedValues.driverName || '',
-    driverContact: watchedValues.driverContact || '',
-    driverTelephone: watchedValues.driverTelephone || '',
-    brand: watchedValues.brand || '',
-    color: watchedValues.color || '',
-    engineCapacity: watchedValues.engineCapacity || '',
-    carType: watchedValues.carType || '',
-    horsePower: watchedValues.horsePower || '',
-    transmission: watchedValues.transmission || '',
-    is4x4: watchedValues.is4x4 || false,
-  }), [
-    watchedValues.title,
-    watchedValues.description,
-    watchedValues.price,
-    watchedValues.currency,
-    watchedValues.period,
-    watchedValues.location,
-    watchedValues.fuel,
-    watchedValues.status,
-    watchedValues.mileage,
-    watchedValues.year,
-    watchedValues.features,
-    watchedValues.startDate,
-    watchedValues.endDate,
-    watchedValues.withDriver,
-    watchedValues.driverName,
-    watchedValues.driverContact,
-    watchedValues.driverTelephone,
-    watchedValues.brand,
-    watchedValues.color,
-    watchedValues.engineCapacity,
-    watchedValues.carType,
-    watchedValues.horsePower,
-    watchedValues.transmission,
-    watchedValues.is4x4,
-    uploadedFiles,
-    options,
-  ]);
+  const previewData = useMemo(
+    () => ({
+      title: watchedValues.title || '',
+      description: watchedValues.description || '',
+      price: watchedValues.price || '',
+      currency: watchedValues.currency || 'EUR',
+      period: watchedValues.period || '',
+      location: watchedValues.location?.address || '',
+      category: 'rent',
+      uploadedFiles,
+      fuel: watchedValues.fuel || '',
+      status: watchedValues.status || '',
+      mileage: watchedValues.mileage || '',
+      year: watchedValues.year || '',
+      features: watchedValues.features || '',
+      options,
+      startDate: watchedValues.startDate || '',
+      endDate: watchedValues.endDate || '',
+      withDriver: watchedValues.withDriver || false,
+      driverName: watchedValues.driverName || '',
+      driverContact: watchedValues.driverContact || '',
+      driverTelephone: watchedValues.driverTelephone || '',
+      brand: watchedValues.brand || '',
+      color: watchedValues.color || '',
+      engineCapacity: watchedValues.engineCapacity || '',
+      carType: watchedValues.carType || '',
+      horsePower: watchedValues.horsePower || '',
+      transmission: watchedValues.transmission || '',
+      is4x4: watchedValues.is4x4 || false,
+    }),
+    [
+      watchedValues.title,
+      watchedValues.description,
+      watchedValues.price,
+      watchedValues.currency,
+      watchedValues.period,
+      watchedValues.location,
+      watchedValues.fuel,
+      watchedValues.status,
+      watchedValues.mileage,
+      watchedValues.year,
+      watchedValues.features,
+      watchedValues.startDate,
+      watchedValues.endDate,
+      watchedValues.withDriver,
+      watchedValues.driverName,
+      watchedValues.driverContact,
+      watchedValues.driverTelephone,
+      watchedValues.brand,
+      watchedValues.color,
+      watchedValues.engineCapacity,
+      watchedValues.carType,
+      watchedValues.horsePower,
+      watchedValues.transmission,
+      watchedValues.is4x4,
+      uploadedFiles,
+      options,
+    ]
+  );
 
   useEffect(() => {
     onPreviewUpdate(previewData);
   }, [previewData, onPreviewUpdate]);
 
   const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
-  const toggleOption = (opt: string, checked: boolean | 'indeterminate') => {
-    setOptions((prev) => (checked ? (prev.includes(opt) ? prev : [...prev, opt]) : prev.filter((o) => o !== opt)));
-  };
+
+  const brandOptions = [
+    { value: 'BMW', label: 'BMW' },
+    { value: 'Audi', label: 'Audi' },
+    { value: 'Mercedes', label: 'Mercedes' },
+    { value: 'Volkswagen', label: 'Volkswagen' },
+    { value: 'Toyota', label: 'Toyota' },
+    { value: 'Honda', label: 'Honda' },
+    { value: 'Ford', label: 'Ford' },
+    { value: 'Chevrolet', label: 'Chevrolet' },
+    { value: 'Nissan', label: 'Nissan' },
+    { value: 'Hyundai', label: 'Hyundai' },
+    { value: 'Kia', label: 'Kia' },
+    { value: 'Renault', label: 'Renault' },
+    { value: 'Peugeot', label: 'Peugeot' },
+    { value: 'Citroen', label: 'Citroen' },
+    { value: 'Fiat', label: 'Fiat' },
+    { value: 'Opel', label: 'Opel' },
+    { value: 'Skoda', label: 'Skoda' },
+    { value: 'Seat', label: 'Seat' },
+    { value: 'Volvo', label: 'Volvo' },
+    { value: 'Mazda', label: 'Mazda' },
+    { value: 'Mitsubishi', label: 'Mitsubishi' },
+    { value: 'Suzuki', label: 'Suzuki' },
+    { value: 'Lexus', label: 'Lexus' },
+    { value: 'Infiniti', label: 'Infiniti' },
+    { value: 'Jaguar', label: 'Jaguar' },
+    { value: 'Land Rover', label: 'Land Rover' },
+    { value: 'Porsche', label: 'Porsche' },
+    { value: 'Ferrari', label: 'Ferrari' },
+    { value: 'Lamborghini', label: 'Lamborghini' },
+    { value: 'Bentley', label: 'Bentley' },
+    { value: 'Rolls-Royce', label: 'Rolls-Royce' },
+    { value: 'Aston Martin', label: 'Aston Martin' },
+    { value: 'McLaren', label: 'McLaren' },
+    { value: 'Bugatti', label: 'Bugatti' },
+    { value: 'Alfa Romeo', label: 'Alfa Romeo' },
+    { value: 'Maserati', label: 'Maserati' },
+    { value: 'Lancia', label: 'Lancia' },
+    { value: 'Saab', label: 'Saab' },
+    { value: 'Smart', label: 'Smart' },
+    { value: 'Mini', label: 'Mini' },
+    { value: 'Dacia', label: 'Dacia' },
+    { value: 'Lada', label: 'Lada' },
+    { value: 'Trabant', label: 'Trabant' },
+    { value: 'Moskvich', label: 'Moskvich' },
+    { value: 'ZAZ', label: 'ZAZ' },
+    { value: 'UAZ', label: 'UAZ' },
+    { value: 'GAZ', label: 'GAZ' },
+    { value: 'ZIL', label: 'ZIL' },
+    { value: 'Volga', label: 'Volga' },
+    { value: 'Zhiguli', label: 'Zhiguli' },
+    { value: 'Alta', label: 'Alta' },
+  ];
+
+  const colorOptions = [
+    { value: 'Alb', label: 'Alb' },
+    { value: 'Negru', label: 'Negru' },
+    { value: 'Gri', label: 'Gri' },
+    { value: 'Albastru', label: 'Albastru' },
+    { value: 'Rosu', label: 'Rosu' },
+    { value: 'Verde', label: 'Verde' },
+    { value: 'Galben', label: 'Galben' },
+    { value: 'Portocaliu', label: 'Portocaliu' },
+    { value: 'Violet', label: 'Violet' },
+    { value: 'Maro', label: 'Maro' },
+    { value: 'Argintiu', label: 'Argintiu' },
+    { value: 'Auriu', label: 'Auriu' },
+    { value: 'Alta', label: 'Alta' },
+  ];
 
   const onSubmit: SubmitHandler<AutoRentFormData> = async (data) => {
     if (isSubmitting) return;
@@ -150,7 +227,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
         const formData = new FormData();
         files.forEach((file) => formData.append('files', file));
         formData.append('category', 'rent');
-        formData.append('subcategory', 'auto'); // Add subcategory
+        formData.append('subcategory', 'auto');
 
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (event) => {
@@ -180,7 +257,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
       if (result.success) {
         toast.success('Formular trimis cu succes!');
         form.reset();
-        setUploadedFiles([]); // Clear preview images
+        setUploadedFiles([]);
         setOptions([]);
         setFiles([]);
         setUploaderKey((k) => k + 1);
@@ -199,240 +276,282 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate className='space-y-6 w-full'>
       <FieldSet>
         <FieldGroup>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='title'>Titlu</FieldLabel>
-              <Input {...form.register('title')} placeholder='Introduceți titlul' className='break-all w-full overflow-wrap-break-word' />
-              <FieldError errors={form.formState.errors.title ? [form.formState.errors.title] : undefined} />
-            </Field>
+          <div className='grid grid-cols-1 gap-4 min-w-0'>
+            <AppInput
+              type='text'
+              placeholder='Introduceți titlul'
+              value={form.watch('title')}
+              onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
+              className='break-all w-full overflow-wrap-break-word'
+              label='Titlu'
+              error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
+              required
+            />
             <div className='min-w-0 w-full'>
               <AutoPriceSelector form={form} showPeriod={true} />
             </div>
           </div>
 
-          <Field className='min-w-0 w-full'>
-            <FieldLabel htmlFor='location'>Locație</FieldLabel>
-            <AppLocationInput
-              location={form.watch('location')}
-              onChange={(location) => form.setValue('location', location)}
-              placeholder='Introduceți locația'
-              className='w-full'
-              value={form.watch('location').address}
-              onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '', fullAddress: '' })}
-            />
-            <FieldError errors={form.formState.errors.location ? [form.formState.errors.location] : undefined} />
-          </Field>
+          <AppLocationInput
+            location={form.watch('location')}
+            leftIcon={MapPin}
+            onChange={(location) => form.setValue('location', location)}
+            placeholder='Introduceți locația'
+            className='w-full'
+            value={form.watch('location').address}
+            onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '', fullAddress: '' })}
+            label='Locație'
+            error={form.formState.errors.location?.address ? [{ message: form.formState.errors.location.address.message }] : undefined}
+            required
+          />
 
-          <DateRangePicker form={form} />
+          <DateRangePicker form={form} required />
 
-          <Field className='min-w-0 w-full'>
-            <FieldLabel htmlFor='description' className='flex items-center gap-2'>
-              <Car className='h-4 w-4' /> Descriere
-            </FieldLabel>
-            <AppTextarea
-              value={form.watch('description')}
-              onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
-              placeholder='Descrieți produsul detaliat...'
-            />
-            <FieldError errors={form.formState.errors.description ? [form.formState.errors.description] : undefined} />
-          </Field>
+          <AppTextarea
+            value={form.watch('description')}
+            onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
+            placeholder='Descrieți produsul detaliat...'
+            label='Descriere'
+            error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
+            required
+          />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='status'>Status</FieldLabel>
-              <Controller
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={(v) => field.onChange(v)}>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Selectați status' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='new'>Nou</SelectItem>
-                      <SelectItem value='used'>Second Hand</SelectItem>
-                      <SelectItem value='damaged'>Deteriorat</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <FieldError errors={form.formState.errors.status ? [form.formState.errors.status] : undefined} />
-            </Field>
+            <AppSelectInput
+              options={[
+                { value: 'new', label: 'Nou' },
+                { value: 'used', label: 'Second Hand' },
+                { value: 'damaged', label: 'Deteriorat' },
+              ]}
+              value={form.watch('status')}
+              onValueChange={(v) => form.setValue('status', v as string)}
+              placeholder='Selectați status'
+              className='w-full'
+              label='Status'
+              error={form.formState.errors.status ? [form.formState.errors.status] : undefined}
+              required
+            />
             {subcategory === 'auto' && (
-              <Field className='min-w-0 w-full'>
-                <FieldLabel htmlFor='fuel' className='flex items-center gap-2'>
-                  <Car className='h-4 w-4' /> Combustibil
-                </FieldLabel>
-                <Controller
-                  control={form.control}
-                  name="fuel"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={(v) => field.onChange(v)}>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Selectați combustibil' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='Petrol'>Benzină</SelectItem>
-                        <SelectItem value='Diesel'>Motorină</SelectItem>
-                        <SelectItem value='Hybrid'>Hibrid</SelectItem>
-                        <SelectItem value='Electric'>Electric</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <FieldError errors={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined} />
-              </Field>
+              <AppSelectInput
+                options={[
+                  { value: 'Petrol', label: 'Benzină' },
+                  { value: 'Diesel', label: 'Motorină' },
+                  { value: 'Hybrid', label: 'Hibrid' },
+                  { value: 'Electric', label: 'Electric' },
+                ]}
+                value={form.watch('fuel')}
+                onValueChange={(v) => form.setValue('fuel', v as string)}
+                placeholder='Selectați combustibil'
+                className='w-full'
+                label='Combustibil'
+                error={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined}
+                required
+              />
             )}
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='mileage'>Kilometraj</FieldLabel>
-              <Input {...form.register('mileage')} type='number' step='0.01' placeholder='22.500' className='break-all w-full' />
-              <FieldError errors={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='year'>An Fabricație</FieldLabel>
-              <Input {...form.register('year')} type='number' placeholder='2020' className='break-all w-full' />
-              <FieldError errors={form.formState.errors.year ? [form.formState.errors.year] : undefined} />
-            </Field>
+            <AppInput
+              type='number'
+              step='0.01'
+              placeholder='22.500'
+              value={form.watch('mileage')}
+              onChange={(e) => form.setValue('mileage', e.target.value, { shouldValidate: true })}
+              className='break-all w-full'
+              label='Kilometraj'
+              error={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined}
+              required
+            />
+            <AppInput
+              type='number'
+              placeholder='2020'
+              value={form.watch('year')}
+              onChange={(e) => form.setValue('year', e.target.value, { shouldValidate: true })}
+              className='break-all w-full'
+              label='An Fabricație'
+              error={form.formState.errors.year ? [form.formState.errors.year] : undefined}
+              required
+            />
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='brand'>Marcă</FieldLabel>
-              <Input {...form.register('brand')} placeholder='BMW' className='w-full' />
-              <FieldError errors={form.formState.errors.brand ? [form.formState.errors.brand] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='color'>Culoare</FieldLabel>
-              <Input {...form.register('color')} placeholder='Alb' className='w-full' />
-              <FieldError errors={form.formState.errors.color ? [form.formState.errors.color] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='engineCapacity'>Capacitate Cilindrică (L)</FieldLabel>
-              <Input {...form.register('engineCapacity')} type='number' step='0.1' placeholder='2.0' className='w-full' />
-              <FieldError errors={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='carType'>Tip Mașină</FieldLabel>
-              <Select value={form.watch('carType')} onValueChange={(v) => form.setValue('carType', v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other')}>
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Selectați tipul' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='SUV'>SUV</SelectItem>
-                  <SelectItem value='Coupe'>Coupe</SelectItem>
-                  <SelectItem value='Sedan'>Sedan</SelectItem>
-                  <SelectItem value='Hatchback'>Hatchback</SelectItem>
-                  <SelectItem value='Convertible'>Convertible</SelectItem>
-                  <SelectItem value='Wagon'>Wagon</SelectItem>
-                  <SelectItem value='Pickup'>Pickup</SelectItem>
-                  <SelectItem value='Van'>Van</SelectItem>
-                  <SelectItem value='Other'>Altul</SelectItem>
-                </SelectContent>
-              </Select>
-              <FieldError errors={form.formState.errors.carType ? [form.formState.errors.carType] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='horsePower'>Putere (CP)</FieldLabel>
-              <Input {...form.register('horsePower')} type='number' placeholder='150' className='w-full' />
-              <FieldError errors={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined} />
-            </Field>
-            <Field className='min-w-0 w-full'>
-              <FieldLabel htmlFor='transmission'>Transmisie</FieldLabel>
-              <Select value={form.watch('transmission')} onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}>
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Selectați transmisia' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='Manual'>Manuală</SelectItem>
-                  <SelectItem value='Automatic'>Automată</SelectItem>
-                  <SelectItem value='Semi-Automatic'>Semi-automată</SelectItem>
-                </SelectContent>
-              </Select>
-              <FieldError errors={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined} />
-            </Field>
-            <Field orientation='horizontal' className='max-w-full'>
-              <Checkbox id='is4x4' {...form.register('is4x4')} />
-              <FieldLabel htmlFor='is4x4' className='font-normal'>4x4</FieldLabel>
-              <FieldError errors={form.formState.errors.is4x4 ? [form.formState.errors.is4x4] : undefined} />
-            </Field>
+            <AppSelectInput
+              options={brandOptions}
+              value={form.watch('brand')}
+              onValueChange={(v) => form.setValue('brand', v as string, { shouldValidate: true })}
+              placeholder='Selectați marca'
+              className='w-full'
+              label='Marcă'
+              error={form.formState.errors.brand ? [form.formState.errors.brand] : undefined}
+              required
+            />
+            <AppSelectInput
+              options={colorOptions}
+              value={form.watch('color')}
+              onValueChange={(v) => form.setValue('color', v as string, { shouldValidate: true })}
+              placeholder='Selectați culoarea'
+              className='w-full'
+              label='Culoare'
+              error={form.formState.errors.color ? [form.formState.errors.color] : undefined}
+              required
+            />
+            <AppInput
+              type='number'
+              step='0.1'
+              placeholder='2.0'
+              value={form.watch('engineCapacity')}
+              onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldValidate: true })}
+              className='w-full'
+              label='Capacitate Cilindrică (L)'
+              error={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined}
+              required
+            />
+            <AppSelectInput
+              options={[
+                { value: 'SUV', label: 'SUV' },
+                { value: 'Coupe', label: 'Coupe' },
+                { value: 'Sedan', label: 'Sedan' },
+                { value: 'Hatchback', label: 'Hatchback' },
+                { value: 'Convertible', label: 'Convertible' },
+                { value: 'Wagon', label: 'Wagon' },
+                { value: 'Pickup', label: 'Pickup' },
+                { value: 'Van', label: 'Van' },
+                { value: 'Other', label: 'Altul' },
+              ]}
+              value={form.watch('carType')}
+              onValueChange={(v) =>
+                form.setValue(
+                  'carType',
+                  v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other'
+                )
+              }
+              placeholder='Selectați tipul'
+              className='w-full'
+              label='Tip Mașină'
+              error={form.formState.errors.carType ? [form.formState.errors.carType] : undefined}
+              required
+            />
+            <AppInput
+              type='number'
+              placeholder='150'
+              value={form.watch('horsePower')}
+              onChange={(e) => form.setValue('horsePower', e.target.value, { shouldValidate: true })}
+              className='w-full'
+              label='Putere (CP)'
+              error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
+              required
+            />
+            <AppSelectInput
+              options={[
+                { value: 'Manual', label: 'Manuală' },
+                { value: 'Automatic', label: 'Automată' },
+                { value: 'Semi-Automatic', label: 'Semi-automată' },
+              ]}
+              value={form.watch('transmission')}
+              onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}
+              placeholder='Selectați transmisia'
+              className='w-full'
+              label='Transmisie'
+              error={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined}
+              required
+            />
+            <AppCheckbox
+              label='4x4'
+              value={form.watch('is4x4')}
+              onChange={(checked) => form.setValue('is4x4', checked as boolean)}
+              error={form.formState.errors.is4x4 ? [form.formState.errors.is4x4] : undefined}
+              className='max-w-full'
+              lift={false}
+            />
           </div>
 
-          <Field className='min-w-0 w-full'>
-            <FieldLabel htmlFor='features' className='flex items-center gap-2'>
-              <Settings className='h-4 w-4' /> Caracteristici
-            </FieldLabel>
-            <AppTextarea
-              value={form.watch('features')}
-              onChange={(v) => form.setValue('features', v)}
-              placeholder='Listează caracteristicile...'
-            />
-            <FieldError errors={form.formState.errors.features ? [form.formState.errors.features] : undefined} />
-          </Field>
+          <AppTextarea
+            value={form.watch('features')}
+            onChange={(v) => form.setValue('features', v)}
+            placeholder='Listează caracteristicile...'
+            label='Caracteristici'
+            error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
+          />
 
-          <Collapsible open={driverOpen} onOpenChange={(open) => { setDriverOpen(open); form.setValue('withDriver', open); }}>
+          <Collapsible
+            open={driverOpen}
+            onOpenChange={(open) => {
+              setDriverOpen(open);
+              form.setValue('withDriver', open);
+            }}
+          >
             <CollapsibleTrigger asChild>
-              <div className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 cursor-default">
+              <div className='hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 cursor-default'>
                 <div onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    id="withDriver"
-                    checked={driverOpen}
-                    onCheckedChange={(checked) => { const isChecked = checked === true; setDriverOpen(isChecked); form.setValue('withDriver', isChecked); }}
-                    className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
+                  <AppCheckbox
+                    label=''
+                    value={driverOpen}
+                    onChange={(checked) => {
+                      const isChecked = checked === true;
+                      setDriverOpen(isChecked);
+                      form.setValue('withDriver', isChecked);
+                    }}
+                    className='data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700'
                   />
                 </div>
-                <div className="grid gap-1.5 font-normal">
-                  <p className="text-sm leading-none font-medium">
-                    Cu Șofer
-                  </p>
-                  <p className="text-muted-foreground text-sm">
+                <div className='grid gap-1.5 font-normal'>
+                  <p className='text-sm leading-none font-medium'>Cu Șofer</p>
+                  <p className='text-muted-foreground text-sm'>
                     Selectați această opțiune dacă doriți să includeți un șofer în închiriere.
                   </p>
                 </div>
               </div>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 pl-6">
-              <Field className='min-w-0 w-full'>
-                <FieldLabel htmlFor='driverName'>Nume Șofer</FieldLabel>
-                <Input {...form.register('driverName')} placeholder='Introduceți numele șoferului' className='break-all w-full' />
-                <FieldError errors={form.formState.errors.driverName ? [form.formState.errors.driverName] : undefined} />
-              </Field>
-              <Field className='min-w-0 w-full'>
-                <FieldLabel htmlFor='driverContact'>Contact Șofer</FieldLabel>
-                <Input {...form.register('driverContact')} placeholder='Introduceți contactul șoferului' className='break-all w-full' />
-                <FieldError errors={form.formState.errors.driverContact ? [form.formState.errors.driverContact] : undefined} />
-              </Field>
-              <Field className='min-w-0 w-full'>
-                <FieldLabel htmlFor='driverTelephone'>Telefon Șofer</FieldLabel>
-                <Input {...form.register('driverTelephone')} placeholder='Introduceți telefonul șoferului' className='break-all w-full' />
-                <FieldError errors={form.formState.errors.driverTelephone ? [form.formState.errors.driverTelephone] : undefined} />
-              </Field>
+            <CollapsibleContent className='space-y-2 pl-6'>
+              <AppInput
+                type='text'
+                placeholder='Introduceți numele șoferului'
+                value={form.watch('driverName')}
+                onChange={(e) => form.setValue('driverName', e.target.value, { shouldValidate: true })}
+                className='break-all w-full'
+                label='Nume Șofer'
+                error={form.formState.errors.driverName ? [form.formState.errors.driverName] : undefined}
+                required={driverOpen}
+              />
+              <AppInput
+                type='text'
+                placeholder='Introduceți contactul șoferului'
+                value={form.watch('driverContact')}
+                onChange={(e) => form.setValue('driverContact', e.target.value, { shouldValidate: true })}
+                className='break-all w-full'
+                label='Contact Șofer'
+                error={form.formState.errors.driverContact ? [form.formState.errors.driverContact] : undefined}
+                required={driverOpen}
+              />
+              <AppInput
+                type='text'
+                placeholder='Introduceți telefonul șoferului'
+                value={form.watch('driverTelephone')}
+                onChange={(e) => form.setValue('driverTelephone', e.target.value, { shouldValidate: true })}
+                className='break-all w-full'
+                label='Telefon Șofer'
+                error={form.formState.errors.driverTelephone ? [form.formState.errors.driverTelephone] : undefined}
+                required={driverOpen}
+              />
             </CollapsibleContent>
           </Collapsible>
 
-          <FieldSet>
-            <FieldLegend>Opțiuni Adiționale</FieldLegend>
-            <FieldGroup className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-              {availableOptions.map((option) => (
-                <Field key={option} orientation='horizontal' className='max-w-full'>
-                  <Checkbox id={option} onCheckedChange={(checked) => toggleOption(option, checked)} />
-                  <FieldLabel lift={false} htmlFor={option} className='font-normal'>
-                    {option}
-                  </FieldLabel>
-                </Field>
-              ))}
-            </FieldGroup>
-          </FieldSet>
+          <AppCollapsibleCheckboxGroup
+            label='Opțiuni Adiționale'
+            options={availableOptions.map((opt) => ({ value: opt, label: opt }))}
+            value={options}
+            onChange={setOptions}
+            className='min-w-0 w-full'
+          />
 
-          <Field className='min-w-0 w-full'>
-            <FieldLabel>Fișiere</FieldLabel>
-            <div>
-              <AppMediaUploaderInput key={uploaderKey} onFilesChange={handleFilesChange} />
-            </div>
-            <FieldError errors={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined} />
-          </Field>
+          <AppMediaUploaderInput
+            label='Fișiere'
+            error={form.formState.errors.uploadedFiles ? [form.formState.errors.uploadedFiles] : undefined}
+            className='min-w-0 w-full'
+            uploaderKey={uploaderKey}
+            onFilesChange={handleFilesChange}
+            required
+          />
         </FieldGroup>
       </FieldSet>
 

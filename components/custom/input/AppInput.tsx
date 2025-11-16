@@ -9,7 +9,7 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 type AppInputProps = {
   type?: string;
   placeholder?: string;
-  value: string;
+  value: string | readonly string[] | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
@@ -55,7 +55,7 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
             ref={ref}
             type={type}
             placeholder={placeholder}
-            value={value}
+            value={value || ''}
             onChange={onChange}
             onKeyDown={onKeyDown}
             min={min}

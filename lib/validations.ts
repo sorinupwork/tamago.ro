@@ -87,11 +87,8 @@ export const auto = {
       features: z.string().optional(),
       status: z.string().min(1, 'Statusul este obligatoriu'),
       fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
-      mileage: z
-        .string()
-        .regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' })
-        .optional(),
-      year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }).optional(),
+      mileage: z.string().min(1, 'Kilometrajul este obligatoriu').regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
+      year: z.string().min(1, 'Anul este obligatoriu').regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
       brand: z.string().min(1, 'Marca este obligatorie'),
       color: z.string().min(1, 'Culoarea este obligatorie'),
       engineCapacity: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Capacitatea cilindrică trebuie să fie un număr' }),
@@ -111,6 +108,18 @@ export const auto = {
     .refine((data) => new Date(data.startDate) < new Date(data.endDate), {
       message: 'Data de sfârșit trebuie să fie după data de început',
       path: ['endDate'],
+    })
+    .refine((data) => !data.withDriver || (data.driverName && data.driverName.length > 0), {
+      message: 'Numele șoferului este obligatoriu când este selectat cu șofer',
+      path: ['driverName'],
+    })
+    .refine((data) => !data.withDriver || (data.driverContact && data.driverContact.length > 0), {
+      message: 'Contactul șoferului este obligatoriu când este selectat cu șofer',
+      path: ['driverContact'],
+    })
+    .refine((data) => !data.withDriver || (data.driverTelephone && data.driverTelephone.length > 0), {
+      message: 'Telefonul șoferului este obligatoriu când este selectat cu șofer',
+      path: ['driverTelephone'],
     }),
   auctionSchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),

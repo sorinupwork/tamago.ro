@@ -181,13 +181,15 @@ export const AppLocationInput: React.FC<AppLocationInputProps> = ({
                               className='w-full'
                             />
                           </div>
-                          <MapComponent
-                            mapPosition={mapPosition}
-                            selectedLocation={location}
-                            onMapClick={handleMapClick}
-                            filteredCars={filteredCars}
-                            radius={radius}
-                          />
+                          <div style={{ height: '300px', width: '100%' }}>
+                            <MapComponent
+                              mapPosition={mapPosition}
+                              selectedLocation={location}
+                              onMapClick={handleMapClick}
+                              filteredCars={filteredCars}
+                              radius={radius}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className='p-4'>
