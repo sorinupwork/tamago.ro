@@ -57,12 +57,19 @@ export type Subcategory = {
 };
 
 export type User = {
-  id: number;
+  id: string; // MongoDB _id as string
   name: string;
-  avatar: string;
-  status: string;
-  category: string;
-  location: [number, number];
+  email: string;
+  password?: string; // Only for credentials provider; hashed in DB
+  provider: 'credentials' | 'google' | 'facebook' | 'instagram';
+  image?: string; // For social providers
+  emailVerified?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  role?: 'user' | 'admin'; // Optional for future roles
+  badges?: string[]; // Array of badge names (e.g., ['First Post', 'Verified'])
+  progress?: { posts: number; friends: number; points: number }; // Progress metrics
+  rewards?: { freePosts: number; premiumAccess: boolean }; // Rewards like free posts
 };
 
 export type Message = {

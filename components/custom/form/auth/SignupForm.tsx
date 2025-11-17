@@ -3,19 +3,18 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { signUp, signIn } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { AppInput } from '@/components/custom/input/AppInput';
 import { signupSchema, type SignupFormData } from '@/lib/validations';
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [nameFocused, setNameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(signupSchema),
@@ -26,8 +25,26 @@ export default function SignupForm() {
     },
   });
 
-  const onSubmit = (values: SignupFormData) => {
-    toast.success('Înregistrare reușită!');
+  const onSubmit = async (values: SignupFormData) => {
+    const result = await signUp.email({
+      email: values.email,
+      password: values.password,
+      name: values.name,
+    });
+    if (result.error) {
+      toast.error(result.error.message || 'Înregistrare eșuată.');
+    } else {
+      const signInResult = await signIn.email({
+        email: values.email,
+        password: values.password,
+      });
+      if (signInResult.error) {
+        toast.error('Înregistrare reușită, dar autentificare eșuată.');
+      } else {
+        toast.success('Înregistrare și autentificare reușite!');
+        router.push('/profile');
+      }
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -43,66 +60,35 @@ export default function SignupForm() {
           ta către productivitate și conectare.
         </p>
       </div>
-      <Field>
-        <FieldLabel
-          htmlFor='name'
-          className={`mb-0.5 transition-transform duration-300 ease-in-out ${nameFocused ? '-translate-y-2' : ''}`}
-        >
-          Nume
-        </FieldLabel>
-        <Input
-          id='name'
-          placeholder='Nume'
-          {...form.register('name')}
-          onFocus={() => setNameFocused(true)}
-          onBlur={() => setNameFocused(false)}
-          required
-        />
-      </Field>
-      <Field>
-        <FieldLabel
-          htmlFor='email'
-          className={`mb-0.5 transition-transform duration-300 ease-in-out ${emailFocused ? '-translate-y-2' : ''}`}
-        >
-          Email
-        </FieldLabel>
-        <Input
-          id='email'
-          type='email'
-          placeholder='m@example.com'
-          {...form.register('email')}
-          onFocus={() => setEmailFocused(true)}
-          onBlur={() => setEmailFocused(false)}
-          required
-        />
-      </Field>
-      <Field>
-        <FieldLabel
-          htmlFor='password'
-          className={`mb-0.5 transition-transform duration-300 ease-in-out ${passwordFocused ? '-translate-y-2' : ''}`}
-        >
-          Parolă
-        </FieldLabel>
-        <div className='relative'>
-          <Input
-            id='password'
-            type={showPassword ? 'text' : 'password'}
-            {...form.register('password')}
-            onFocus={() => setPasswordFocused(true)}
-            onBlur={() => setPasswordFocused(false)}
-            required
-          />
-          <Button
-            type='button'
-            variant='ghost'
-            size='sm'
-            className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-            onClick={togglePasswordVisibility}
-          >
-            {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
-          </Button>
-        </div>
-      </Field>
+      <AppInput
+        label='Nume'
+        type='text'
+        placeholder='Nume'
+        {...form.register('name')}
+        required
+        htmlFor='name'
+        error={form.formState.errors.name ? [{ message: form.formState.errors.name.message }] : []}
+      />
+      <AppInput
+        label='Email'
+        type='email'
+        placeholder='m@example.com'
+        {...form.register('email')}
+        required
+        htmlFor='email'
+        error={form.formState.errors.email ? [{ message: form.formState.errors.email.message }] : []}
+      />
+      <AppInput
+        label='Parolă'
+        type={showPassword ? 'text' : 'password'}
+        placeholder='Parola'
+        {...form.register('password')}
+        required
+        htmlFor='password'
+        error={form.formState.errors.password ? [{ message: form.formState.errors.password.message }] : []}
+        rightIcon={showPassword ? EyeOff : Eye}
+        onRightIconClick={togglePasswordVisibility}
+      />
       <Button type='submit'>Înregistrare</Button>
     </form>
   );

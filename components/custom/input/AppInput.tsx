@@ -9,13 +9,13 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 type AppInputProps = {
   type?: string;
   placeholder?: string;
-  value: string | readonly string[] | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
+  onRightIconClick?: () => void;
   className?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  min?: number;
+  min?: string | number;
   label?: string;
   error?: { message?: string }[];
   required?: boolean;
@@ -27,10 +27,10 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
     {
       type = 'text',
       placeholder,
-      value,
       onChange,
       leftIcon: LeftIcon,
       rightIcon: RightIcon,
+      onRightIconClick,
       className = '',
       onKeyDown,
       min,
@@ -55,14 +55,20 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
             ref={ref}
             type={type}
             placeholder={placeholder}
-            value={value || ''}
             onChange={onChange}
             onKeyDown={onKeyDown}
             min={min}
             className={`transition-all duration-200 focus:scale-101 ${LeftIcon ? 'pl-10' : ''} ${RightIcon ? 'pr-10' : ''}`}
             {...rest}
           />
-          {RightIcon && <RightIcon className='absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />}
+          {RightIcon && (
+            <RightIcon
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground ${
+                onRightIconClick ? 'cursor-pointer' : ''
+              }`}
+              onClick={onRightIconClick}
+            />
+          )}
         </div>
         {error && <FieldError errors={error} />}
       </Field>

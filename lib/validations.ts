@@ -158,9 +158,14 @@ export const signupSchema = z.object({
   password: z.string().min(6, 'Parola trebuie să aibă cel puțin 6 caractere'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.email('Email invalid'),
+});
+
 export type AutoSellFormData = z.infer<typeof auto.sellSchema>;
 export type AutoBuyFormData = z.infer<typeof auto.buySchema>;
 export type AutoRentFormData = z.infer<typeof auto.rentSchema>;
 export type AutoAuctionFormData = z.infer<typeof auto.auctionSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type SignupFormData = z.infer<typeof signupSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;

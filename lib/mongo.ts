@@ -7,6 +7,7 @@ if (!uri) {
 }
 
 const client = new MongoClient(uri);
+export { db, client };
 
 let db: Db;
 
