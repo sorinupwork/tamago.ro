@@ -8,15 +8,29 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Trophy, Share2, CheckCircle, Star, Edit, Settings, Bell, Heart, TrendingUp, Award, Zap } from 'lucide-react';
+import { Trophy, Share2, CheckCircle, Star, Edit, Settings, Bell, Heart, TrendingUp, Award, Zap, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { signOut } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+
+interface User {
+  id: string;
+  name?: string;
+  email?: string;
+  image?: string | null;
+}
+
+interface Session {
+  user: User;
+}
 
 interface ProfileClientProps {
-  session: any; // Replace with proper type from better-auth
+  session: Session;
 }
 
 export default function ProfileClient({ session }: ProfileClientProps) {
   const user = session.user;
+  const router = useRouter();
 
   // Mock data for demo; replace with DB fetch later
   const userData = {
@@ -39,6 +53,12 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     } else {
       toast.info('Share link copied to clipboard!');
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success('Logged out successfully!');
+    router.push('/cont');
   };
 
   return (
@@ -79,6 +99,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               <Button variant='outline' className='hover:scale-105 transition-transform'>
                 <Edit className='h-4 w-4 mr-2' />
                 Edit Profile
+              </Button>
+              <Button onClick={handleLogout} variant='destructive' className='hover:scale-105 transition-transform'>
+                <LogOut className='h-4 w-4 mr-2' />
+                Logout
               </Button>
             </div>
           </CardHeader>
