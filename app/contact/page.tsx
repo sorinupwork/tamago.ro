@@ -32,7 +32,7 @@ const extendedMockUsers = mockUsers
   .concat(
     mockUsers.map((u, index) => ({
       ...u,
-      id: u.id + mockUsers.length + index,
+      id: (parseInt(u.id) + mockUsers.length + index).toString(),
       name: u.name + ' Copy',
       avatar: u.avatar,
       status: u.status,
@@ -42,7 +42,7 @@ const extendedMockUsers = mockUsers
   .concat(
     mockUsers.map((u, index) => ({
       ...u,
-      id: u.id + mockUsers.length * 2 + index,
+      id: (parseInt(u.id) + mockUsers.length * 2 + index).toString(),
       name: u.name + ' Copy 2',
       avatar: u.avatar,
       status: u.status,
@@ -84,7 +84,7 @@ export default function ContactPage() {
     .filter((user) => user.name.toLowerCase().includes(search.toLowerCase()) && (category === 'Toți' || user.category === category))
     .sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name);
-      if (sort === 'status') return a.status.localeCompare(b.status);
+      if (sort === 'status') return (a.status || '').localeCompare(b.status || '');
       return 0;
     });
 

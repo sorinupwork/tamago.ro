@@ -30,7 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CarCard } from '@/components/custom/auto/CarCard';
 import { StoriesSection } from '@/components/custom/contact/StoriesSection';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
-import type { Car } from '@/lib/types';
+import type { Car, User } from '@/lib/types';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 type RawCarDoc = {
@@ -227,10 +227,14 @@ export default function CarDetailPage() {
   const similarCars = allCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
 
   // Prepare bidders for StoriesSection with bid info
-  const biddersForStories = bidHistory.map((bid, index) => ({
-    id: index + 1,
+  const biddersForStories: User[] = bidHistory.map((bid, index) => ({
+    id: (index + 1).toString(),
     name: bid.bidder,
+    email: `mock${index}@example.com`,
+    provider: 'credentials' as const,
     avatar: `/avatars/0${(index % 4) + 1}.png`, // Cycle through avatars
+    createdAt: new Date(),
+    updatedAt: new Date(),
     status: `Bid: $${bid.amount}`,
     category: 'auction',
     location: [45.9432 + index * 0.01, 24.9668 + index * 0.01] as [number, number], // Mock location

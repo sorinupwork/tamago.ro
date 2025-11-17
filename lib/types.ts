@@ -62,7 +62,7 @@ export type User = {
   email: string;
   password?: string; // Only for credentials provider; hashed in DB
   provider: 'credentials' | 'google' | 'facebook' | 'instagram';
-  image?: string; // For social providers
+  avatar?: string; // Changed from image to avatar for consistency with mock data
   emailVerified?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -70,6 +70,9 @@ export type User = {
   badges?: string[]; // Array of badge names (e.g., ['First Post', 'Verified'])
   progress?: { posts: number; friends: number; points: number }; // Progress metrics
   rewards?: { freePosts: number; premiumAccess: boolean }; // Rewards like free posts
+  status?: string; // Added for mock data and StoriesSection
+  category?: string; // Added for mock data and StoriesSection
+  location?: [number, number]; // Added for mock data
 };
 
 export type Message = {

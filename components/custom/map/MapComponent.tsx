@@ -4,22 +4,13 @@ import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMap, useMapEvents } from 'react-leaflet';
-import { Car } from '@/lib/types';
+import { Car, User } from '@/lib/types';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
 const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
 const Circle = dynamic(() => import('react-leaflet').then((mod) => mod.Circle), { ssr: false });
-
-type User = {
-  id: number;
-  name: string;
-  avatar: string;
-  status: string;
-  category: string;
-  location: [number, number];
-};
 
 type Location = {
   lat: number;
@@ -45,7 +36,7 @@ function MapBounds({ users }: { users: User[] }) {
 
   useEffect(() => {
     if (users.length > 0) {
-      const bounds = users.map((user) => user.location);
+      const bounds = users.filter((user) => user.location).map((user) => user.location!);
       map.fitBounds(bounds, { padding: [20, 20] });
     }
   }, [map, users]);
@@ -167,14 +158,14 @@ export default function MapComponent({
       )}
       {users.map((user) => {
         const customIcon = L.icon({
-          iconUrl: user.avatar,
+          iconUrl: user.avatar!,
           iconSize: [40, 40],
           iconAnchor: [20, 40],
           popupAnchor: [0, -40],
           className: 'rounded-full border-2 border-white',
         });
         return (
-          <Marker key={user.id} position={user.location} icon={customIcon}>
+          <Marker key={user.id} position={user.location!} icon={customIcon}>
             <Popup>
               <div className='flex justify-between gap-4 w-80'>
                 <Avatar>
