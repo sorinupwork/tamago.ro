@@ -67,6 +67,8 @@ type RawCarDoc = {
   driverContact?: string;
   driverTelephone?: string;
   options?: string[];
+  minPrice?: string;
+  maxPrice?: string;
 };
 
 export default function AutoPage() {
@@ -121,7 +123,7 @@ export default function AutoPage() {
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-        images: doc.uploadedFiles || [],
+        images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
         dateAdded: new Date().toISOString(),
         sellerType: 'private',
         contactPhone: '123456789',
@@ -141,6 +143,8 @@ export default function AutoPage() {
         options: doc.options || [],
         lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
         lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+        minPrice: doc.minPrice,
+        maxPrice: doc.maxPrice,
       }));
       setCars(mappedCars);
       setLoading(false);

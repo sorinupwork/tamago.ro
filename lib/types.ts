@@ -33,6 +33,8 @@ export type Car = {
   options?: string[];
   lat?: number;
   lng?: number;
+  minPrice?: string;
+  maxPrice?: string;
 };
 
 export type Post = {

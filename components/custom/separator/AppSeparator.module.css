@@ -11,14 +11,12 @@
   box-sizing: border-box;
   position: relative;
   --rim-height: 2px;
-  height: 80px;
+  height: 40px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   pointer-events: none;
   border: solid 0.12rem transparent;
-  border-top-left-radius: 50% 100%;
-  border-top-right-radius: 50% 100%;
   border-bottom: none;
   background: radial-gradient(50% 500% at 50% -420%, rgba(64, 97, 231, 0.18) 70%, rgba(0, 0, 0, 0.04) 100%), var(--card);
   background-clip: padding-box;
@@ -39,21 +37,21 @@
 
 @media (min-width: 600px) {
   .netflixSeparator {
-    height: 100px;
+    height: 60px;
     --rim-height: 3px;
   }
 }
 
 @media (min-width: 960px) {
   .netflixSeparator {
-    height: 120px;
+    height: 80px;
     --rim-height: 3px;
   }
 }
 
 @media (min-width: 1280px) {
   .netflixSeparator {
-    height: 140px;
+    height: 100px;
     --rim-height: 4px;
   }
 }

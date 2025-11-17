@@ -204,7 +204,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   }) => {
     return (
       <section
-        className={`mt-4 sm:mt-6 px-0 relative overflow-y-visible ${
+        className={`my-4 sm:mt-6 px-0 relative overflow-y-visible ${
           isVisible ? 'opacity-100' : 'opacity-0'
         } transition-opacity duration-500`}
       >

@@ -41,19 +41,29 @@ export function CarCard({ car }: CarCardProps) {
       case 'auction':
         return [
           { icon: Star, value: 'Licitație Activă', label: 'Status' },
-          { icon: Zap, value: `$${car.price}`, label: 'Bid Curent' }, // Removed toLocaleString to show raw string
+          { icon: Zap, value: `${car.price} ${car.currency}`, label: 'Bid Curent' },
           { icon: Calendar, value: 'În Desfășurare', label: 'Perioadă' },
         ];
       case 'rent':
         return [
           { icon: Star, value: 'Disponibil', label: 'Status' },
-          { icon: Zap, value: `$${car.price}/zi`, label: 'Tarif' },
+          { icon: Zap, value: `${car.price} ${car.currency}/${car.period || 'zi'}`, label: 'Tarif' },
           { icon: Calendar, value: car.year, label: 'An' },
         ];
-      default: // sell or buy
+      case 'buy':
+        return [
+          { icon: Star, value: 'Cerere Activă', label: 'Status' },
+          {
+            icon: Zap,
+            value: car.minPrice && car.maxPrice ? `${car.minPrice} - ${car.maxPrice} ${car.currency}` : `${car.price} ${car.currency}`,
+            label: 'Buget',
+          },
+          { icon: Calendar, value: car.year, label: 'An' },
+        ];
+      default: // sell
         return [
           { icon: Star, value: 'Stare Excelentă', label: 'Condiție' },
-          { icon: Gauge, value: `${car.mileage.toLocaleString('en-US')} km`, label: 'Km' },
+          { icon: Gauge, value: `${car.mileage} km`, label: 'Km' },
           { icon: Zap, value: `${car.horsepower || 'N/A'} CP`, label: 'Putere' },
         ];
     }
@@ -68,7 +78,9 @@ export function CarCard({ car }: CarCardProps) {
         return 'Licitează Acum';
       case 'rent':
         return 'Închiriază Acum';
-      default: // sell or buy
+      case 'buy':
+        return 'Oferă Acum';
+      default: // sell
         return 'Cumpără Acum';
     }
   };
@@ -77,7 +89,7 @@ export function CarCard({ car }: CarCardProps) {
 
   return (
     <Link key={car.id} href={href} className='cursor-default'>
-      <Card className='overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>
+      <Card className='overflow-hidden hover:shadow-md transition-all duration-300  animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>
         <Carousel className='w-full'>
           <CarouselContent>
             {car.images.map((img, i) => (
@@ -95,7 +107,16 @@ export function CarCard({ car }: CarCardProps) {
           <div className='flex justify-between items-start'>
             <div className='flex-1'>
               <CardTitle className='text-lg md:text-xl font-semibold line-clamp-2'>{car.title}</CardTitle>
-              <p className='text-xl md:text-2xl font-bold text-green-600'>${car.price}</p> {/* Now displays raw string (e.g., "12.800") */}
+              <p className='text-xl md:text-2xl font-bold text-green-600'>
+                {car.currency}{' '}
+                {car.category === 'buy'
+                  ? car.minPrice && car.maxPrice
+                    ? `${car.minPrice} - ${car.maxPrice}`
+                    : car.price
+                  : car.category === 'rent'
+                  ? `${car.price}/${car.period || 'zi'}`
+                  : car.price}
+              </p>
             </div>
             <div className='flex items-center gap-1 ml-2'>
               <Button variant='ghost' size='sm' onClick={handleFavorite} className='h-8 w-8 p-0'>
@@ -126,9 +147,7 @@ export function CarCard({ car }: CarCardProps) {
               ))}
             </div>
           </div>
-          {car.description && (
-            <p className='text-sm text-muted-foreground mb-4 line-clamp-2'>{car.description}</p>
-          )}
+          {car.description && <p className='text-sm text-muted-foreground mb-4 line-clamp-2'>{car.description}</p>}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
               <Fuel className='h-4 w-4 flex-shrink-0' />

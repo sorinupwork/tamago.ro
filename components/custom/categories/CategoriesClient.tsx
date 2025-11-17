@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Showcase } from './Showcase';
 import { Preview } from './Preview';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
@@ -178,38 +177,38 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           className='wrap-break-word overflow-hidden'
         />
       </header>
-      <ScrollArea className='flex-1 overflow-x-hidden'>
-        <main className='flex flex-1 flex-col lg:flex-row gap-2 overflow-auto overflow-x-hidden'>
-          <div className='flex-1 overflow-visible min-w-0'>
-            {selectedSubcategory ? (
-              <div className='p-4'>
-                <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
-                  <CardHeader className='shrink-0'>
-                    <CardTitle className='text-2xl font-bold text-center'>
-                      Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
-                      {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='flex-1 min-w-0'>
-                    <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className='overflow-hidden overflow-x-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
-                <Showcase category={selectedCategory} />
-              </div>
-            )}
-          </div>
-          {selectedSubcategory === 'auto' && (
-            <div className='flex-1 overflow-visible w-full md:w-auto min-w-0 p-4'>
-              <div className='w-full min-w-0'>
-                <Preview key={selectedCategory} {...previewData} />
-              </div>
+
+      <div className='flex lg:items-start flex-1 flex-col lg:flex-row'>
+        <div className='flex-1'>
+          {selectedSubcategory ? (
+            <div className='p-4'>
+              <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
+                <CardHeader className='shrink-0'>
+                  <CardTitle className='text-2xl font-bold text-center'>
+                    Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
+                    {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className='flex-1 min-w-0'>
+                  <Suspense fallback={<LoadingIndicator />}>{getForm()}</Suspense>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className='overflow-hidden overflow-x-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 w-full'>
+              <Showcase category={selectedCategory} />
             </div>
           )}
-        </main>
-      </ScrollArea>
+        </div>
+
+        {selectedSubcategory === 'auto' && (
+          <div className='flex-1 p-4 sticky top-28'>
+            <div className='w-full min-w-0'>
+              <Preview key={selectedCategory} {...previewData} />
+            </div>
+          </div>
+        )}
+      </div>
     </SidebarInset>
   );
 }

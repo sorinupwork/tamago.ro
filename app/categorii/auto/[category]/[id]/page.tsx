@@ -61,6 +61,8 @@ type RawCarDoc = {
   driverContact?: string;
   driverTelephone?: string;
   options?: string[];
+  minPrice?: string;
+  maxPrice?: string;
 };
 
 export default function CarDetailPage() {
@@ -159,7 +161,7 @@ export default function CarDetailPage() {
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-        images: doc.uploadedFiles || [],
+        images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
         dateAdded: new Date().toISOString(),
         sellerType: 'private',
         contactPhone: '123456789',
@@ -179,6 +181,8 @@ export default function CarDetailPage() {
         options: doc.options || [],
         lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
         lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+        minPrice: doc.minPrice,
+        maxPrice: doc.maxPrice,
       }));
       setAllCars(mappedCars);
       const foundCar = mappedCars.find((c) => c.id === id);
@@ -265,60 +269,62 @@ export default function CarDetailPage() {
 
   return (
     <div className='container mx-auto max-w-7xl'>
-      <div className='flex items-center gap-4 p-4 overflow-x-hidden'>
-        <Breadcrumbs
-          items={[
-            { label: 'Acasă', href: '/' },
-            { label: 'Categorii', href: '/categorii' },
-            { label: 'Auto', href: autoHref },
-            { label: car.title },
-          ]}
-          className='wrap-break-word'
-        />
-      </div>
-
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 px-4'>
-        <Card ref={carouselRef} className='relative p-0 h-fit lg:sticky lg:top-0'>
-          <Carousel
-            opts={{
-              align: 'center',
-              loop: false,
-            }}
-            orientation='vertical'
-            className='w-full h-full overflow-visible'
-            setApi={setApi}
-            onNext={handleNext}
-            onPrev={handlePrev}
-          >
-            <CarouselContent className='-mt-1 h-[777px] gap-2 p-2'>
-              {car.images.map((image, index) => (
-                <CarouselItem key={index} className='relative basis-1/2'>
-                  <MediaPreview
-                    mediaItems={car.images.map((url, i) => ({
-                      type: 'image',
-                      url,
-                      alt: `${car.title} ${i + 1}`,
-                    }))}
-                    initialIndex={index}
-                    trigger={
-                      <Image
-                        fill
-                        src={imageSrcs[index]}
-                        alt={`${car.title} ${index + 1}`}
-                        className='object-cover rounded-xl'
-                        placeholder='blur'
-                        blurDataURL='/placeholder.svg'
-                        onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
-                      />
-                    }
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2' />
-            <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2' />
-          </Carousel>
-        </Card>
+        <div className='flex flex-col flex-1'>
+          <div className='flex items-center gap-4 p-4 lg:sticky lg:top-14'>
+            <Breadcrumbs
+              items={[
+                { label: 'Acasă', href: '/' },
+                { label: 'Categorii', href: '/categorii' },
+                { label: 'Auto', href: autoHref },
+                { label: car.title },
+              ]}
+              className='wrap-break-word'
+            />
+          </div>
+
+          <Card ref={carouselRef} className='relative p-0 h-fit lg:sticky lg:top-28'>
+            <Carousel
+              opts={{
+                align: 'center',
+                loop: false,
+              }}
+              orientation='vertical'
+              className='w-full h-full overflow-visible pb-4'
+              setApi={setApi}
+              onNext={handleNext}
+              onPrev={handlePrev}
+            >
+              <CarouselContent className='-mt-1 max-h-[650px] gap-2.5 p-5'>
+                {car.images.map((image, index) => (
+                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px]'>
+                    <MediaPreview
+                      mediaItems={car.images.map((url, i) => ({
+                        type: 'image',
+                        url,
+                        alt: `${car.title} ${i + 1}`,
+                      }))}
+                      initialIndex={index}
+                      trigger={
+                        <Image
+                          fill
+                          src={imageSrcs[index]}
+                          alt={`${car.title} ${index + 1}`}
+                          className='object-cover rounded-xl'
+                          placeholder='blur'
+                          blurDataURL='/placeholder.svg'
+                          onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
+                        />
+                      }
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2' />
+              <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2' />
+            </Carousel>
+          </Card>
+        </div>
 
         <div className='space-y-6'>
           <Card ref={detailsRef}>
@@ -346,7 +352,16 @@ export default function CarDetailPage() {
                 </Badge>
                 {isAuction && <Badge variant='outline'>Licitație Activ</Badge>}
               </div>
-              <p className='text-4xl font-bold text-green-600'>{car.price} {car.currency}</p>
+              <p className='text-4xl font-bold text-green-600'>
+                {car.currency}{' '}
+                {isBuy
+                  ? car.minPrice && car.maxPrice
+                    ? `${car.minPrice} - ${car.maxPrice}`
+                    : car.price
+                  : isRent
+                  ? `${car.price}/${car.period || 'zi'}`
+                  : car.price}
+              </p>
               {isAuction && (
                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
                   <div className='flex items-center gap-2 text-sm font-medium text-red-700'>
@@ -406,7 +421,9 @@ export default function CarDetailPage() {
                     <strong>Opțiuni:</strong>
                     <div className='flex flex-wrap gap-1 mt-1'>
                       {car.options.map((option, index) => (
-                        <Badge key={index} variant='outline'>{option}</Badge>
+                        <Badge key={index} variant='outline'>
+                          {option}
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -415,9 +432,15 @@ export default function CarDetailPage() {
               {isRent && car.withDriver && (
                 <div className='mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
                   <h4 className='font-semibold text-blue-800 dark:text-blue-200'>Șofer Inclus</h4>
-                  <p><strong>Nume Șofer:</strong> {car.driverName}</p>
-                  <p><strong>Contact Șofer:</strong> {car.driverContact}</p>
-                  <p><strong>Telefon Șofer:</strong> {car.driverTelephone}</p>
+                  <p>
+                    <strong>Nume Șofer:</strong> {car.driverName}
+                  </p>
+                  <p>
+                    <strong>Contact Șofer:</strong> {car.driverContact}
+                  </p>
+                  <p>
+                    <strong>Telefon Șofer:</strong> {car.driverTelephone}
+                  </p>
                 </div>
               )}
               <p className='text-xs text-muted-foreground mt-4'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>

@@ -85,11 +85,12 @@ export function Preview({
   is4x4,
 }: PreviewProps) {
   return (
-    <Card className='animate-in fade-in-0 slide-in-from-right-4 shadow-md w-full'>
+    <Card className='shadow-md w-full'>
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
       </CardHeader>
-      <CardContent className='space-y-4 overflow-auto'>
+      {/* limit height to viewport minus header and allow internal scroll */}
+      <CardContent className='space-y-4 overflow-auto' style={{ maxHeight: 'calc(100vh - 56px)' }}>
         <div className='flex flex-col md:flex-row gap-2'>
           <h3 className='min-w-0 text-lg font-semibold break-all overflow-wrap-break-word'>{title || 'Titlu Postare'}</h3>
           <Badge variant={category === 'auction' ? 'destructive' : 'secondary'} className='self-start'>
