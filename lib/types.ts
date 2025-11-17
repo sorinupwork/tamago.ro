@@ -1,5 +1,5 @@
 export type Car = {
-  id: number;
+  id: string; // Changed to string for _id
   title: string;
   price: string;
   currency?: string;
@@ -38,13 +38,14 @@ export type Car = {
 };
 
 export type Post = {
-  id: number;
+  id: string; // Changed from number to string for _id
   title: string;
   desc: string;
   icon: React.ComponentType<{ className?: string }>;
   verified: boolean;
   isNew: boolean;
   imageUrl: string;
+  category: string; // Add category for navigation
 };
 
 export type Subcategory = {

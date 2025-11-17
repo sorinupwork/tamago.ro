@@ -69,7 +69,7 @@ export default function CarDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const category = params.category as string;
-  const id = parseInt(params.id as string);
+  const id = params.id as string; // Use as string
   const queryString = searchParams.toString();
   const autoHref = `/categorii/auto${queryString ? '?' + queryString : ''}`;
 
@@ -127,8 +127,7 @@ export default function CarDetailPage() {
     const fetchCars = async () => {
       setLoading(true);
       let carsData: RawCarDoc[];
-      const cat = category === 'sell' ? 'vanzare' : category === 'buy' ? 'cumparare' : category === 'rent' ? 'inchiriere' : 'licitatie';
-      switch (cat) {
+      switch (category) { // Use category directly
         case 'vanzare':
           carsData = await getSellAutoCars();
           break;
@@ -147,17 +146,17 @@ export default function CarDetailPage() {
       }
 
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
-        id: index + 1,
+        id: doc._id.toString(), // Use _id as string
         title: doc.title || '',
-        price: String(doc.price || '0'), // Ensure it's always a string
+        price: String(doc.price || '0'),
         currency: doc.currency || 'RON',
         period: doc.period || '',
         startDate: doc.startDate || '',
         endDate: doc.endDate || '',
-        year: parseInt(doc.year || '2020') || 2020, // Parse to number
+        year: parseInt(doc.year || '2020') || 2020,
         brand: doc.brand || 'Unknown',
-        category: category as 'sell' | 'buy' | 'rent' | 'auction',
-        mileage: parseInt(doc.mileage || '0') || 0, // Parse to number
+        category: category === 'vanzare' ? 'sell' : category === 'cumparare' ? 'buy' : category === 'inchiriere' ? 'rent' : 'auction',
+        mileage: parseInt(doc.mileage || '0') || 0,
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
@@ -168,8 +167,8 @@ export default function CarDetailPage() {
         contactEmail: 'email@example.com',
         bodyType: doc.carType || 'Sedan',
         color: doc.color || 'Alb',
-        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined, // Parse to number
-        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined, // Parse to number
+        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
+        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
         status: doc.status || 'used',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
@@ -185,7 +184,7 @@ export default function CarDetailPage() {
         maxPrice: doc.maxPrice,
       }));
       setAllCars(mappedCars);
-      const foundCar = mappedCars.find((c) => c.id === id);
+      const foundCar = mappedCars.find((c) => c.id === id); // Find by string ID
       setCar(foundCar || null);
       setImageSrcs(foundCar?.images.map((img) => img || '/placeholder.svg') || []);
       setLoading(false);

@@ -20,7 +20,17 @@ type CarCardProps = {
 export function CarCard({ car }: CarCardProps) {
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
-  const href = `/categorii/auto/${car.category}/${car.id}${queryString ? '?' + queryString : ''}`;
+
+  // Map category to Romanian URL
+  const categoryMap = {
+    sell: 'vanzare',
+    buy: 'cumparare',
+    rent: 'inchiriere',
+    auction: 'licitatie',
+  };
+  const urlCategory = categoryMap[car.category as keyof typeof categoryMap] || car.category;
+
+  const href = `/categorii/auto/${urlCategory}/${car.id}${queryString ? '?' + queryString : ''}`;
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();

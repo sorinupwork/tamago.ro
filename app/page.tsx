@@ -1,9 +1,11 @@
 import AppCarousel from '@/components/custom/carousel/AppCarousel';
 import AppGoldenSection from '@/components/custom/section/AppGoldenSection';
 import { subcategories } from '@/lib/subcategories';
-import { posts } from '@/lib/mockData';
+import { getGoldenSectionPosts } from '@/actions/auto/actions'; // New import
 
-export default function Home() {
+export default async function Home() {
+  const posts = await getGoldenSectionPosts(); // Fetch from DB via server action
+
   const serializedPosts = posts.map(post => ({
     id: post.id,
     title: post.title,
@@ -11,6 +13,7 @@ export default function Home() {
     verified: post.verified,
     isNew: post.isNew,
     imageUrl: post.imageUrl,
+    category: post.category, // Add category
   }));
 
   return (

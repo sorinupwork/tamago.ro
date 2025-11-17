@@ -10,12 +10,13 @@ import { toast } from 'sonner';
 type AppGoldenSectionProps = {
   title: string;
   posts: {
-    id: number;
+    id: string; // Changed from number to string
     title: string;
     desc: string;
     verified: boolean;
     isNew: boolean;
     imageUrl: string;
+    category: string; // Add category
   }[];
 };
 
@@ -44,7 +45,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[5]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[5]?.imageUrl})` }}
-              onClick={() => displayedPosts[5] && router.push(`/post/${displayedPosts[5].id}`)}
+              onClick={() => displayedPosts[5] && router.push(`/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -53,7 +54,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[5]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[5]?.category}/${displayedPosts[5]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -64,7 +65,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[5] && router.push(`/post/${displayedPosts[5].id}`);
+                    displayedPosts[5] && router.push(`/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
@@ -93,7 +94,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[4]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[4]?.imageUrl})` }}
-              onClick={() => displayedPosts[4] && router.push(`/post/${displayedPosts[4].id}`)}
+              onClick={() => displayedPosts[4] && router.push(`/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -102,7 +103,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[4]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[4]?.category}/${displayedPosts[4]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -113,7 +114,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[4] && router.push(`/post/${displayedPosts[4].id}`);
+                    displayedPosts[4] && router.push(`/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
@@ -142,7 +143,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[0]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[0]?.imageUrl})` }}
-              onClick={() => displayedPosts[0] && router.push(`/post/${displayedPosts[0].id}`)}
+              onClick={() => displayedPosts[0] && router.push(`/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -151,7 +152,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[0]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[0]?.category}/${displayedPosts[0]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -162,7 +163,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[0] && router.push(`/post/${displayedPosts[0].id}`);
+                    displayedPosts[0] && router.push(`/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
@@ -191,7 +192,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[1]?.id}
               className='relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[1]?.imageUrl})` }}
-              onClick={() => displayedPosts[1] && router.push(`/post/${displayedPosts[1].id}`)}
+              onClick={() => displayedPosts[1] && router.push(`/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -200,7 +201,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[1]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[1]?.category}/${displayedPosts[1]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -211,7 +212,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[1] && router.push(`/post/${displayedPosts[1].id}`);
+                    displayedPosts[1] && router.push(`/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
@@ -240,7 +241,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[2]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[2]?.imageUrl})` }}
-              onClick={() => displayedPosts[2] && router.push(`/post/${displayedPosts[2].id}`)}
+              onClick={() => displayedPosts[2] && router.push(`/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -249,7 +250,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[2]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[2]?.category}/${displayedPosts[2]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -260,7 +261,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[2] && router.push(`/post/${displayedPosts[2].id}`);
+                    displayedPosts[2] && router.push(`/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
@@ -289,7 +290,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[3]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[3]?.imageUrl})` }}
-              onClick={() => displayedPosts[3] && router.push(`/post/${displayedPosts[3].id}`)}
+              onClick={() => displayedPosts[3] && router.push(`/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
                 <Button
@@ -298,7 +299,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/post/${displayedPosts[3]?.id}`);
+                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[3]?.category}/${displayedPosts[3]?.id}`);
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -309,7 +310,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
                   onClick={(e) => {
                     e.stopPropagation();
-                    displayedPosts[3] && router.push(`/post/${displayedPosts[3].id}`);
+                    displayedPosts[3] && router.push(`/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}`);
                   }}
                 >
                   Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />

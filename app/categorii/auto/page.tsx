@@ -109,17 +109,17 @@ export default function AutoPage() {
       }
 
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
-        id: index + 1, // Use index as id since DB has _id as string
+        id: doc._id.toString(), // Use _id as string
         title: doc.title || '',
-        price: String(doc.price || '0'), // Ensure it's always a string
-        currency: doc.currency || 'RON', // Added to match Car type
+        price: String(doc.price || '0'),
+        currency: doc.currency || 'RON',
         period: doc.period || '',
         startDate: doc.startDate || '',
         endDate: doc.endDate || '',
-        year: parseInt(doc.year || '2020') || 2020, // Parse to number
+        year: parseInt(doc.year || '2020') || 2020,
         brand: doc.brand || 'Unknown',
         category: activeTab === 'vanzare' ? 'sell' : activeTab === 'cumparare' ? 'buy' : activeTab === 'inchiriere' ? 'rent' : 'auction',
-        mileage: parseInt(doc.mileage || '0') || 0, // Parse to number
+        mileage: parseInt(doc.mileage || '0') || 0,
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
@@ -130,8 +130,8 @@ export default function AutoPage() {
         contactEmail: 'email@example.com',
         bodyType: doc.carType || 'Sedan',
         color: doc.color || 'Alb',
-        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined, // Parse to number
-        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined, // Parse to number
+        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
+        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
         status: doc.status || 'used',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
