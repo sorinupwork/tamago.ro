@@ -1,6 +1,6 @@
 import { KeyRound, Wrench, CreditCard, CheckCircle } from 'lucide-react';
 
-import MarketplaceContactSection from '@/components/custom/marketplace/MarketplaceContactSection';
+import MarketplaceContactSection from '@/components/custom/section/MarketplaceContactSection';
 import AppPlatinumSection from '@/components/custom/section/AppPlatinumSection';
 
 export default function Suport() {

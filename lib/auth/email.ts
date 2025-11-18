@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-import { ResetPasswordEmail } from '@/components/email/ResetPasswordEmail';
+import { ResetPasswordEmail } from '@/components/custom/email/ResetPasswordEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

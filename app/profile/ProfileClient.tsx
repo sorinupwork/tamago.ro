@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'; // Add this import for skel
 import { Input } from '@/components/ui/input'; // Add import for custom Input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Assume Select component exists; if not, use plain select with styling
 
-import BadgesCarousel from '@/components/custom/profile/BadgesCarousel';
+import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
 import EditDrawer from '@/components/custom/profile/EditDrawer';
 import PostsGrid from '@/components/custom/profile/PostsGrid';
 import ActivityFeed from '@/components/custom/profile/ActivityFeed';

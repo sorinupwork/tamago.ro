@@ -28,7 +28,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import MapComponent from '@/components/custom/map/MapComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CarCard } from '@/components/custom/auto/CarCard';
-import { StoriesSection } from '@/components/custom/contact/StoriesSection';
+import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import type { Car, User } from '@/lib/types';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';

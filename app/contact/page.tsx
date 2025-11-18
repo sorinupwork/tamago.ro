@@ -5,12 +5,12 @@ import { User, HelpCircle, MessageCircle } from 'lucide-react';
 
 import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
 import { AppChatBox } from '@/components/custom/chat/AppChatBox';
-import MarketplaceContactSection from '@/components/custom/marketplace/MarketplaceContactSection';
+import MarketplaceContactSection from '@/components/custom/section/MarketplaceContactSection';
 import { Message, User as UserType, FeedPost } from '@/lib/types';
 import { mockUsers } from '@/lib/mockData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StoriesSection } from '@/components/custom/contact/StoriesSection';
-import { FeedSection } from '@/components/custom/contact/FeedSection';
+import { StoriesSection } from '@/components/custom/section/StoriesSection';
+import { FeedSection } from '@/components/custom/section/FeedSection';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 
 const mockStories = mockUsers
