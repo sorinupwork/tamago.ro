@@ -3,16 +3,18 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forgetPassword } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/lib/validations';
+import { requestPasswordReset } from '@/lib/auth/auth-client';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 export default function ForgotPasswordForm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const forgotForm = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -22,14 +24,21 @@ export default function ForgotPasswordForm() {
   });
 
   const onForgotSubmit = async (values: ForgotPasswordFormData) => {
-    const result = await forgetPassword({
-      email: values.email,
-    });
-    if (result.error) {
-      toast.error(result.error.message || 'Eroare la trimiterea email-ului.');
-    } else {
-      toast.success('Email de reset trimis!');
-      setIsDialogOpen(false);
+    setLoading(true);
+    try {
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : '/reset-password';
+      const result = await requestPasswordReset({ email: values.email, redirectTo });
+      if (result.error) {
+        toast.error(result.error.message || 'Eroare la trimiterea email-ului.');
+      } else {
+        toast.success('Email de reset trimis! Verifică-ți inbox-ul.');
+        setIsDialogOpen(false);
+        forgotForm.reset();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Eroare la trimiterea email-ului.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,8 +63,12 @@ export default function ForgotPasswordForm() {
             required
             htmlFor='forgot-email'
             error={forgotForm.formState.errors.email ? [{ message: forgotForm.formState.errors.email.message }] : []}
+            disabled={loading}
           />
-          <Button type='submit'>Trimite</Button>
+          <Button type='submit' disabled={loading} className='flex items-center justify-center gap-2'>
+            {loading ? <LoadingIndicator inline size={16} showText={false} /> : null}
+            {loading ? 'Se trimite...' : 'Trimite'}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

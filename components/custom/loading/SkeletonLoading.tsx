@@ -35,7 +35,7 @@ export default function SkeletonLoading({ variant }: SkeletonLoadingProps) {
 
   if (variant === 'profile') {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800'>
+      <div className='min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800'>
         <div className='container mx-auto p-6 space-y-8'>
           <Skeleton className='h-32 w-full rounded-lg' />
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -49,7 +49,6 @@ export default function SkeletonLoading({ variant }: SkeletonLoadingProps) {
     );
   }
 
-  // Default skeleton
   return (
     <div className='flex items-center justify-center min-h-screen'>
       <Skeleton className='h-32 w-32 rounded-full' />

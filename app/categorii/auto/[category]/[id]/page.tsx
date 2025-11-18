@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/drawer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
 import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
-import { MediaPreview } from '@/components/custom/MediaPreview';
+import { MediaPreview } from '@/components/custom/media/MediaPreview';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapComponent from '@/components/custom/map/MapComponent';

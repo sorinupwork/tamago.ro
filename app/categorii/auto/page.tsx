@@ -17,9 +17,9 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AutoTabs } from '@/components/custom/tabs/AutoTabs';
 import { categoryMapping } from '@/lib/categories';
-import { getFilteredCars, getAppliedFilters } from '@/lib/helpers/auto/filters';
-import { getSortedCars } from '@/lib/helpers/auto/sorting';
-import { calcTotalPages, paginateArray } from '@/lib/helpers/auto/pagination';
+import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
+import { getSortedCars } from '@/lib/auto/sorting';
+import { calcTotalPages, paginateArray } from '@/lib/auto/pagination';
 import {
   defaultActiveTab,
   defaultFilters,
@@ -33,7 +33,7 @@ import {
   getInitialSearchQuery,
   getInitialLocationFilter,
   getInitialCurrentPage,
-} from '@/lib/helpers/auto/initializers';
+} from '@/lib/auto/initializers';
 import type { FilterState, SortCriteria, LocationData, LocationFilter, Car } from '@/lib/types';
 import { CarCard } from '@/components/custom/auto/CarCard';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
@@ -43,17 +43,17 @@ type RawCarDoc = {
   _id: string;
   title?: string;
   price?: string | number;
-  year?: string; // Updated to string to match DB
+  year?: string;
   brand?: string;
-  mileage?: string; // Updated to string to match DB
+  mileage?: string;
   fuel?: string;
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
   carType?: string;
   color?: string;
-  engineCapacity?: string; // Updated to string to match DB
-  horsePower?: string; // Updated to string to match DB
+  engineCapacity?: string;
+  horsePower?: string;
   status?: string;
   description?: string;
   features?: string | string[];
@@ -85,7 +85,6 @@ export default function AutoPage() {
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
 
-  // Fetch and console log cars for the active tab's collection, and set cars state
   useEffect(() => {
     const fetchCars = async () => {
       setLoading(true);
@@ -109,7 +108,7 @@ export default function AutoPage() {
       }
 
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
-        id: doc._id.toString(), // Use _id as string
+        id: doc._id.toString(),
         title: doc.title || '',
         price: String(doc.price || '0'),
         currency: doc.currency || 'RON',
@@ -590,10 +589,10 @@ export default function AutoPage() {
           isMobile
             ? 'grid-cols-1'
             : paginatedItems.length === 1
-            ? 'grid-cols-1'
-            : paginatedItems.length === 2
-            ? 'grid-cols-2'
-            : 'grid-cols-3'
+              ? 'grid-cols-1'
+              : paginatedItems.length === 2
+                ? 'grid-cols-2'
+                : 'grid-cols-3'
         )}
       >
         {paginatedItems.map((car) => (

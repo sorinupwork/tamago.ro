@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from '@/lib/auth-client';
+import { signIn } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
@@ -12,9 +12,11 @@ import { Button } from '@/components/ui/button';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm({
@@ -26,11 +28,13 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (values: LoginFormData) => {
+    setLoading(true);
     const result = await signIn.email({
       email: values.email,
       password: values.password,
     });
     if (result.error) {
+      setLoading(false);
       toast.error('Autentificare eșuată: Verifică email-ul și parola.');
     } else {
       toast.success('Autentificare reușită!');
@@ -60,6 +64,7 @@ export default function LoginForm() {
           required
           htmlFor="email"
           error={form.formState.errors.email ? [{ message: form.formState.errors.email.message }] : []}
+          disabled={loading}
         />
         <AppInput
           label="Parolă"
@@ -71,8 +76,12 @@ export default function LoginForm() {
           error={form.formState.errors.password ? [{ message: form.formState.errors.password.message }] : []}
           rightIcon={showPassword ? EyeOff : Eye}
           onRightIconClick={togglePasswordVisibility}
+          disabled={loading}
         />
-        <Button type='submit'>Autentificare</Button>
+        <Button type='submit' disabled={loading} className='flex items-center justify-center gap-2'>
+          {loading ? <LoadingIndicator inline size={16} showText={false} /> : null}
+          {loading ? 'Se autentifică...' : 'Autentificare'}
+        </Button>
       </form>
       <ForgotPasswordForm />
     </>

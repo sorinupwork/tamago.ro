@@ -1,26 +1,27 @@
 'use server';
 
-import db from '@/lib/mongo';
+import { ObjectId } from 'mongodb';
+import { Car as CarIcon } from 'lucide-react';
+
+import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Car, Post } from '@/lib/types'; // Add type imports
-import { Car as CarIcon } from 'lucide-react'; // Move import to top
-import { ObjectId } from 'mongodb'; // Add import
+import { Car, Post } from '@/lib/types';
 
 type RawCarDoc = {
-  _id: ObjectId | string; // Specify proper type
+  _id: ObjectId | string;
   title?: string;
   price?: string | number;
-  year?: string; // Updated to string to match DB
+  year?: string;
   brand?: string;
-  mileage?: string; // Updated to string to match DB
+  mileage?: string;
   fuel?: string;
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
   carType?: string;
   color?: string;
-  engineCapacity?: string; // Updated to string to match DB
-  horsePower?: string; // Updated to string to match DB
+  engineCapacity?: string;
+  horsePower?: string;
   status?: string;
   description?: string;
   features?: string | string[];
@@ -136,23 +137,23 @@ export async function getGoldenSectionPosts() {
       { collection: 'auction_auto_cars', urlCategory: 'licitatie', carCategory: 'auction' as const },
     ];
 
-    // Fetch and attach categories
     const allCarsPromises = categoryMappings.map(({ collection, urlCategory, carCategory }) =>
-      db.collection(collection).find({}).sort({ _id: -1 }).limit(6).toArray().then(cars =>
-        cars.map(car => ({ ...car, urlCategory, carCategory } as ExtendedRawCarDoc))
-      )
+      db
+        .collection(collection)
+        .find({})
+        .sort({ _id: -1 })
+        .limit(6)
+        .toArray()
+        .then((cars) => cars.map((car) => ({ ...car, urlCategory, carCategory }) as ExtendedRawCarDoc))
     );
     const allCarsArrays = await Promise.all(allCarsPromises);
     const allCars = allCarsArrays.flat();
 
-    // Sort combined array by _id descending and take top 6
-    const topCars = allCars
-      .sort((a, b) => (b._id > a._id ? 1 : -1))
-      .slice(0, 6);
+    const topCars = allCars.sort((a, b) => (b._id > a._id ? 1 : -1)).slice(0, 6);
 
     const posts: Post[] = topCars.map((carDoc: ExtendedRawCarDoc) => {
       const mappedCar: Car = {
-        id: carDoc._id.toString(), // Use _id as string
+        id: carDoc._id.toString(),
         title: carDoc.title || '',
         price: String(carDoc.price || '0'),
         currency: carDoc.currency || 'RON',

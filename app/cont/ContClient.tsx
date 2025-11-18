@@ -1,34 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/custom/form/auth/LoginForm';
 import SignupForm from '@/components/custom/form/auth/SignupForm';
 import SocialMediaForm from '@/components/custom/form/auth/SocialMediaForm';
 import AuthInfo from '@/components/custom/form/auth/AuthInfo';
-import Image from 'next/image';
 
 export default function ContClient() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'social'>('login');
-  const [isLg, setIsLg] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const updateIsLg = () => setIsLg(window.innerWidth >= 1024);
-    updateIsLg();
-    window.addEventListener('resize', updateIsLg);
-    return () => window.removeEventListener('resize', updateIsLg);
-  }, []);
-
-  useEffect(() => {
-    const updateIsDark = () => setIsDark(document.documentElement.classList.contains('dark'));
-    updateIsDark();
-    // listen for theme changes
-    const observer = new MutationObserver(updateIsDark);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
+  const isMobile = useIsMobile();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
   const imageSrc = {
     login:
@@ -41,7 +28,7 @@ export default function ContClient() {
 
   return (
     <div className='relative grid min-h-screen lg:grid-cols-2'>
-      {!isLg && (
+      {isMobile && (
         <div
           className='absolute inset-0'
           style={{
@@ -53,11 +40,7 @@ export default function ContClient() {
           }}
         />
       )}
-      <div
-        className={`flex flex-1 flex-col items-center justify-center p-4 lg:p-0 lg:bg-transparent ${
-          isDark ? 'bg-black/50' : 'bg-white/80'
-        }`}
-      >
+      <div className='flex flex-1 flex-col items-center justify-center p-4 lg:p-0 lg:bg-transparent bg-white/80 dark:bg-black/50'>
         <div className='w-full h-full overflow-y-auto'>
           <Tabs
             defaultValue='login'

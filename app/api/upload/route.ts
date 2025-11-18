@@ -5,8 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.formData();
     const files = data.getAll('files') as File[];
-    const category = data.get('category') as string;
-    const subcategory = data.get('subcategory') as string;
+    const category = (data.get('category') as string) || 'misc';
+    const subcategory = (data.get('subcategory') as string) || 'general';
+    const userId = (data.get('userId') as string) || 'anonymous';
+    const postId = (data.get('postId') as string) || null;
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: 'Trebuie să încărcați cel puțin un fișier.' }, { status: 400 });
@@ -23,18 +25,22 @@ export async function POST(request: NextRequest) {
     };
 
     const urls: string[] = [];
+    const storedKeys: string[] = [];
 
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const filename = `${Date.now()}-${file.name}`;
 
       const subfolder = getSubfolder(file, category, subcategory);
-      const key = `${subfolder}/${filename}`;
+      const postSegment = postId ? `post_${postId}/` : '';
+      const key = `user/${userId}/${postSegment}${subfolder}/${filename}`;
+
       const blob = await put(key, buffer, { access: 'public' });
       urls.push(blob.url);
+      storedKeys.push(key);
     }
 
-    return NextResponse.json({ urls });
+    return NextResponse.json({ urls, keys: storedKeys });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });

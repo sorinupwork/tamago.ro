@@ -4,4 +4,4 @@ export const authClient = createAuthClient({
   baseURL: process.env.NODE_ENV === 'production' ? process.env.BETTER_AUTH_URL : 'http://localhost:3000',
 });
 
-export const { signIn, signUp, signOut, useSession, forgetPassword } = authClient;
+export const { signIn, signUp, signOut, useSession, requestPasswordReset, resetPassword } = authClient;

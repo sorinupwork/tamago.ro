@@ -298,7 +298,7 @@ export function MediaPreview({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <div className={cn('cursor-pointer', className)} onClick={() => openPreview(initialIndex)}>
+          <div className={cn('cursor-default', className)} onClick={() => openPreview(initialIndex)}>
             {trigger}
           </div>
         </DialogTrigger>
@@ -398,7 +398,7 @@ export function MediaPreview({
                 </div>
               </AspectRatio>
 
-              <div className='absolute inset-0 cursor-pointer' onClick={() => openPreview(index)} />
+              <div className='absolute inset-0 cursor-default' onClick={() => openPreview(index)} />
 
               {index === maxPhotos - 1 && remainingCount > 0 && showOverflow && (
                 <div className='absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center'>

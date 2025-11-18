@@ -7,16 +7,15 @@ if (!uri) {
 }
 
 const client = new MongoClient(uri);
-export { db, client };
-
-let db: Db;
+let _db: Db | null = null;
 
 async function connectToDatabase(): Promise<Db> {
-  if (!db) {
+  if (!_db) {
     await client.connect();
-    db = client.db('tamago');
+    _db = client.db(process.env.MONGODB_DB_NAME || 'tamago');
   }
-  return db;
+  return _db as Db;
 }
 
-export default await connectToDatabase();
+export const db = await connectToDatabase();
+export { client };
