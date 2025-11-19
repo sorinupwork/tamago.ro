@@ -1,28 +1,27 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { BadgeCheckIcon, ShareIcon, ArrowRightIcon } from 'lucide-react';
+import Link from 'next/link';
+import { BadgeCheckIcon, ArrowRightIcon } from 'lucide-react';
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ShareButton from '../button/ShareButton';
+
+type Post = {
+  id: string;
+  title: string;
+  desc: string;
+  verified: boolean;
+  isNew: boolean;
+  imageUrl: string;
+  category: string;
+};
 
 type AppGoldenSectionProps = {
   title: string;
-  posts: {
-    id: string;
-    title: string;
-    desc: string;
-    verified: boolean;
-    isNew: boolean;
-    imageUrl: string;
-    category: string;
-  }[];
+  posts: Post[];
 };
 
 export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps) {
-  const router = useRouter();
   const displayedPosts = posts.slice(0, 6);
 
   return (
@@ -46,33 +45,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[5]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[5]?.imageUrl})` }}
-              onClick={() => displayedPosts[5] && router.push(`/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[5]?.category}/${displayedPosts[5]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[5] && router.push(`/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[5] ? `/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}` : '#'} />
+                <Link href={displayedPosts[5] ? `/categorii/auto/${displayedPosts[5].category}/${displayedPosts[5].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[5]?.title}</CardTitle>
@@ -97,33 +77,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[4]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[4]?.imageUrl})` }}
-              onClick={() => displayedPosts[4] && router.push(`/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[4]?.category}/${displayedPosts[4]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[4] && router.push(`/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[4] ? `/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}` : '#'} />
+                <Link href={displayedPosts[4] ? `/categorii/auto/${displayedPosts[4].category}/${displayedPosts[4].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[4]?.title}</CardTitle>
@@ -148,33 +109,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[0]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[0]?.imageUrl})` }}
-              onClick={() => displayedPosts[0] && router.push(`/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[0]?.category}/${displayedPosts[0]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[0] && router.push(`/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[0] ? `/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}` : '#'} />
+                <Link href={displayedPosts[0] ? `/categorii/auto/${displayedPosts[0].category}/${displayedPosts[0].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[0]?.title}</CardTitle>
@@ -199,33 +141,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[1]?.id}
               className='relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[1]?.imageUrl})` }}
-              onClick={() => displayedPosts[1] && router.push(`/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[1]?.category}/${displayedPosts[1]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[1] && router.push(`/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[1] ? `/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}` : '#'} />
+                <Link href={displayedPosts[1] ? `/categorii/auto/${displayedPosts[1].category}/${displayedPosts[1].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[1]?.title}</CardTitle>
@@ -250,33 +173,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[2]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[2]?.imageUrl})` }}
-              onClick={() => displayedPosts[2] && router.push(`/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[2]?.category}/${displayedPosts[2]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[2] && router.push(`/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[2] ? `/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}` : '#'} />
+                <Link href={displayedPosts[2] ? `/categorii/auto/${displayedPosts[2].category}/${displayedPosts[2].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[2]?.title}</CardTitle>
@@ -301,33 +205,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               key={displayedPosts[3]?.id}
               className='h-full relative bg-cover bg-center pinch cursor-default'
               style={{ backgroundImage: `url(${displayedPosts[3]?.imageUrl})` }}
-              onClick={() => displayedPosts[3] && router.push(`/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}`)}
             >
               <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-white/80 dark:bg-black/80'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/categorii/auto/${displayedPosts[3]?.category}/${displayedPosts[3]?.id}`
-                    );
-                    toast.success('Link copied to clipboard');
-                  }}
-                >
-                  <ShareIcon className='w-4 h-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='bg-white/80 dark:bg-black/80 text-black dark:text-white'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    displayedPosts[3] && router.push(`/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}`);
-                  }}
-                >
-                  Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
-                </Button>
+                <ShareButton href={displayedPosts[3] ? `/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}` : '#'} />
+                <Link href={displayedPosts[3] ? `/categorii/auto/${displayedPosts[3].category}/${displayedPosts[3].id}` : '#'}>
+                  <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
+                    Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
+                  </Button>
+                </Link>
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[3]?.title}</CardTitle>

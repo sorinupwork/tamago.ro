@@ -1,9 +1,5 @@
-import LoadingIndicator from '../components/custom/loading/LoadingIndicator';
+import SkeletonLoading from '../components/custom/loading/SkeletonLoading';
 
 export default function Loading() {
-  return (
-    <div className='flex-1 flex items-center justify-center bg-background p-4'>
-      <LoadingIndicator />
-    </div>
-  );
+  return <SkeletonLoading variant='homepage' className='flex-1' />;
 }

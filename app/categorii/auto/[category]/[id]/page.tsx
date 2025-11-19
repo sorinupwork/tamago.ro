@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -20,18 +20,17 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'; // Added CarouselApi
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
 import { MediaPreview } from '@/components/custom/media/MediaPreview';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapComponent from '@/components/custom/map/MapComponent';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CarCard } from '@/components/custom/auto/CarCard';
 import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import type { Car, User } from '@/lib/types';
-import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 type RawCarDoc = {
   _id: string;
@@ -41,17 +40,17 @@ type RawCarDoc = {
   period?: string;
   startDate?: string;
   endDate?: string;
-  year?: string; // Updated to string to match DB
+  year?: string;
   brand?: string;
-  mileage?: string; // Updated to string to match DB
+  mileage?: string;
   fuel?: string;
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
   carType?: string;
   color?: string;
-  engineCapacity?: string; // Updated to string to match DB
-  horsePower?: string; // Updated to string to match DB
+  engineCapacity?: string;
+  horsePower?: string;
   status?: string;
   description?: string;
   features?: string | string[];
@@ -69,7 +68,7 @@ export default function CarDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const category = params.category as string;
-  const id = params.id as string; // Use as string
+  const id = params.id as string;
   const queryString = searchParams.toString();
   const autoHref = `/categorii/auto${queryString ? '?' + queryString : ''}`;
 
@@ -85,14 +84,6 @@ export default function CarDetailPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-
-  // Mock auction bidders (keeping as is, since not in DB)
-  const mockAuctionBidders = [
-    { id: 1, name: 'Ion Popescu', avatar: '/avatars/01.png', status: 'Bidder', category: 'auction' },
-    { id: 2, name: 'Maria Ionescu', avatar: '/avatars/02.png', status: 'High Bidder', category: 'auction' },
-    { id: 3, name: 'Vasile Georgescu', avatar: '/avatars/03.png', status: 'Watcher', category: 'auction' },
-    { id: 4, name: 'Elena Dumitrescu', avatar: '/avatars/04.png', status: 'Bidder', category: 'auction' },
-  ];
 
   // Mock bid history for auctions (keeping as is)
   const bidHistory = [
@@ -127,7 +118,7 @@ export default function CarDetailPage() {
     const fetchCars = async () => {
       setLoading(true);
       let carsData: RawCarDoc[];
-      switch (category) { // Use category directly
+      switch (category) {
         case 'vanzare':
           carsData = await getSellAutoCars();
           break;
@@ -146,7 +137,7 @@ export default function CarDetailPage() {
       }
 
       const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
-        id: doc._id.toString(), // Use _id as string
+        id: doc._id.toString(),
         title: doc.title || '',
         price: String(doc.price || '0'),
         currency: doc.currency || 'RON',
@@ -184,7 +175,7 @@ export default function CarDetailPage() {
         maxPrice: doc.maxPrice,
       }));
       setAllCars(mappedCars);
-      const foundCar = mappedCars.find((c) => c.id === id); // Find by string ID
+      const foundCar = mappedCars.find((c) => c.id === id);
       setCar(foundCar || null);
       setImageSrcs(foundCar?.images.map((img) => img || '/placeholder.svg') || []);
       setLoading(false);
@@ -213,7 +204,7 @@ export default function CarDetailPage() {
   };
 
   if (loading) {
-    return <LoadingIndicator />;
+    return <SkeletonLoading variant='auto' className='container mx-auto max-w-7xl' />;
   }
 
   if (!car) return <div>Produsul nu a fost găsit</div>;
@@ -362,8 +353,8 @@ export default function CarDetailPage() {
                     ? `${car.minPrice} - ${car.maxPrice}`
                     : car.price
                   : isRent
-                  ? `${car.price}/${car.period || 'zi'}`
-                  : car.price}
+                    ? `${car.price}/${car.period || 'zi'}`
+                    : car.price}
               </p>
               {isAuction && (
                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>

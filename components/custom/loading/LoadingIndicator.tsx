@@ -11,14 +11,14 @@ type LoadingIndicatorProps = {
   progressValue?: number;
 };
 
-export default function LoadingIndicator({ 
-  color, 
-  size = 32, 
-  text = 'Se încarcă...', 
-  showText = true, 
-  inline = false, 
-  showProgress = false, 
-  progressValue = 0 
+export default function LoadingIndicator({
+  color,
+  size = 32,
+  text = 'Se încarcă...',
+  showText = true,
+  inline = false,
+  showProgress = false,
+  progressValue = 0,
 }: LoadingIndicatorProps) {
   const containerClass = inline ? 'flex items-center gap-2' : 'flex grow flex-col items-center justify-center gap-4';
   const textElement = inline ? <span className='text-secondary'>{text}</span> : <p className='text-secondary'>{text}</p>;

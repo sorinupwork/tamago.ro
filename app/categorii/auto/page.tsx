@@ -38,6 +38,7 @@ import type { FilterState, SortCriteria, LocationData, LocationFilter, Car } fro
 import { CarCard } from '@/components/custom/auto/CarCard';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 type RawCarDoc = {
   _id: string;
@@ -365,10 +366,6 @@ export default function AutoPage() {
     return true;
   });
 
-  if (loading) {
-    return <LoadingIndicator />;
-  }
-
   return (
     <div className='container mx-auto max-w-7xl p-2'>
       <div className='overflow-x-hidden'>
@@ -585,7 +582,7 @@ export default function AutoPage() {
 
       <div
         className={cn(
-          'grid gap-6',
+          'grid gap-6 w-full',
           isMobile
             ? 'grid-cols-1'
             : paginatedItems.length === 1
@@ -595,9 +592,11 @@ export default function AutoPage() {
                 : 'grid-cols-3'
         )}
       >
-        {paginatedItems.map((car) => (
-          <CarCard key={car.id} car={car} />
-        ))}
+        {loading ? (
+          <SkeletonLoading variant='auto' className='w-full col-span-full' />
+        ) : (
+          paginatedItems.map((car) => <CarCard key={car.id} car={car} />)
+        )}
       </div>
 
       <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />
