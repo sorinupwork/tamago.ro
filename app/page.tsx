@@ -4,16 +4,16 @@ import { subcategories } from '@/lib/subcategories';
 import { getGoldenSectionPosts } from '@/actions/auto/actions'; // New import
 
 export default async function Home() {
-  const posts = await getGoldenSectionPosts(); // Fetch from DB via server action
+  const posts = await getGoldenSectionPosts();
 
-  const serializedPosts = posts.map(post => ({
+  const serializedPosts = posts.map((post) => ({
     id: post.id,
     title: post.title,
     desc: post.desc,
     verified: post.verified,
     isNew: post.isNew,
     imageUrl: post.imageUrl,
-    category: post.category, // Add category
+    category: post.category,
   }));
 
   return (

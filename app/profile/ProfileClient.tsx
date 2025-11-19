@@ -1,22 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trophy, Share2, CheckCircle, Edit, Settings, Bell, Heart, TrendingUp, Award, Zap, LogOut, ChevronDown } from 'lucide-react';
+import { Trophy, CheckCircle, Settings, Bell, Heart, TrendingUp, Award, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Accordion } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { signOut } from '@/lib/auth/auth-client';
-import { Skeleton } from '@/components/ui/skeleton'; // Add this import for skeleton loading
-import { Input } from '@/components/ui/input'; // Add import for custom Input
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Assume Select component exists; if not, use plain select with styling
-
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
 import EditDrawer from '@/components/custom/profile/EditDrawer';
 import PostsGrid from '@/components/custom/profile/PostsGrid';
@@ -26,6 +22,12 @@ import QuickActions from '@/components/custom/profile/QuickActions';
 import ProTip from '@/components/custom/profile/ProTip';
 import ProgressBars from '@/components/custom/profile/ProgressBars';
 import SettingsAccordion from '@/components/custom/profile/SettingsAccordion';
+import HeaderProfile from '@/components/custom/profile/HeaderProfile';
+import PostsFilters from '@/components/custom/profile/PostsFilters';
+import RecentActivity from '@/components/custom/profile/RecentActivity';
+import RewardsCard from '@/components/custom/profile/RewardsCard';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { signOut } from '@/lib/auth/auth-client';
 
 type User = {
   id: string;
@@ -59,14 +61,28 @@ export default function ProfileClient({ session }: ProfileClientProps) {
 
   // Mock data for demo; replace with DB fetch later
   const userData = {
-    badges: ['First Login', 'Verified Email', 'Top Poster', 'Community Helper', 'Streak Master'],
+    badges: [
+      'Prima Conectare',
+      'Email Verificat',
+      'Top Poster',
+      'Ajutor Comunitate',
+      'Maestru Serie',
+      'Vânzător de Mașini',
+      'Creator de Sondaje',
+      'Expert Laptopuri',
+      'Pasionat Auto',
+      'Influencer Comunitate',
+      'Vânzător Premium',
+    ], // Added more badges for marketplace/social themes to fill carousel spaces
     progress: { posts: 15, friends: 8, points: 120 },
     rewards: { freePosts: 5, premiumAccess: false },
     verified: { email: true, social: false },
-    bio: 'Passionate about cars and community building. Always exploring new adventures!',
+    bio: 'Pasionat de mașini și construcția comunității. Întotdeauna explorând noi aventuri!',
     followers: 245,
     following: 180,
     postsCount: 42,
+    joinDate: 'Ian 2023',
+    lastActive: 'Acum 2 ore',
   };
 
   const [name, setName] = useState<string>(user?.name ?? '');
@@ -74,12 +90,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(user?.image ?? null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Add state for filters and sorting
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('createdAt'); // Options: 'createdAt', 'views'
+  const [sortBy, setSortBy] = useState<string>('createdAt');
 
-  // Add state for search
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
@@ -104,7 +118,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     setImagePreview(user?.image ?? null);
   };
 
-  // Posts state
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [postsError, setPostsError] = useState<string | null>(null);
@@ -139,8 +152,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
         if (mounted) setPosts(data.posts ?? []);
       } catch (err) {
         console.error(err);
-        if (mounted) setPostsError('Could not load your posts.');
-        // Still set posts to empty to trigger skeleton
+        if (mounted) setPostsError('Nu s-au putut încărca postările.');
         if (mounted) setPosts([]);
       } finally {
         if (mounted) setLoadingPosts(false);
@@ -150,43 +162,43 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     return () => {
       mounted = false;
     };
-  }, [user?.id, categoryFilter, statusFilter, sortBy, searchQuery]); // Add searchQuery dependency
+  }, [user?.id, categoryFilter, statusFilter, sortBy, searchQuery]);
 
   const shareProfile = () => {
+    const profileUrl = `${window.location.origin}/profile/${user?.id || ''}`;
     if (navigator.share) {
       navigator.share({
-        title: 'Check out my Tamago profile!',
-        url: window.location.href,
+        title: 'Vezi profilul meu Tamago!',
+        url: profileUrl,
       });
     } else {
-      navigator.clipboard?.writeText(window.location.href).then(() => {
-        toast.success('Share link copied to clipboard!');
+      navigator.clipboard?.writeText(profileUrl).then(() => {
+        toast.success('Link de distribuire copiat în clipboard!');
       });
     }
   };
 
   const handleLogout = async () => {
     await signOut();
-    toast.success('Logged out successfully!');
+    toast.success('Deconectat cu succes!');
     router.push('/cont');
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm('Delete this post?')) return;
+    if (!confirm('Ștergeți această postare?')) return;
     try {
       const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      if (!res.ok) throw new Error('Ștergere eșuată');
       setPosts((p) => p?.filter((x) => x.id !== postId) ?? null);
-      toast.success('Post deleted');
+      toast.success('Postare ștearsă');
     } catch (err) {
       console.error(err);
-      toast.error('Failed to delete post');
+      toast.error('Eșec la ștergerea postării');
     }
   };
 
   const handleToggleActive = async (postId: string, current?: Post['status']) => {
     const newStatus = current === 'active' ? 'draft' : 'active';
-    // optimistic update
     setPosts((p) => p?.map((x) => (x.id === postId ? { ...x, status: newStatus } : x)) ?? null);
     try {
       const res = await fetch(`/api/posts/${postId}`, {
@@ -194,12 +206,11 @@ export default function ProfileClient({ session }: ProfileClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!res.ok) throw new Error('Update failed');
-      toast.success(`Post ${newStatus === 'active' ? 'activated' : 'deactivated'}`);
+      if (!res.ok) throw new Error('Actualizare eșuată');
+      toast.success(`Postare ${newStatus === 'active' ? 'activată' : 'dezactivată'}`);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to update post status');
-      // revert
+      toast.error('Eșec la actualizarea statusului postării');
       setPosts((p) => p?.map((x) => (x.id === postId ? { ...x, status: current } : x)) ?? null);
     }
   };
@@ -211,249 +222,98 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   return (
     <div className='min-h-screen flex flex-col lg-flex-row'>
       <div className='flex flex-row items-start gap-4'>
-        {/* Aside Section: Sticky on desktop, hidden on mobile */}
         <aside className='hidden lg:block lg:sticky lg:top-14 space-y-4 sm:space-y-6 p-4 sm:p-6'>
           <ActivityFeed
-            activities={['Posted a new item 2 hours ago', 'Earned "Top Poster" badge yesterday', 'Followed 3 new users']}
-            onLoadMore={() => console.log('Load more activities')}
+            activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
+            onLoadMore={() => toast.success('Încarcă mai multe activități')}
           />
 
           <ProgressSummary
             posts={userData.progress.posts}
             friends={userData.progress.friends}
-            onClaimReward={() => console.log('Claim reward')}
+            points={userData.progress.points}
+            onClaimReward={() => toast.success('Revendică recompensa')}
           />
 
-          <QuickActions onCreatePost={() => router.push('/posts/create')} onEditProfile={() => setIsEditing(true)} />
+          <QuickActions />
 
-          <ProTip tip='Share your posts to earn extra points and badges!' />
+          <ProTip
+            tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
+            variant='success'
+            action={{ label: 'Află Mai Multe', onClick: () => toast.info('Mai multe sfaturi în curând!') }}
+          />
         </aside>
 
         <div className='container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 lg:ml-6'>
-          {/* Main Layout: Grid with main content */}
           <div className='flex flex-col gap-4'>
-            {/* Header Section */}
-            <Card className='relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl'>
-              <div className='absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl' />
-              <CardHeader className='relative flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 p-6 sm:p-8'>
-                <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm'>
-                  <AvatarImage src={imagePreview || user?.image || '/placeholder.svg'} />
-                  <AvatarFallback className='text-2xl font-bold'>{(user?.name || 'U').charAt(0)}</AvatarFallback>
-                </Avatar>
-
-                <div className='flex-1 text-center md:text-left'>
-                  <CardTitle className='text-3xl font-bold mb-2'>{user?.name}</CardTitle>
-                  <p className='text-muted-foreground mb-4'>{user?.email}</p>
-                  <p className='text-sm mb-4 max-w-md'>{userData.bio}</p>
-                  <div className='flex justify-center md:justify-start space-x-6 text-sm'>
-                    <div className='text-center'>
-                      <div className='font-bold text-xl'>{userData.postsCount}</div>
-                      <div className='text-muted-foreground'>Posts</div>
-                    </div>
-                    <div className='text-center'>
-                      <div className='font-bold text-xl'>{userData.followers}</div>
-                      <div className='text-muted-foreground'>Followers</div>
-                    </div>
-                    <div className='text-center'>
-                      <div className='font-bold text-xl'>{userData.following}</div>
-                      <div className='text-muted-foreground'>Following</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className='flex flex-col space-y-2'>
-                  <Button onClick={shareProfile} variant='outline' className='hover:scale-105 transition-transform'>
-                    <Share2 className='h-4 w-4 mr-2' /> Share
-                  </Button>
-
-                  <Button onClick={() => setIsEditing(true)} variant='outline' className='hover:scale-105 transition-transform'>
-                    <Edit className='h-4 w-4 mr-2' /> Edit Profile
-                  </Button>
-
-                  <Button onClick={handleLogout} variant='destructive' className='hover:scale-105 transition-transform'>
-                    <LogOut className='h-4 w-4 mr-2' /> Logout
-                  </Button>
-                </div>
-              </CardHeader>
-            </Card>
+            <HeaderProfile
+              user={user}
+              userData={userData}
+              imagePreview={imagePreview}
+              shareProfile={shareProfile}
+              setIsEditing={setIsEditing}
+              handleLogout={handleLogout}
+            />
 
             <Tabs defaultValue='overview' className='w-full'>
-              <TabsList className='grid w-full grid-cols-5 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-1 shadow-md'>
-                <TabsTrigger value='overview'>Overview</TabsTrigger>
-                <TabsTrigger value='badges'>Badges</TabsTrigger>
-                <TabsTrigger value='posts'>My Posts</TabsTrigger>
-                <TabsTrigger value='progress'>Progress</TabsTrigger>
-                <TabsTrigger value='settings'>Settings</TabsTrigger>
-              </TabsList>
+              <div className='overflow-x-auto p-2'>
+                <TabsList className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
+                  <TabsTrigger value='overview' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Prezentare Generală
+                  </TabsTrigger>
+                  <TabsTrigger value='posts' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Postările Mele
+                  </TabsTrigger>
+                  <TabsTrigger value='progress' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Progres & Insigne
+                  </TabsTrigger>
+                  <TabsTrigger value='settings' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Setări
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value='overview' className='space-y-6'>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                  {/* Quick Stats - Reuse ProgressSummary or similar */}
-                  <Card className='hover:shadow-lg transition-all duration-300 hover:scale-[1.02] rounded-xl'>
-                    <CardHeader>
-                      <CardTitle className='flex items-center'>
-                        <TrendingUp className='h-5 w-5 mr-2 text-primary' />
-                        Activity Stats
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                      <div className='flex justify-between items-center'>
-                        <span>Posts</span>
-                        <span className='font-bold'>{userData.postsCount}</span>
-                      </div>
-                      <div className='flex justify-between items-center'>
-                        <span>Friends</span>
-                        <span className='font-bold'>{userData.progress.friends}</span>
-                      </div>
-                      <div className='flex justify-between items-center'>
-                        <span>Points</span>
-                        <span className='font-bold'>{userData.progress.points}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Rewards */}
-                  <Card className='hover:shadow-lg transition-all duration-300 hover:scale-[1.02] rounded-xl'>
-                    <CardHeader>
-                      <CardTitle className='flex items-center'>
-                        <Award className='h-5 w-5 mr-2 text-secondary' />
-                        Rewards
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                      <div className='flex justify-between items-center'>
-                        <span>Free Posts</span>
-                        <Badge variant='secondary'>{userData.rewards.freePosts}</Badge>
-                      </div>
-                      <div className='flex justify-between items-center'>
-                        <span>Premium Access</span>
-                        <Badge variant={userData.rewards.premiumAccess ? 'default' : 'outline'}>
-                          {userData.rewards.premiumAccess ? 'Yes' : 'No'}
-                        </Badge>
-                      </div>
-                      <Button variant='outline' className='w-full hover:scale-105 transition-transform'>
-                        <Zap className='h-4 w-4 mr-2 text-primary' />
-                        Redeem Reward
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <RecentActivity activities={[]} />
+                  <RewardsCard
+                    freePosts={userData.rewards.freePosts}
+                    premiumAccess={userData.rewards.premiumAccess}
+                    onSellClick={() => router.push('/sell')}
+                  />
                 </div>
-
-                {/* Recent Activity Placeholder */}
-                <Card className='hover:shadow-lg transition-all duration-300 rounded-xl'>
-                  <CardHeader>
-                    <CardTitle className='flex items-center'>
-                      <Heart className='h-5 w-5 mr-2 text-destructive' />
-                      Recent Activity
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className='text-muted-foreground'>No recent activity. Start posting to see updates here!</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='badges' className='space-y-6'>
-                <Card className='rounded-xl'>
-                  <CardHeader>
-                    <CardTitle className='flex items-center'>
-                      <Trophy className='h-5 w-5 mr-2' /> Your Badges
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='overflow-hidden'>
-                    <BadgesCarousel badges={userData.badges} />
-                  </CardContent>
-                </Card>
+                <ProgressSummary
+                  posts={userData.progress.posts}
+                  friends={userData.progress.friends}
+                  points={userData.progress.points}
+                  onClaimReward={() => toast.success('Revendică recompensa')}
+                />
               </TabsContent>
 
               <TabsContent value='posts' className='space-y-6'>
-                {/* Enhanced filters and search in a card for better layout */}
-                <Card className='p-4 rounded-xl'>
-                  <div className='flex flex-col sm:flex-row gap-4'>
-                    <Input
-                      type='text'
-                      placeholder='Search posts...'
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className='flex-1'
-                    />
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className='w-full sm:w-48'>
-                        <SelectValue placeholder='All Categories' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='all'>All Categories</SelectItem>
-                        {/* Add more options based on your categories, e.g., <SelectItem value='cars'>Cars</SelectItem> */}
-                      </SelectContent>
-                    </Select>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className='w-full sm:w-48'>
-                        <SelectValue placeholder='All Status' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='all'>All Status</SelectItem>
-                        <SelectItem value='active'>Active</SelectItem>
-                        <SelectItem value='draft'>Draft</SelectItem>
-                        <SelectItem value='sold'>Sold</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className='w-full sm:w-48'>
-                        <SelectValue placeholder='Sort by Date' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='createdAt'>Sort by Date</SelectItem>
-                        <SelectItem value='views'>Sort by Views</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </Card>
+                <PostsFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  categoryFilter={categoryFilter}
+                  onCategoryChange={setCategoryFilter}
+                  statusFilter={statusFilter}
+                  onStatusChange={setStatusFilter}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                />
 
                 {loadingPosts || postsError ? (
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <Card key={i} className='hover:shadow-lg transition-shadow'>
-                        <CardHeader>
-                          <div className='flex items-start justify-between w-full'>
-                            <div className='flex items-center space-x-3'>
-                              <Skeleton className='w-20 h-14 rounded' />
-                              <div>
-                                <Skeleton className='h-4 w-32 mb-1' />
-                                <Skeleton className='h-3 w-20' />
-                              </div>
-                            </div>
-                            <div className='text-right'>
-                              <Skeleton className='h-4 w-16 mb-1' />
-                              <Skeleton className='h-3 w-12' />
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className='flex justify-between items-center'>
-                            <div className='flex space-x-2'>
-                              <Skeleton className='h-8 w-16' />
-                              <Skeleton className='h-8 w-20' />
-                            </div>
-                            <Skeleton className='h-3 w-16' />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <SkeletonLoading variant='profile' />
                 ) : (
                   <PostsGrid posts={posts ?? []} onEdit={handleEditPost} onDelete={handleDeletePost} onToggle={handleToggleActive} />
                 )}
               </TabsContent>
 
               <TabsContent value='progress' className='space-y-6'>
-                <Card className='rounded-xl'>
-                  <CardHeader>
-                    <CardTitle>Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
-                  </CardContent>
-                </Card>
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                  <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
+                  <BadgesCarousel badges={userData.badges} title='Insignele Tale' />
+                </div>
               </TabsContent>
 
               <TabsContent value='settings' className='space-y-6'>
@@ -461,16 +321,18 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                   <SettingsAccordion
                     value='verified'
                     icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
-                    title='Verified Information'
+                    title='Informații Verificate'
                     content={
                       <>
                         <div className='flex items-start gap-2'>
                           <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>Email Verified: {userData.verified.email ? 'Yes' : 'No'}</p>
+                          <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
                         </div>
                         <div className='flex items-start gap-2'>
                           <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>Social Links Verified: {userData.verified.social ? 'Yes' : 'No'}</p>
+                          <p className='text-sm text-muted-foreground'>
+                            Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
+                          </p>
                         </div>
                       </>
                     }
@@ -478,59 +340,82 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                   <SettingsAccordion
                     value='notifications'
                     icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Notifications'
+                    title='Notificări Vânzări & Postări'
                     content={
                       <div className='flex items-start gap-2'>
                         <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>Manage your notification preferences here.</p>
+                        <p className='text-sm text-muted-foreground'>
+                          Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
+                        </p>
                       </div>
                     }
-                    buttonText='Edit Notifications'
-                    onButtonClick={() => console.log('Edit notifications')}
+                    buttonText='Editează Notificările'
+                    onButtonClick={() => console.log('Editează notificările')}
                   />
                   <SettingsAccordion
                     value='privacy'
                     icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Privacy & Security'
+                    title='Confidențialitate & Vânzări'
                     content={
                       <div className='flex items-start gap-2'>
                         <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>Control your privacy settings and account security.</p>
+                        <p className='text-sm text-muted-foreground'>
+                          Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
+                        </p>
                       </div>
                     }
-                    buttonText='Manage Privacy'
-                    onButtonClick={() => console.log('Manage privacy')}
+                    buttonText='Gestionează Confidențialitatea'
+                    onButtonClick={() => console.log('Gestionează confidențialitatea')}
+                  />
+
+                  <SettingsAccordion
+                    value='marketplace'
+                    icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
+                    title='Setări Marketplace'
+                    content={
+                      <div className='flex items-start gap-2'>
+                        <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                        <p className='text-sm text-muted-foreground'>
+                          Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
+                        </p>
+                      </div>
+                    }
+                    buttonText='Editează Setările Vânzărilor'
+                    onButtonClick={() => console.log('Editează setările marketplace')}
                   />
                 </Accordion>
               </TabsContent>
             </Tabs>
           </div>
 
-          {/* Aside Section: In grid on mobile, hidden on desktop */}
           <aside className='lg:hidden space-y-4 sm:space-y-6'>
             <ActivityFeed
-              activities={['Posted a new item 2 hours ago', 'Earned "Top Poster" badge yesterday', 'Followed 3 new users']}
-              onLoadMore={() => console.log('Load more activities')}
+              activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
+              onLoadMore={() => console.log('Încarcă mai multe activități')}
             />
 
             <ProgressSummary
               posts={userData.progress.posts}
               friends={userData.progress.friends}
-              onClaimReward={() => console.log('Claim reward')}
+              points={userData.progress.points}
+              onClaimReward={() => console.log('Revendică recompensa')}
             />
 
-            <QuickActions onCreatePost={() => router.push('/posts/create')} onEditProfile={() => setIsEditing(true)} />
+            <QuickActions />
 
-            <ProTip tip='Share your posts to earn extra points and badges!' />
+            <ProTip
+              tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
+              variant='success'
+              action={{ label: 'Află Mai Multe', onClick: () => toast.info('Mai multe sfaturi în curând!') }}
+            />
           </aside>
         </div>
       </div>
-      {/* Edit Drawer (shadcn Sheet) - controlled */}
+
       <EditDrawer
         open={isEditing}
         onOpenChange={(open) => {
           if (!open) {
-            // discard unsaved changes on close
             setImageFile(null);
             setImagePreview(user?.image ?? null);
             setName(user?.name ?? '');
@@ -542,7 +427,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
         name={name}
         onNameChange={setName}
         email={user?.email ?? ''}
-        imagePreview={user?.image ?? null} // Pass current image
+        imagePreview={user?.image ?? null}
         files={imageFile ? [imageFile] : []}
         userId={user?.id}
         onFilesChange={handleFilesFromUploader}

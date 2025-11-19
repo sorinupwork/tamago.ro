@@ -1,22 +1,23 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { BadgeCheckIcon, ShareIcon, ArrowRightIcon } from 'lucide-react';
+
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 
 type AppGoldenSectionProps = {
   title: string;
   posts: {
-    id: string; // Changed from number to string
+    id: string;
     title: string;
     desc: string;
     verified: boolean;
     isNew: boolean;
     imageUrl: string;
-    category: string; // Add category
+    category: string;
   }[];
 };
 
@@ -29,7 +30,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <h2 className='text-2xl font-bold text-center sm:text-end mb-6 text-secondary'>{title}</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-6'>
-          <div className='relative sm:row-start-1 sm:row-end-3 col-span-full'>
+          <div className='relative sm:row-start-1 sm:row-end-3 col-span-full ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[5]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -54,7 +55,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[5]?.category}/${displayedPosts[5]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[5]?.category}/${displayedPosts[5]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -78,7 +81,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Card>
           </div>
 
-          <div className='relative sm:row-start-3 sm:row-end-6'>
+          <div className='relative sm:row-start-3 sm:row-end-6 ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[4]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -103,7 +106,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[4]?.category}/${displayedPosts[4]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[4]?.category}/${displayedPosts[4]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -127,7 +132,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Card>
           </div>
 
-          <div className='relative sm:row-start-3 sm:row-end-5'>
+          <div className='relative sm:row-start-3 sm:row-end-5 ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[0]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -152,7 +157,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[0]?.category}/${displayedPosts[0]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[0]?.category}/${displayedPosts[0]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -176,7 +183,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Card>
           </div>
 
-          <div className='relative'>
+          <div className='relative ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[1]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -201,7 +208,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[1]?.category}/${displayedPosts[1]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[1]?.category}/${displayedPosts[1]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -225,7 +234,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Card>
           </div>
 
-          <div className='relative'>
+          <div className='relative ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[2]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -250,7 +259,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[2]?.category}/${displayedPosts[2]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[2]?.category}/${displayedPosts[2]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >
@@ -274,7 +285,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Card>
           </div>
 
-          <div className='relative col-span-full sm:col-start-2'>
+          <div className='relative col-span-full sm:col-start-2 ring-2 ring-white rounded-xl backdrop-blur-sm shadow-lg'>
             {displayedPosts[3]?.verified && (
               <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
                 <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -299,7 +310,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
                   className='bg-white/80 dark:bg-black/80'
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(`${window.location.origin}/categorii/auto/${displayedPosts[3]?.category}/${displayedPosts[3]?.id}`);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/categorii/auto/${displayedPosts[3]?.category}/${displayedPosts[3]?.id}`
+                    );
                     toast.success('Link copied to clipboard');
                   }}
                 >

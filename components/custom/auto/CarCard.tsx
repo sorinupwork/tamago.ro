@@ -105,7 +105,7 @@ export function CarCard({ car }: CarCardProps) {
             {car.images.map((img, i) => (
               <CarouselItem key={i}>
                 <div className='aspect-[5/1] bg-muted relative rounded-t-md'>
-                  <Image fill src={img} alt={car.title} className='object-cover object-center rounded-t-md' />
+                  <Image fill src={img} alt={car.title} className='object-cover object-center rounded-t-md ' />
                 </div>
               </CarouselItem>
             ))}

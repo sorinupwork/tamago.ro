@@ -300,7 +300,7 @@ export default function CarDetailPage() {
             >
               <CarouselContent className='-mt-1 max-h-[650px] gap-2.5 p-5'>
                 {car.images.map((image, index) => (
-                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px]'>
+                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] ring-3 ring-white rounded-xl'>
                     <MediaPreview
                       mediaItems={car.images.map((url, i) => ({
                         type: 'image',
