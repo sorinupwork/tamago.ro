@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export function Footer() {
   return (
-    <footer className='bg-muted border-t'>
+    <footer className=' border-t'>
       <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
         <div className='text-center'>
           <h3 className='font-semibold mb-2'>Despre noi</h3>
@@ -50,13 +50,13 @@ export function Footer() {
           <ul className='space-y-1 text-sm flex flex-col items-center'>
             <li>
               <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center cursor-default'>
-                <Image src='/icons/facebook.svg' alt='Facebook' width={16} height={16} className='mr-2' />
+                <Image src='/icons/facebook.svg' alt='Facebook' width={16} height={16} className='mr-2 text-blue-500' />
                 Facebook
               </Link>
             </li>
             <li>
               <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center cursor-default'>
-                <Image src='/icons/instagram.svg' alt='Instagram' width={16} height={16} className='mr-2' />
+                <Image src='/icons/instagram.svg' alt='Instagram' width={16} height={16} className='mr-2 text-purple-500' />
                 Instagram
               </Link>
             </li>

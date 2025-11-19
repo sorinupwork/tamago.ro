@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { BadgeCheckIcon, ArrowRightIcon } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,10 +26,9 @@ type AppGoldenSectionProps = {
 };
 
 export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps) {
-  const displayedPosts = posts.slice(0, 6);
+  const displayedPosts = useMemo(() => posts.slice(0, 6), [posts]);
   const sanitizedDescs = useMemo(() => {
-    if (typeof window === 'undefined') return [];
-    return displayedPosts.map((p) => DOMPurify.sanitize(p?.desc || ''));
+    return displayedPosts.map((p) => sanitizeHtml(p?.desc || ''));
   }, [displayedPosts]);
 
   return (
