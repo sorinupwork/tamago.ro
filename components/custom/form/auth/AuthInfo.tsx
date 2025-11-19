@@ -36,7 +36,7 @@ export default function AuthInfo({
   };
 
   return (
-    <div className='w-full'>
+    <div className='w-full p-2'>
       <Accordion type='multiple' value={openItems} onValueChange={handleValueChange} className='w-full'>
         <AccordionItem value='why'>
           <AccordionTrigger className='text-lg font-semibold [&>svg]:rotate-0 [&>svg]:transition-none'>{whyTitle}</AccordionTrigger>

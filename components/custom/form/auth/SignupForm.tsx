@@ -57,7 +57,7 @@ export default function SignupForm() {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col gap-6'>
+    <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col space-y-4 p-2'>
       <div className='flex flex-col items-center gap-1 text-center mt-4'>
         <h1 className='text-2xl font-bold'>Înregistrare</h1>
         <p className='text-muted-foreground text-sm text-balance'>
