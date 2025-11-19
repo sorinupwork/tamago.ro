@@ -320,7 +320,7 @@ export default function CarDetailPage() {
           </Card>
         </div>
 
-        <div className='space-y-6'>
+        <div className='space-y-6 pt-4'>
           <Card ref={detailsRef}>
             <CardHeader>
               <div className='flex justify-between items-start'>

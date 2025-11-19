@@ -222,7 +222,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   return (
     <div className='min-h-screen flex flex-col lg-flex-row'>
       <div className='flex flex-row items-start gap-4'>
-        <aside className='hidden lg:block lg:sticky lg:top-14 space-y-4 sm:space-y-6 p-4 sm:p-6'>
+        <aside className='hidden lg:block lg:sticky lg:top-14 space-y-4 sm:space-y-6 p-4'>
           <ActivityFeed
             activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
             onLoadMore={() => toast.success('Încarcă mai multe activități')}
@@ -244,7 +244,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
           />
         </aside>
 
-        <div className='container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 lg:ml-6'>
+        <div className='container mx-auto p-4 space-y-6 sm:space-y-8'>
           <div className='flex flex-col gap-4'>
             <HeaderProfile
               user={user}
@@ -287,6 +287,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                   friends={userData.progress.friends}
                   points={userData.progress.points}
                   onClaimReward={() => toast.success('Revendică recompensa')}
+                  defaultValue='progress'
                 />
               </TabsContent>
 
