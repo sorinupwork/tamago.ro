@@ -1,7 +1,7 @@
 import AppCarousel from '@/components/custom/carousel/AppCarousel';
 import AppGoldenSection from '@/components/custom/section/AppGoldenSection';
 import { subcategories } from '@/lib/subcategories';
-import { getGoldenSectionPosts } from '@/actions/auto/actions'; // New import
+import { getGoldenSectionPosts } from '@/actions/auto/actions';
 
 export default async function Home() {
   const posts = await getGoldenSectionPosts();

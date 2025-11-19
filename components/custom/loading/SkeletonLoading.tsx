@@ -54,22 +54,22 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
   if (variant === 'homepage') {
     return (
       <div className={cn('min-h-screen bg-background p-6 space-y-8', className)}>
-        <Skeleton className='h-16 w-full' /> 
-        <Skeleton className='h-64 w-full rounded-lg' /> 
+        <Skeleton className='h-16 w-full' />
+        <Skeleton className='h-64 w-full rounded-lg' />
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           <Skeleton className='h-40 w-full' />
           <Skeleton className='h-40 w-full' />
           <Skeleton className='h-40 w-full' />
         </div>
-        <Skeleton className='h-32 w-full' /> 
+        <Skeleton className='h-32 w-full' />
       </div>
     );
   }
 
   if (variant === 'auto') {
     return (
-      <div className={cn('w-full', className)}>
-        {Array.from({ length: 6 }).map((_, index) => (
+      <div className={cn('w-full gap-4 flex flex-col', className)}>
+        {Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className='space-y-4'>
             <Skeleton className='h-48 w-full rounded-lg' />
             <Skeleton className='h-6 w-3/4' />

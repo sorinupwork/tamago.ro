@@ -1,5 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { BadgeCheckIcon, ArrowRightIcon } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,10 +13,10 @@ import ShareButton from '../button/ShareButton';
 type Post = {
   id: string;
   title: string;
-  desc: string;
-  verified: boolean;
-  isNew: boolean;
-  imageUrl: string;
+  desc?: string;
+  verified?: boolean;
+  isNew?: boolean;
+  imageUrl?: string;
   category: string;
 };
 
@@ -23,6 +27,10 @@ type AppGoldenSectionProps = {
 
 export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps) {
   const displayedPosts = posts.slice(0, 6);
+  const sanitizedDescs = useMemo(() => {
+    if (typeof window === 'undefined') return [];
+    return displayedPosts.map((p) => DOMPurify.sanitize(p?.desc || ''));
+  }, [displayedPosts]);
 
   return (
     <section className='py-8 w-full'>
@@ -56,7 +64,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[5]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[5]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[5] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -88,7 +98,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[4]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[4]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[4] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -120,7 +132,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[0]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[0]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[0] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -152,7 +166,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[1]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[1]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[1] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -184,7 +200,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[2]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[2]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[2] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -216,7 +234,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </div>
               <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
                 <CardTitle className='text-white dark:text-black'>{displayedPosts[3]?.title}</CardTitle>
-                <CardDescription className='text-white dark:text-black'>{displayedPosts[3]?.desc}</CardDescription>
+                <CardDescription className='text-white dark:text-black'>
+                  <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[3] || '' }} />
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>

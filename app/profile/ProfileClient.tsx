@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trophy, CheckCircle, Settings, Bell, Heart, TrendingUp, Award, Zap } from 'lucide-react';
+import { CheckCircle, Settings, Bell, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Accordion } from '@/components/ui/accordion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
 import EditDrawer from '@/components/custom/profile/EditDrawer';
 import PostsGrid from '@/components/custom/profile/PostsGrid';
@@ -28,6 +22,7 @@ import RecentActivity from '@/components/custom/profile/RecentActivity';
 import RewardsCard from '@/components/custom/profile/RewardsCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { signOut } from '@/lib/auth/auth-client';
+import { getUserCars } from '@/actions/auto/actions';
 
 type User = {
   id: string;
@@ -40,7 +35,8 @@ type Post = {
   id: string;
   title: string;
   category: string;
-  price?: number | null;
+  price?: string | null;
+  currency?: string;
   images?: string[];
   status?: 'active' | 'sold' | 'draft';
   createdAt?: string;
@@ -121,6 +117,9 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [postsError, setPostsError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalPosts, setTotalPosts] = useState(0);
 
   const [settingsOpen, setSettingsOpen] = useState<string[]>(['verified']);
   const handleSettingsChange = (value: string[] | string | null) => {
@@ -135,21 +134,26 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   useEffect(() => {
     if (!user?.id) return;
     let mounted = true;
-    async function load() {
+    async function load(page = 1, append = false) {
       setLoadingPosts(true);
       setPostsError(null);
       try {
-        const params = new URLSearchParams({
+        const params = {
           userId: user.id,
           ...(categoryFilter !== 'all' && { category: categoryFilter }),
           ...(statusFilter !== 'all' && { status: statusFilter }),
           sortBy,
           ...(searchQuery && { search: searchQuery }),
-        });
-        const res = await fetch(`/api/posts?${params}`);
-        if (!res.ok) throw new Error('Failed to load posts');
-        const data = await res.json();
-        if (mounted) setPosts(data.posts ?? []);
+          page,
+          limit: 10,
+        };
+        const data = await getUserCars(params);
+        if (mounted) {
+          setPosts((prev) => (append && prev ? [...prev, ...data.posts] : data.posts));
+          setHasMore(data.hasMore);
+          setTotalPosts(data.total);
+          setCurrentPage(page);
+        }
       } catch (err) {
         console.error(err);
         if (mounted) setPostsError('Nu s-au putut încărca postările.');
@@ -163,6 +167,36 @@ export default function ProfileClient({ session }: ProfileClientProps) {
       mounted = false;
     };
   }, [user?.id, categoryFilter, statusFilter, sortBy, searchQuery]);
+
+  const handleLoadMore = () => {
+    if (hasMore && !loadingPosts) {
+      const nextPage = currentPage + 1;
+      async function loadMore() {
+        setLoadingPosts(true);
+        try {
+          const params = {
+            userId: user.id,
+            ...(categoryFilter !== 'all' && { category: categoryFilter }),
+            ...(statusFilter !== 'all' && { status: statusFilter }),
+            sortBy,
+            ...(searchQuery && { search: searchQuery }),
+            page: nextPage,
+            limit: 10,
+          };
+          const data = await getUserCars(params);
+          setPosts((prev) => (prev ? [...prev, ...data.posts] : data.posts));
+          setHasMore(data.hasMore);
+          setCurrentPage(nextPage);
+        } catch (err) {
+          console.error(err);
+          setPostsError('Nu s-au putut încărca mai multe postări.');
+        } finally {
+          setLoadingPosts(false);
+        }
+      }
+      loadMore();
+    }
+  };
 
   const shareProfile = () => {
     const profileUrl = `${window.location.origin}/profile/${user?.id || ''}`;
@@ -185,38 +219,21 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm('Ștergeți această postare?')) return;
-    try {
-      const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Ștergere eșuată');
-      setPosts((p) => p?.filter((x) => x.id !== postId) ?? null);
-      toast.success('Postare ștearsă');
-    } catch (err) {
-      console.error(err);
-      toast.error('Eșec la ștergerea postării');
-    }
+    // Placeholder: Not implemented yet
+    console.log('Delete not implemented yet for post:', postId);
   };
 
   const handleToggleActive = async (postId: string, current?: Post['status']) => {
-    const newStatus = current === 'active' ? 'draft' : 'active';
-    setPosts((p) => p?.map((x) => (x.id === postId ? { ...x, status: newStatus } : x)) ?? null);
-    try {
-      const res = await fetch(`/api/posts/${postId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!res.ok) throw new Error('Actualizare eșuată');
-      toast.success(`Postare ${newStatus === 'active' ? 'activată' : 'dezactivată'}`);
-    } catch (err) {
-      console.error(err);
-      toast.error('Eșec la actualizarea statusului postării');
-      setPosts((p) => p?.map((x) => (x.id === postId ? { ...x, status: current } : x)) ?? null);
-    }
+    // Placeholder: Not implemented yet
+    console.log('Toggle not implemented yet for post:', postId, 'current status:', current);
   };
 
   const handleEditPost = (postId: string) => {
     router.push(`/posts/${postId}/edit`);
+  };
+
+  const handleViewPost = (post: Post) => {
+    router.push(`/categorii/auto/${post.category}/${post.id}`);
   };
 
   return (
@@ -303,10 +320,21 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                   onSortChange={setSortBy}
                 />
 
-                {loadingPosts || postsError ? (
+                {loadingPosts && currentPage === 1 ? (
                   <SkeletonLoading variant='profile' />
+                ) : postsError ? (
+                  <div className='text-center text-red-500'>{postsError}</div>
                 ) : (
-                  <PostsGrid posts={posts ?? []} onEdit={handleEditPost} onDelete={handleDeletePost} onToggle={handleToggleActive} />
+                  <PostsGrid
+                    posts={posts ?? []}
+                    onEdit={handleEditPost}
+                    onDelete={handleDeletePost}
+                    onToggle={handleToggleActive}
+                    onView={handleViewPost}
+                    hasMore={hasMore}
+                    onLoadMore={handleLoadMore}
+                    loadingMore={loadingPosts && currentPage > 1}
+                  />
                 )}
               </TabsContent>
 

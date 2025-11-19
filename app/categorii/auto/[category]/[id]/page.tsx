@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -29,40 +29,9 @@ import MapComponent from '@/components/custom/map/MapComponent';
 import { CarCard } from '@/components/custom/auto/CarCard';
 import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
-import type { Car, User } from '@/lib/types';
+import { Car, RawCarDoc, User } from '@/lib/types';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-
-type RawCarDoc = {
-  _id: string;
-  title?: string;
-  price?: string | number;
-  currency?: string;
-  period?: string;
-  startDate?: string;
-  endDate?: string;
-  year?: string;
-  brand?: string;
-  mileage?: string;
-  fuel?: string;
-  transmission?: string;
-  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
-  uploadedFiles?: string[];
-  carType?: string;
-  color?: string;
-  engineCapacity?: string;
-  horsePower?: string;
-  status?: string;
-  description?: string;
-  features?: string | string[];
-  is4x4?: boolean;
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  options?: string[];
-  minPrice?: string;
-  maxPrice?: string;
-};
+import DOMPurify from 'dompurify';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -84,6 +53,9 @@ export default function CarDetailPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  // Sanitize description on client
+  const sanitizedDescription = useMemo(() => DOMPurify.sanitize(car?.description || ''), [car?.description]);
 
   // Mock bid history for auctions (keeping as is)
   const bidHistory = [
@@ -169,10 +141,9 @@ export default function CarDetailPage() {
         driverContact: doc.driverContact || '',
         driverTelephone: doc.driverTelephone || '',
         options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
+        userId: doc.userId || '',
       }));
       setAllCars(mappedCars);
       const foundCar = mappedCars.find((c) => c.id === id);
@@ -509,7 +480,7 @@ export default function CarDetailPage() {
               <CardTitle>Descriere</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{car.description || 'Descriere detaliată a produsului. Acest vehicul este în stare excelentă și gata pentru drum.'}</p>
+              <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
             </CardContent>
           </Card>
 

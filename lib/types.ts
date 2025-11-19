@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 export type Car = {
   id: string; // Changed to string for _id
   title: string;
@@ -35,16 +37,17 @@ export type Car = {
   lng?: number;
   minPrice?: string;
   maxPrice?: string;
+  userId?: string;
 };
 
 export type Post = {
   id: string; // Changed from number to string for _id
   title: string;
-  desc: string;
-  icon: React.ComponentType<{ className?: string }>;
-  verified: boolean;
-  isNew: boolean;
-  imageUrl: string;
+  desc?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  verified?: boolean;
+  isNew?: boolean;
+  imageUrl?: string;
   category: string; // Add category for navigation
 };
 
@@ -124,4 +127,40 @@ export type FeedPost = {
   text: string;
   image?: string;
   likes: number;
+};
+
+export type RawCarDoc = {
+  _id: ObjectId | string;
+  title?: string;
+  price?: string | number;
+  year?: string;
+  brand?: string;
+  mileage?: string;
+  fuel?: string;
+  transmission?: string;
+  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
+  uploadedFiles?: string[];
+  carType?: string;
+  color?: string;
+  engineCapacity?: string;
+  horsePower?: string;
+  status?: string;
+  description?: string;
+  features?: string | string[];
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  currency?: string;
+  is4x4?: boolean;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  options?: string[];
+  minPrice?: string;
+  maxPrice?: string;
+  urlCategory?: string;
+  carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
+  views?: number;
+  userId?: string;
 };

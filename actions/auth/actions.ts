@@ -44,3 +44,13 @@ export async function updateProfile(form: FormData): Promise<ProfileUpdateRespon
     throw err;
   }
 }
+
+export async function getUserById(id: string) {
+  try {
+    const user = await db.collection('user').findOne({ _id: new ObjectId(id) });
+    return user ? JSON.parse(JSON.stringify(user)) : null;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}

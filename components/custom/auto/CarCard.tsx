@@ -3,20 +3,31 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { Calendar, Gauge, Fuel, Settings, MapPin, Car as CarIcon, Palette, User, Star, Zap, ArrowRight } from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
+import { Calendar, Gauge, Fuel, Settings, MapPin, Car as CarIcon, Palette, User, Star, Zap, ArrowRight, UserIcon, CheckCircle } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { categoryLabels } from '@/lib/categories';
 import FavoriteButton from '../button/FavoriteButton';
 import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
+import { getUserById } from '@/actions/auth/actions';
 import type { Car } from '@/lib/types';
 
 type CarCardProps = {
   car: Car;
+};
+
+type User = {
+  id: string;
+  name?: string;
+  avatar?: string;
+  emailVerified?: boolean;
 };
 
 export function CarCard({ car }: CarCardProps) {
@@ -33,6 +44,14 @@ export function CarCard({ car }: CarCardProps) {
   const urlCategory = categoryMap[car.category as keyof typeof categoryMap] || car.category;
 
   const href = `/categorii/auto/${urlCategory}/${car.id}${queryString ? '?' + queryString : ''}`;
+
+  // Fetch user data
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    if (car.userId) {
+      getUserById(car.userId).then(setUser);
+    }
+  }, [car.userId]);
 
   // Dynamically set highlights as creative remarks/features based on category
   const getHighlights = () => {
@@ -85,6 +104,11 @@ export function CarCard({ car }: CarCardProps) {
   };
 
   const buttonText = getButtonText();
+
+  const sanitizedDescription = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return DOMPurify.sanitize(car.description || '');
+  }, [car.description]);
 
   return (
     <Card className='overflow-hidden hover:shadow-md transition-all duration-300  animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>
@@ -142,7 +166,7 @@ export function CarCard({ car }: CarCardProps) {
             ))}
           </div>
         </div>
-        {car.description && <p className='text-sm text-muted-foreground mb-4 line-clamp-2'>{car.description}</p>}
+        {car.description && <div className='text-sm text-muted-foreground mb-4' dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
             <Fuel className='h-4 w-4 flex-shrink-0' />
@@ -168,7 +192,86 @@ export function CarCard({ car }: CarCardProps) {
             <User className='h-4 w-4 flex-shrink-0' />
             <span>Vânzător: {car.sellerType}</span>
           </div>
+          {car.brand && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <CarIcon className='h-4 w-4 flex-shrink-0' />
+              <span>Brand: {car.brand}</span>
+            </div>
+          )}
+          {car.year && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <Calendar className='h-4 w-4 flex-shrink-0' />
+              <span>An: {car.year}</span>
+            </div>
+          )}
+          {car.mileage && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <Gauge className='h-4 w-4 flex-shrink-0' />
+              <span>Km: {car.mileage}</span>
+            </div>
+          )}
+          {car.engineCapacity && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <Settings className='h-4 w-4 flex-shrink-0' />
+              <span>Capacitate Motor: {car.engineCapacity} cc</span>
+            </div>
+          )}
+          {car.horsepower && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <Zap className='h-4 w-4 flex-shrink-0' />
+              <span>Putere: {car.horsepower} CP</span>
+            </div>
+          )}
+          {car.is4x4 && (
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <CarIcon className='h-4 w-4 flex-shrink-0' />
+              <span>4x4: Da</span>
+            </div>
+          )}
         </div>
+        {car.features && (
+          <div className='mt-4'>
+            <h5 className='text-sm font-semibold mb-2'>Caracteristici:</h5>
+            <p className='text-sm text-muted-foreground'>{car.features}</p>
+          </div>
+        )}
+        {car.options && car.options.length > 0 && (
+          <div className='mt-4'>
+            <h5 className='text-sm font-semibold mb-2'>Opțiuni:</h5>
+            <div className='flex flex-wrap gap-2'>
+              {car.options.map((option, i) => (
+                <Badge key={i} variant='outline'>{option}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        {user && (
+          <div className='mt-4 flex items-center gap-2'>
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Link href={`/profile/${user.id}`} className='flex items-center gap-2 text-sm text-primary hover:underline'>
+                  <UserIcon className='h-4 w-4' />
+                  {user.name || 'Utilizator'}
+                  {user.emailVerified && <CheckCircle className='h-4 w-4 text-green-500' />}
+                </Link>
+              </HoverCardTrigger>
+              <HoverCardContent className='w-80'>
+                <div className='flex items-center gap-3'>
+                  <Image src={user.avatar || '/placeholder-avatar.png'} alt={user.name || 'User'} width={40} height={40} className='rounded-full' />
+                  <div>
+                    <p className='font-semibold'>{user.name || 'Utilizator'}</p>
+                    <p className='text-sm text-muted-foreground'>Vezi profilul</p>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+            {user.emailVerified && (
+              <Badge variant='secondary' className='text-xs'>
+                Vânzător Verificat
+              </Badge>
+            )}
+          </div>
+        )}
         <div className='flex justify-between items-center mt-4'>
           <p className='text-xs md:text-sm text-muted-foreground'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
           <Link key={car.id} href={href} className='cursor-default'>
