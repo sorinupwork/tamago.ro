@@ -427,7 +427,7 @@ export default function CarDetailPage() {
                     placeholder='Suma licitației'
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    min={parseFloat(car.price.replace(/\./g, '')) + 1} // Parse string for min
+                    min={parseFloat(car.price.replace(/\./g, '')) + 1}
                     step={1}
                   />
                   <Button onClick={handleBid} disabled={!bidAmount || parseInt(bidAmount) <= parseFloat(car.price.replace(/\./g, ''))}>
@@ -474,48 +474,6 @@ export default function CarDetailPage() {
               </CardContent>
             </Card>
           )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Descriere</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Caracteristici</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className='list-disc list-inside space-y-1'>
-                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || (
-                  <>
-                    <li>Stare excelentă</li>
-                    <li>Service complet</li>
-                    <li>Garanție inclusă</li>
-                  </>
-                )}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Hartă Locație</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='h-64 w-full'>
-                <MapComponent
-                  center={car.lat && car.lng ? [car.lat, car.lng] : [45.9432, 24.9668]}
-                  zoom={13}
-                  filteredCars={car.lat && car.lng ? [car] : []}
-                  scrollWheelZoom={false}
-                />
-              </div>
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>
@@ -566,6 +524,48 @@ export default function CarDetailPage() {
                     </DrawerFooter>
                   </DrawerContent>
                 </Drawer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Descriere</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Caracteristici</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className='list-disc list-inside space-y-1'>
+                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || (
+                  <>
+                    <li>Stare excelentă</li>
+                    <li>Service complet</li>
+                    <li>Garanție inclusă</li>
+                  </>
+                )}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Hartă Locație</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='h-64 w-full'>
+                <MapComponent
+                  center={car.lat && car.lng ? [car.lat, car.lng] : [45.9432, 24.9668]}
+                  zoom={13}
+                  filteredCars={car.lat && car.lng ? [car] : []}
+                  scrollWheelZoom={false}
+                />
               </div>
             </CardContent>
           </Card>

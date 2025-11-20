@@ -40,7 +40,7 @@ export const AppSelectInput: React.FC<AppSelectInputProps> = ({
   const selectComponent = multiple ? (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='outline' className={`w-full justify-start ${className}`}>
+        <Button variant='outline' className={`w-full justify-start truncate ${className}`}>
           {placeholder} ({(value as string[]).length} selectat{(value as string[]).length !== 1 ? 'e' : ''})
         </Button>
       </PopoverTrigger>
@@ -88,7 +88,7 @@ export const AppSelectInput: React.FC<AppSelectInputProps> = ({
   );
 
   return (
-    <Field className={className}>
+    <Field className={`overflow-hidden ${className}`}>
       {label && (
         <FieldLabel htmlFor={htmlFor} required={required} lift={lift}>
           {label}

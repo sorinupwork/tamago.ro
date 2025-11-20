@@ -8,23 +8,33 @@ import { cn } from "@/lib/utils"
 function ScrollArea({
   className,
   children,
+  orientation = "vertical",
+  onScroll,
+  onScrollViewport,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  orientation?: "vertical" | "horizontal"
+  onScroll?: (event: React.UIEvent<HTMLDivElement>) => void
+  onScrollViewport?: (event: React.UIEvent<HTMLDivElement>) => void
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      // ensure the scroll area can shrink in flex layouts (prevents children from forcing page overflow)
       className={cn("relative overflow-hidden min-w-0", className)}
+      onScroll={onScroll}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        // viewport should fill the root and allow native scrolling (touch friendly)
-        className="focus-visible:ring-ring/50 w-full h-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 overflow-auto touch-pan-x"
+        className={cn(
+          "focus-visible:ring-ring/50 w-full h-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 overflow-auto",
+          orientation === "horizontal" ? "touch-pan-x" : "touch-pan-y"
+        )}
+        onScroll={onScrollViewport}
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
+      <ScrollBar orientation={orientation === "horizontal" ? "horizontal" : "vertical"} />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   )

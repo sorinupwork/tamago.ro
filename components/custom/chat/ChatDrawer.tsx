@@ -36,7 +36,7 @@ export default function ChatDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button size='icon' className='fixed bottom-4 right-4 z-50 rounded-full shadow-lg' aria-label='Deschide chat'>
+        <Button size='icon' className='fixed bottom-4 right-4 z-50 rounded-full shadow-lg ring-2 ring-white' aria-label='Deschide chat'>
           <MessageCircle className='h-6 w-6' />
         </Button>
       </SheetTrigger>

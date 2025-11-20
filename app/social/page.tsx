@@ -8,10 +8,10 @@ import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import MarketplaceContactSection from '@/components/custom/section/MarketplaceContactSection';
 import { Message, User as UserType, FeedPost } from '@/lib/types';
 import { mockUsers } from '@/lib/mockData';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { FeedSection } from '@/components/custom/section/FeedSection';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const mockStories = mockUsers
   .concat(mockUsers, mockUsers, mockUsers)
@@ -50,7 +50,7 @@ const extendedMockUsers = mockUsers
     }))
   );
 
-export default function ContactPage() {
+export default function SocialPage() {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('name');
@@ -78,7 +78,6 @@ export default function ContactPage() {
     { id: 20, text: 'Mulțumesc pentru ajutor!', sender: 'me' },
   ]);
   const [newMessage, setNewMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('feed');
 
   const filteredUsers = extendedMockUsers
     .filter((user) => user.name.toLowerCase().includes(search.toLowerCase()) && (category === 'Toți' || user.category === category))
@@ -119,21 +118,24 @@ export default function ContactPage() {
   ];
 
   return (
-    <>
-      <MarketplaceContactSection
-        title='Conectează-te pentru Tranzacții'
-        description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
-        className='mb-6 p-4'
-        cards={contactCards}
-        users={mockUsers}
-        showMap={true}
-        stories={mockStories}
-      />
+    <div className='container mx-auto flex flex-col flex-1 overflow-hidden'>
+      <Tabs defaultValue='stories-feed' className='flex-1'>
+        <TabsList className='grid w-full grid-cols-3 sm:flex sm:flex-row'>
+          <TabsTrigger value='stories-feed'>Stories & Feed</TabsTrigger>
+          <TabsTrigger value='chat'>Chat</TabsTrigger>
+          <TabsTrigger value='market'>Market</TabsTrigger>
+        </TabsList>
 
-      <div className='flex flex-col lg:h-screen'>
-        {/* Desktop Layout */}
-        <div className='hidden lg:flex flex-row flex-1 gap-4 min-h-0 min-w-0 overflow-auto px-4 pb-6'>
-          <div className='flex flex-row flex-1 gap-4 min-h-0 min-w-0'>
+        <TabsContent value='stories-feed'>
+          <div className='flex flex-col h-screen gap-4 p-4'>
+            <StoriesSection mockStories={mockStories} />
+
+            <FeedSection mockPosts={mockPosts} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value='chat'>
+          <div className="flex flex-col sm:flex-row gap-4 h-screen sm:h-screen flex-1 min-h-0 p-4">
             <AppChatFilter
               search={search}
               setSearch={setSearch}
@@ -145,7 +147,6 @@ export default function ContactPage() {
               setSelectedUser={setSelectedUser}
               filteredUsers={filteredUsers}
             />
-
             {selectedUser ? (
               <AppChatBox
                 selectedUserName={selectedUser.name}
@@ -167,63 +168,21 @@ export default function ContactPage() {
               </Empty>
             )}
           </div>
+        </TabsContent>
 
-          <div className='flex flex-col flex-1 gap-4 min-h-0 min-w-0'>
-            <StoriesSection mockStories={mockStories} />
-            <FeedSection mockPosts={mockPosts} />
-          </div>
-        </div>
-
-        {/* Mobile Layout */}
-        <div className='lg:hidden flex flex-col flex-1 px-4'>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className='grid w-full grid-cols-3'>
-              <TabsTrigger value='stories'>Stories</TabsTrigger>
-              <TabsTrigger value='feed'>Feed</TabsTrigger>
-              <TabsTrigger value='chat'>Chat</TabsTrigger>
-            </TabsList>
-            <TabsContent value='stories' className='flex flex-col flex-1 min-h-0 p-4'>
-              <StoriesSection mockStories={mockStories} />
-            </TabsContent>
-            <TabsContent value='feed' className='flex flex-col flex-1 min-h-0 p-4'>
-              <FeedSection mockPosts={mockPosts} />
-            </TabsContent>
-            <TabsContent value='chat' className='flex flex-col flex-1 min-h-0 gap-4 p-4'>
-              <AppChatFilter
-                search={search}
-                setSearch={setSearch}
-                sort={sort}
-                setSort={setSort}
-                category={category}
-                setCategory={setCategory}
-                selectedUser={selectedUser}
-                setSelectedUser={setSelectedUser}
-                filteredUsers={filteredUsers}
-              />
-              {selectedUser ? (
-                <AppChatBox
-                  selectedUserName={selectedUser.name}
-                  messages={messages}
-                  newMessage={newMessage}
-                  setNewMessage={setNewMessage}
-                  sendMessage={sendMessage}
-                  setSelectedUser={setSelectedUser}
-                />
-              ) : (
-                <Empty withCard={true}>
-                  <EmptyHeader>
-                    <EmptyMedia variant='icon'>
-                      <MessageCircle className='size-8' />
-                    </EmptyMedia>
-                    <EmptyTitle>Selectează un utilizator</EmptyTitle>
-                    <EmptyDescription>Alege un utilizator din listă pentru a începe conversația.</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </>
+        <TabsContent value='market' className='flex-1 overflow-hidden min-h-0'>
+          <MarketplaceContactSection
+            title='Conectează-te pentru Tranzacții'
+            description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
+            className='p-4'
+            cards={contactCards}
+            users={mockUsers}
+            showMap={true}
+            stories={mockStories}
+            horizontalLayout={true}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -55,7 +55,7 @@ export function AppNavActions() {
               <Link href='/suport'>Despre noi</Link>
             </CommandItem>
             <CommandItem asChild>
-              <Link href='/contact'>Contact</Link>
+              <Link href='/social'>Contact</Link>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />

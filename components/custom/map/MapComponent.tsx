@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMap, useMapEvents } from 'react-leaflet';
 import { Car, User } from '@/lib/types';
+import { MapPin, Star } from 'lucide-react';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
@@ -119,7 +120,7 @@ export default function MapComponent({
 
   // Custom car marker icon
   const carIcon = L.icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // Use default for now, replace with car icon URL
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -166,16 +167,43 @@ export default function MapComponent({
         });
         return (
           <Marker key={user.id} position={user.location!} icon={customIcon}>
-            <Popup>
-              <div className='flex justify-between gap-4 w-80'>
-                <Avatar>
-                  <AvatarImage src={user.avatar} />
-                  <AvatarFallback>{user.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className='space-y-1'>
-                  <h4 className='text-sm font-semibold'>{user.name}</h4>
-                  <p className='text-sm'>{user.status}</p>
-                  <div className='text-muted-foreground text-xs'>Categoria: {user.category}</div>
+            <Popup maxWidth={320}>
+              <div className='w-80 max-w-xs'>
+                <div className='flex flex-col gap-3'>
+                  <div className='flex items-start gap-3'>
+                    <Avatar>
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback>{user.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className='flex-1'>
+                      <h4 className='text-sm font-semibold'>{user.name}</h4>
+                      <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
+                      <div className='mt-2 flex flex-wrap gap-2'>
+                        <span className='text-xs bg-muted px-2 py-1 rounded-full'>{user.category}</span>
+                        <span className='text-xs bg-accent/10 text-accent px-2 py-1 rounded-full flex items-center gap-1'>
+                          <Star className='w-3 h-3' /> Top
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='flex items-center justify-between gap-3'>
+                    <div className='flex-1'>
+                      <div className='flex items-center justify-between text-xs mb-1'>
+                        <span className='text-muted-foreground'>Profile</span>
+                        <span className='font-medium'>78%</span>
+                      </div>
+                      <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
+                        <div className='h-2 bg-primary' style={{ width: '78%' }} />
+                      </div>
+                    </div>
+                    <div className='flex flex-col items-end text-xs text-muted-foreground'>
+                      <span className='flex items-center gap-1'>
+                        <MapPin className='w-3 h-3' /> Nearby
+                      </span>
+                      <span>5km</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Popup>

@@ -76,6 +76,7 @@ export type User = {
   status?: string; // Added for mock data and StoriesSection
   category?: string; // Added for mock data and StoriesSection
   location?: [number, number]; // Added for mock data
+  videoUrl?: string; // Added for story media
 };
 
 export type Message = {

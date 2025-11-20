@@ -3,8 +3,8 @@
 import { ReactNode, useState } from 'react';
 import { MapPin, Filter } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
 import { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import MapComponent from '../map/MapComponent';
@@ -24,6 +24,7 @@ type MarketplaceContactSectionProps = {
   showMap?: boolean;
   gridCols?: string;
   className?: string;
+  horizontalLayout?: boolean;
 };
 
 export default function MarketplaceContactSection({
@@ -34,59 +35,161 @@ export default function MarketplaceContactSection({
   showMap = true,
   gridCols = 'grid-cols-1 md:grid-cols-3',
   className = '',
+  horizontalLayout = false,
 }: MarketplaceContactSectionProps) {
-  const [mapFilter, setMapFilter] = useState('Toți');
-  const filteredMapUsers = users.filter((user) => mapFilter === 'Toți' || user.category === mapFilter);
+  const [mapFilter, setMapFilter] = useState<string[]>(['Toți']);
+  const [mapSort, setMapSort] = useState<string>('name');
+  const filteredMapUsers = users
+    .filter((user) => mapFilter.includes('Toți') || mapFilter.includes(user.category || ''))
+    .sort((a, b) => {
+      if (mapSort === 'name') return a.name.localeCompare(b.name);
+      if (mapSort === 'status') return (a.status || '').localeCompare(b.status || '');
+      return 0;
+    });
 
   return (
-    <section className={cn(`transition-all duration-300 rounded-lg ${className}`)}>
-      <div className='text-center'>
-        <h3 className='text-xl font-semibold mb-4'>{title}</h3>
-        <p className='text-muted-foreground mb-4'>{description}</p>
-        <div className={`grid ${gridCols} gap-4 mb-8 `}>
-          {cards.map((card, index) => (
-            <Card key={index} className='transition-all duration-200 pinch group'>
-              <CardContent className='p-4 text-center'>
-                <div className='w-8 h-8 mx-auto mb-2 animate-pulse wiggle'>{card.icon}</div>
-                <h4 className='font-semibold'>{card.title}</h4>
-                <p className='text-sm text-muted-foreground'>{card.description}</p>
+    <section className={cn(`transition-all duration-300 rounded-lg text-center ${className}`)}>
+      {horizontalLayout ? (
+        <div className='flex flex-col md:flex-row gap-4 h-full'>
+          <div className='flex flex-col flex-1'>
+            <h3 className='text-xl font-semibold mb-4'>{title}</h3>
+            <p className='text-muted-foreground mb-4'>{description}</p>
+            <div className='flex flex-col gap-2'>
+              {cards.map((card, index) => (
+                <Card key={index} className='transition-all duration-200 pinch group'>
+                  <CardContent>
+                    <div className='w-8 h-8 mx-auto mb-2 animate-pulse wiggle'>{card.icon}</div>
+                    <h4 className='font-semibold'>{card.title}</h4>
+                    <p className='text-sm text-muted-foreground'>{card.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+          {showMap && users.length > 0 && (
+            <div className='flex flex-col flex-1'>
+              <Card className='transition-all duration-200 hover:shadow-lg flex-1 flex flex-col'>
+                <CardHeader>
+                  <CardTitle className='flex flex-col items-start justify-center gap-2'>
+                    <div className='flex items-center justify-center gap-2'>
+                      <MapPin className='w-6 h-6 wiggle text-primary' />
+                      <p>Locuri de Întâlnire</p>
+                    </div>
+                  </CardTitle>
+                  <CardDescription>
+                    <p className='text-sm text-muted-foreground text-start'>Vezi locațiile pentru întâlniri sigure</p>
+                  </CardDescription>
+                </CardHeader>
+                <CardAction>
+                  <div className='flex flex-col md:flex-row gap-4 px-4'>
+                    <div className='flex items-center gap-2'>
+                      <Filter className='w-4 h-4' />
+                      <AppSelectInput
+                        options={[
+                          { value: 'name', label: 'Nume' },
+                          { value: 'status', label: 'Status' },
+                        ]}
+                        value={mapSort}
+                        onValueChange={(value) => setMapSort(value as string)}
+                        placeholder='Sortează'
+                        className='w-40'
+                      />
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <Filter className='w-4 h-4' />
+                      <AppSelectInput
+                        options={[
+                          { value: 'Toți', label: 'Toți' },
+                          { value: 'Prieteni', label: 'Prieteni' },
+                          { value: 'Recenți', label: 'Recenți' },
+                        ]}
+                        value={mapFilter}
+                        onValueChange={(value) => setMapFilter(value as string[])}
+                        multiple={true}
+                        placeholder='Filtrează categorii'
+                        className='w-40'
+                      />
+                    </div>
+                  </div>
+                </CardAction>
+                <CardContent className='flex-1'>
+                  <div className='w-full h-96 md:h-full rounded-lg overflow-hidden'>
+                    <MapComponent users={filteredMapUsers} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <h3 className='text-xl font-semibold mb-4'>{title}</h3>
+          <p className='text-muted-foreground mb-4'>{description}</p>
+          <div className={`grid ${gridCols} gap-2`}>
+            {cards.map((card, index) => (
+              <Card key={index} className='transition-all duration-200 pinch group'>
+                <CardContent>
+                  <div className='w-8 h-8 mx-auto mb-2 animate-pulse wiggle'>{card.icon}</div>
+                  <h4 className='font-semibold'>{card.title}</h4>
+                  <p className='text-sm text-muted-foreground'>{card.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {showMap && users.length > 0 && (
+            <Card className='transition-all duration-200 hover:shadow-xl flex-1 grow'>
+              <CardHeader>
+                <CardTitle className='flex flex-col items-start justify-center gap-2'>
+                  <div className='flex items-center justify-center gap-2'>
+                    <MapPin className='w-6 h-6 wiggle text-primary' />
+                    <p>Locuri de Întâlnire</p>
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  <p className='text-sm text-muted-foreground text-start'>Vezi locațiile pentru întâlniri sigure</p>
+                </CardDescription>
+              </CardHeader>
+              <CardAction>
+                <div className='flex flex-col md:flex-row gap-4 px-4'>
+                  <div className='flex items-center gap-2'>
+                    <Filter className='w-4 h-4' />
+                    <AppSelectInput
+                      options={[
+                        { value: 'name', label: 'Nume' },
+                        { value: 'status', label: 'Status' },
+                      ]}
+                      value={mapSort}
+                      onValueChange={(value) => setMapSort(value as string)}
+                      placeholder='Sortează'
+                      className='w-40'
+                    />
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Filter className='w-4 h-4' />
+                    <AppSelectInput
+                      options={[
+                        { value: 'Toți', label: 'Toți' },
+                        { value: 'Prieteni', label: 'Prieteni' },
+                        { value: 'Recenți', label: 'Recenți' },
+                      ]}
+                      value={mapFilter}
+                      onValueChange={(value) => setMapFilter(value as string[])}
+                      multiple={true}
+                      placeholder='Filtrează categorii'
+                      className='w-40'
+                    />
+                  </div>
+                </div>
+              </CardAction>
+              <CardContent className='flex-1'>
+                <div className='w-full h-full min-h-64 flex-1 rounded-lg overflow-hidden'>
+                  <MapComponent users={filteredMapUsers} />
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-        {showMap && users.length > 0 && (
-          <Card className='transition-all duration-200 hover:shadow-xl '>
-            <CardHeader>
-              <CardTitle className='flex flex-col items-center justify-center gap-2'>
-                <div className='flex items-center justify-center gap-2'>
-                  <MapPin className='w-6 h-6 wiggle text-primary' />
-                  <p>Locuri de Întâlnire</p>
-                </div>
-                <p className='text-sm text-muted-foreground'>Vezi locațiile pentru întâlniri sigure</p>
-                {/* Add Filter */}
-                <div className='flex items-center gap-2 mt-2'>
-                  <Filter className='w-4 h-4' />
-                  <Select value={mapFilter} onValueChange={setMapFilter}>
-                    <SelectTrigger className='w-40'>
-                      <SelectValue placeholder='Filtrează' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='Toți'>Toți</SelectItem>
-                      <SelectItem value='Prieteni'>Prieteni</SelectItem>
-                      <SelectItem value='Recenți'>Recenți</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-64 rounded-lg overflow-hidden'> {/* Add height for map */}
-                <MapComponent users={filteredMapUsers} />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

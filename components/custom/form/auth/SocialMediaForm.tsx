@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { signIn } from '@/lib/auth/auth-client';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { FieldSeparator } from '@/components/ui/field';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { signIn } from '@/lib/auth/auth-client';
 
 export default function SocialMediaForm() {
   const [loading, setLoading] = useState<{ google?: boolean; facebook?: boolean; instagram?: boolean }>({});
@@ -10,7 +12,7 @@ export default function SocialMediaForm() {
   const handleSignIn = async (provider: 'google' | 'facebook' | 'instagram') => {
     setLoading((prev) => ({ ...prev, [provider]: true }));
     // Temporarily disabled
-    alert(`${provider} sign-in not available yet. Please use email/password.`);
+    toast.info(`${provider} sign-in not available yet. please use email/password.`);
     // const result = await signIn.social({
     //   provider,
     //   callbackURL: '/profile',
@@ -33,9 +35,17 @@ export default function SocialMediaForm() {
         </div>
         <FieldSeparator>Or continue with</FieldSeparator>
         <div className='grid grid-cols-1 gap-2'>
-          <Button variant='outline' type='button' className='w-full flex items-center justify-center gap-2' onClick={() => handleSignIn('google')} disabled={loading.google}>
+          <Button
+            variant='outline'
+            type='button'
+            className='w-full flex items-center justify-center gap-2'
+            onClick={() => handleSignIn('google')}
+            disabled={loading.google}
+          >
             {loading.google ? <LoadingIndicator inline size={16} showText={false} /> : null}
-            {loading.google ? 'Se conectează...' : (
+            {loading.google ? (
+              'Se conectează...'
+            ) : (
               <>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' className='mr-2 h-4 w-4'>
                   <path
@@ -59,9 +69,17 @@ export default function SocialMediaForm() {
               </>
             )}
           </Button>
-          <Button variant='outline' type='button' className='w-full flex items-center justify-center gap-2' onClick={() => handleSignIn('instagram')} disabled={loading.instagram}>
+          <Button
+            variant='outline'
+            type='button'
+            className='w-full flex items-center justify-center gap-2'
+            onClick={() => handleSignIn('instagram')}
+            disabled={loading.instagram}
+          >
             {loading.instagram ? <LoadingIndicator inline size={16} showText={false} /> : null}
-            {loading.instagram ? 'Se conectează...' : (
+            {loading.instagram ? (
+              'Se conectează...'
+            ) : (
               <>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' className='mr-2 h-4 w-4'>
                   <path
@@ -73,9 +91,17 @@ export default function SocialMediaForm() {
               </>
             )}
           </Button>
-          <Button variant='outline' type='button' className='w-full flex items-center justify-center gap-2' onClick={() => handleSignIn('facebook')} disabled={loading.facebook}>
+          <Button
+            variant='outline'
+            type='button'
+            className='w-full flex items-center justify-center gap-2'
+            onClick={() => handleSignIn('facebook')}
+            disabled={loading.facebook}
+          >
             {loading.facebook ? <LoadingIndicator inline size={16} showText={false} /> : null}
-            {loading.facebook ? 'Se conectează...' : (
+            {loading.facebook ? (
+              'Se conectează...'
+            ) : (
               <>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' className='mr-2 h-4 w-4'>
                   <path

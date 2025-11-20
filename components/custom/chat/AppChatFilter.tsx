@@ -1,14 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { User, ArrowRight, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ChatFilters } from './ChatFilters';
 import { AppListItem } from '../list/AppListItem';
 import { User as UserType } from '@/lib/types';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 type AppChatFilterProps = {
   search: string;
@@ -34,9 +34,6 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
   filteredUsers,
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
 
   const scrollToBottom = () => {
     const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
@@ -46,14 +43,15 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
   };
 
   return (
-    <div className='flex flex-1 space-y-4 min-w-0'>
-      <Card className='flex-1 flex flex-col transition-all duration-300 hover:shadow-lg'>
+    <div className={`flex flex-col sm:flex-1 min-h-0 w-full ${selectedUser ? 'hidden sm:flex' : ''}`}>
+      <Card className="flex flex-col flex-1 min-h-0 transition-all duration-300 hover:shadow-lg">
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <User className='w-5 h-5' /> Contacte Utilizatori
           </CardTitle>
         </CardHeader>
-        <CardContent className='flex-1 flex flex-col min-h-0'>
+        
+        <CardContent className='flex-1 flex flex-col min-h-0 relative'>
           <ChatFilters search={search} setSearch={setSearch} sort={sort} setSort={setSort} />
 
           <Tabs value={category} onValueChange={setCategory} className='mb-4'>
@@ -70,52 +68,33 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
             </TabsList>
           </Tabs>
 
-          <ScrollArea
-            ref={scrollAreaRef}
-            className='flex-1 max-h-64 lg:max-h-none'
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-            onMouseDown={(e) => {
-              setIsDragging(true);
-              setStartY(e.clientY);
-              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-              if (viewport) setScrollTop(viewport.scrollTop);
-            }}
-            onMouseMove={(e) => {
-              if (!isDragging) return;
-              e.preventDefault();
-              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-              if (viewport) {
-                const walk = (e.clientY - startY) * 2;
-                viewport.scrollTop = scrollTop - walk;
-              }
-            }}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-          >
-            {filteredUsers.map((user) => (
-              <AppListItem
-                key={user.id}
-                user={user}
-                selectedUser={selectedUser}
-                setSelectedUser={setSelectedUser}
-                leftIcon={
-                  <Avatar className='transition-all duration-200 hover:scale-110 active:scale-95'>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name[0]}</AvatarFallback>
-                  </Avatar>
-                }
-                title={user.name}
-                description={user.status}
-                rightButton={
-                  <Button variant='ghost'>
-                    <ArrowRight />
-                  </Button>
-                }
-              />
-            ))}
+          <ScrollArea ref={scrollAreaRef} className='flex-1 overflow-y-auto'>
+            <div className='space-y-2 p-2 pb-6'>
+              {filteredUsers.map((user) => (
+                <AppListItem
+                  key={user.id}
+                  user={user}
+                  selectedUser={selectedUser}
+                  setSelectedUser={setSelectedUser}
+                  leftIcon={
+                    <Avatar className='transition-all duration-200 hover:scale-110 active:scale-95'>
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback>{user.name[0]}</AvatarFallback>
+                    </Avatar>
+                  }
+                  title={user.name}
+                  description={user.status}
+                  rightButton={
+                    <Button variant='ghost'>
+                      <ArrowRight />
+                    </Button>
+                  }
+                />
+              ))}
+            </div>
             <ScrollBar />
           </ScrollArea>
-          <div className='flex justify-center mt-2'>
+          {/* <div className='absolute bottom-6 left-4'> */}
             <Button
               onClick={scrollToBottom}
               variant='ghost'
@@ -124,7 +103,7 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
             >
               <ChevronDown className='w-4 h-4' />
             </Button>
-          </div>
+          {/* </div> */}
         </CardContent>
       </Card>
     </div>

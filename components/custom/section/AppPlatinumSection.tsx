@@ -23,7 +23,10 @@ export default function AppPlatinumSection({ images, title, description }: AppPl
       )}
       <div className='grid grid-cols-1 sm:grid-cols-7 sm:grid-rows-2 gap-2 min-h-96'>
         {images.slice(0, 6).map((image, index) => (
-          <div key={index} className={`bg-card p-2 rounded-lg shadow-md lift relative overflow-hidden ${image.gridClasses}`}>
+          <div
+            key={index}
+            className={`bg-card p-2 rounded-lg shadow-md lift relative overflow-hidden ring-2 ring-white ${image.gridClasses}`}
+          >
             <Image src={image.src} alt={image.alt} fill className='object-cover' />
           </div>
         ))}

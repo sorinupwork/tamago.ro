@@ -83,9 +83,9 @@ export function AppNavigation() {
               </NavigationMenuItem>
               <NavigationMenuItem className='hidden md:flex'>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href='/contact' className='flex flex-row items-center gap-2 cursor-default'>
+                  <Link href='/social' className='flex flex-row items-center gap-2 cursor-default'>
                     <AtSign className='w-4 h-4' />
-                    <span className='hidden lg:inline'>Contact</span>
+                    <span className='hidden lg:inline'>Social</span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

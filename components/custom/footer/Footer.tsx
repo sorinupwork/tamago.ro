@@ -1,66 +1,100 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Dot } from 'lucide-react';
 
 export function Footer() {
+  // Added: array of partner images to enable easy future additions
+  const partners = [
+    { src: '/icons/facebook.svg', alt: 'Facebook', colorClass: 'text-blue-500' },
+    { src: '/icons/instagram.svg', alt: 'Instagram', colorClass: 'text-purple-500' },
+    { src: '/icons/google.svg', alt: 'Google', colorClass: 'text-blue-600' },
+    { src: '/icons/mongodb.svg', alt: 'MongoDB', colorClass: 'text-green-500' },
+    { src: '/icons/react.svg', alt: 'React', colorClass: 'text-blue-400' },
+    { src: '/icons/nextdotjs.svg', alt: 'Next.js', colorClass: 'text-gray-800' },
+    { src: '/icons/tailwindcss.svg', alt: 'Tailwind CSS', colorClass: 'text-gray-800' },
+    // Added icons from public folder
+    { src: '/icons/resend.svg', alt: 'Resend', colorClass: 'text-indigo-500' },
+    { src: '/icons/betterauth.svg', alt: 'BetterAuth', colorClass: 'text-yellow-500' },
+  ];
+
   return (
-    <footer className=' border-t'>
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+    <footer className='border-t'>
+      {/* increase gap to provide breathing room on tablet/iPad */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8'>
         <div className='text-center'>
-          <h3 className='font-semibold mb-2'>Despre noi</h3>
-          <ul className='space-y-1 text-sm'>
-            <li>
-              <Link href='/suport' className='hover:underline cursor-default'>
-                Echipa noastră
+          <h3 className='font-semibold mb-2'>Legal</h3>
+          {/* add more vertical spacing at md and up so buttons don't crowd the label */}
+          <div className='space-y-2 md:space-y-4 flex flex-col items-center'>
+            <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
+              <Link href='/termeni-conditii' className='flex items-center'>
+                <Dot className='mr-2 ' />
+                <span className='underline-offset-4 hover:underline '>Termeni și condiții</span>
               </Link>
-            </li>
-            <li>
-              <Link href='/politica-confidentialitate' className='hover:underline cursor-default'>
-                Politica de confidențialitate
+            </Button>
+            <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
+              <Link href='/politica-confidentialitate' className='flex items-center'>
+                <Dot className='mr-2' />
+                <span className='underline-offset-4 hover:underline'>Confidențialitate</span>
               </Link>
-            </li>
-            <li>
-              <Link href='/termeni-conditii' className='hover:underline cursor-default'>
-                Termeni și condiții
+            </Button>
+            <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
+              <Link href='/politica-cookies' className='flex items-center'>
+                <Dot className='mr-2' />
+                <span className='underline-offset-4 hover:underline'>Politica cookies</span>
               </Link>
-            </li>
-          </ul>
+            </Button>
+          </div>
         </div>
         <div className='text-center'>
-          <h3 className='font-semibold mb-2'>Contact</h3>
-          <ul className='space-y-1 text-sm'>
-            <li>Email: contact@tamago.ro</li>
-            <li>Telefon: +40 123 456 789</li>
-            <li>
-              <Link href='/contact' className='hover:underline cursor-default'>
-                Formular de contact
+          <h3 className='font-semibold mb-2'>My App</h3>
+          <div className='space-y-2 md:space-y-4 flex flex-col items-center'>
+            <Button variant='ghost' size='sm' className='hover:scale-103 transition-transform cursor-de' asChild>
+              <Link href='https://apps.apple.com' target='_blank'>
+                <Image src='/icons/appstore.svg' alt='App Store' width={16} height={16} className='mr-2 dark:invert' />
+                Descarcă iOS
               </Link>
-            </li>
-          </ul>
-        </div>
-        <div className='text-center'>
-          <h3 className='font-semibold mb-2'>Aplicație mobilă</h3>
-          <ul className='space-y-1 text-sm'>
-            <li>Descarcă pentru iOS</li>
-            <li>Descarcă pentru Android</li>
-            <li>Versiunea curentă: 1.0.0</li>
-          </ul>
+            </Button>
+            <Button variant='ghost' size='sm' className='hover:scale-103 transition-transform' asChild>
+              <Link href='https://play.google.com' target='_blank'>
+                <Image src='/icons/googleplay.svg' alt='Google Play' width={16} height={16} className='mr-2 dark:invert' />
+                Descarcă Android
+              </Link>
+            </Button>
+            <p className='text-sm text-muted-foreground'>Versiunea curentă: 1.0.0</p>
+          </div>
         </div>
         <div className='text-center'>
           <h3 className='font-semibold mb-2'>Social Media</h3>
-          <ul className='space-y-1 text-sm flex flex-col items-center'>
-            <li>
-              <Link href='https://facebook.com' target='_blank' className='hover:underline flex items-center cursor-default'>
-                <Image src='/icons/facebook.svg' alt='Facebook' width={16} height={16} className='mr-2 text-blue-500' />
+          <div className='space-y-2 md:space-y-4 flex flex-col items-center'>
+            <Button variant='outline' size='sm' className='hover:scale-103 transition-transform' asChild>
+              <Link href='https://facebook.com' target='_blank'>
+                <Image src='/icons/facebook.svg' alt='Facebook' width={16} height={16} className='mr-2 text-blue-500 dark:invert' />
                 Facebook
               </Link>
-            </li>
-            <li>
-              <Link href='https://instagram.com' target='_blank' className='hover:underline flex items-center cursor-default'>
-                <Image src='/icons/instagram.svg' alt='Instagram' width={16} height={16} className='mr-2 text-purple-500' />
+            </Button>
+            <Button variant='outline' size='sm' className='hover:scale-103 transition-transform' asChild>
+              <Link href='https://instagram.com' target='_blank'>
+                <Image src='/icons/instagram.svg' alt='Instagram' width={16} height={16} className='mr-2 text-purple-500 dark:invert' />
                 Instagram
               </Link>
-            </li>
-          </ul>
+            </Button>
+          </div>
+        </div>
+        <div className='text-center'>
+          <h3 className='font-semibold mb-2'>Parteneri</h3>
+          <div className='flex flex-wrap justify-center items-center gap-4'>
+            {partners.map((p) => (
+              <div
+                key={p.src}
+                className='relative flex-none w-8 h-8 md:w-6 md:h-6 lg:w-8 lg:h-8 transform transition-transform duration-300 hover:scale-105 cursor-default lift'
+                aria-hidden={false}
+                title={p.alt}
+              >
+                <Image src={p.src} alt={p.alt} fill className={`object-contain dark:invert ${p.colorClass} hover:text-primary`} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <div className='text-center text-sm text-muted-foreground mt-4'>© 2025 Tamago. Toate drepturile rezervate.</div>
