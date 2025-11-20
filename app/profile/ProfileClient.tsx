@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Settings, Bell, TrendingUp } from 'lucide-react';
+import { CheckCircle, Settings, Bell, TrendingUp, Lock, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Accordion } from '@/components/ui/accordion';
@@ -21,6 +21,9 @@ import PostsFilters from '@/components/custom/profile/PostsFilters';
 import RecentActivity from '@/components/custom/profile/RecentActivity';
 import RewardsCard from '@/components/custom/profile/RewardsCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import StoriesGrid from '@/components/custom/profile/StoriesGrid';
+import FeedGrid from '@/components/custom/profile/FeedGrid';
+import SecurityCard from '@/components/custom/profile/SecurityCard';
 import { signOut } from '@/lib/auth/auth-client';
 import { getUserCars } from '@/actions/auto/actions';
 
@@ -69,7 +72,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
       'Pasionat Auto',
       'Influencer Comunitate',
       'Vânzător Premium',
-    ], // Added more badges for marketplace/social themes to fill carousel spaces
+    ],
     progress: { posts: 15, friends: 8, points: 120 },
     rewards: { freePosts: 5, premiumAccess: false },
     verified: { email: true, social: false },
@@ -120,6 +123,16 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalPosts, setTotalPosts] = useState(0);
+
+  // New state for stories
+  const [storiesLoading, setStoriesLoading] = useState(false);
+  const [storiesHasMore, setStoriesHasMore] = useState(true);
+  const [storiesCurrentPage, setStoriesCurrentPage] = useState(1);
+
+  // New state for feed
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedHasMore, setFeedHasMore] = useState(true);
+  const [feedCurrentPage, setFeedCurrentPage] = useState(1);
 
   const [settingsOpen, setSettingsOpen] = useState<string[]>(['verified']);
   const handleSettingsChange = (value: string[] | string | null) => {
@@ -198,6 +211,20 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     }
   };
 
+  // New handlers for stories
+  const handleStoriesLoadMore = () => {
+    if (storiesHasMore && !storiesLoading) {
+      setStoriesCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  // New handlers for feed
+  const handleFeedLoadMore = () => {
+    if (feedHasMore && !feedLoading) {
+      setFeedCurrentPage((prev) => prev + 1);
+    }
+  };
+
   const shareProfile = () => {
     const profileUrl = `${window.location.origin}/profile/${user?.id || ''}`;
     if (navigator.share) {
@@ -237,13 +264,19 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   };
 
   return (
-    <div className='min-h-screen flex flex-col lg-flex-row'>
+    <div className='min-h-screen flex flex-col lg:flex-row'>
       <div className='flex flex-row items-start gap-4'>
         <aside className='hidden lg:block lg:sticky lg:top-14 space-y-4 sm:space-y-6 p-4'>
           <ActivityFeed
-            activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
-            onLoadMore={() => toast.success('Încarcă mai multe activități')}
+            activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
+            onLoadMore={() => toast.success('Încarcă mai multe notificări')}
           />
+
+          <RecentActivity
+            activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
+          />
+
+          <QuickActions />
 
           <ProgressSummary
             posts={userData.progress.posts}
@@ -251,9 +284,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
             points={userData.progress.points}
             onClaimReward={() => toast.success('Revendică recompensa')}
           />
-
-          <QuickActions />
-
           <ProTip
             tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
             variant='success'
@@ -274,13 +304,27 @@ export default function ProfileClient({ session }: ProfileClientProps) {
 
             <Tabs defaultValue='overview' className='w-full'>
               <div className='overflow-x-auto p-2'>
-                <TabsList className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
+                {/* Adjust md grid to fit added tabs */}
+                <TabsList className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
                   <TabsTrigger value='overview' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Prezentare Generală
+                    General
                   </TabsTrigger>
-                  <TabsTrigger value='posts' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Postările Mele
+
+                  {/* New Feed tab: feed posts, polls, quick-actions posts */}
+                  <TabsTrigger value='feed' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Feed
                   </TabsTrigger>
+
+                  {/* New Stories tab */}
+                  <TabsTrigger value='stories' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Stories
+                  </TabsTrigger>
+
+                  {/* Renamed Posts tab -> Anunțurile Mele (anunturi) */}
+                  <TabsTrigger value='anunturi' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                    Anunțuri
+                  </TabsTrigger>
+
                   <TabsTrigger value='progress' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
                     Progres & Insigne
                   </TabsTrigger>
@@ -291,27 +335,53 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               </div>
 
               <TabsContent value='overview' className='space-y-6'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                  <RecentActivity activities={[]} />
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                   <RewardsCard
                     freePosts={userData.rewards.freePosts}
                     premiumAccess={userData.rewards.premiumAccess}
                     onSellClick={() => router.push('/sell')}
                   />
+                  <SecurityCard
+                    title='Securitate Cont'
+                    description='Verifică parola și activează autentificarea în doi pași pentru a proteja contul tău.'
+                    status='warning'
+                    icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
+                    buttonText='Gestionează Securitatea'
+                    onButtonClick={() => router.push('/settings/security')}
+                  />
+                  <SecurityCard
+                    title='Confidențialitate'
+                    description='Controlează cine poate vedea profilul tău și informațiile personale.'
+                    status='secure'
+                    icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
+                    buttonText='Setări Confidențialitate'
+                    onButtonClick={() => router.push('/settings/privacy')}
+                  />
+                  <SecurityCard
+                    title='Verificare Cont'
+                    description='Verifică email-ul și conturile sociale pentru a crește încrederea în platformă.'
+                    status={userData.verified.email ? 'secure' : 'danger'}
+                    icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
+                    buttonText='Verifică Acum'
+                    onButtonClick={() => router.push('/settings/verification')}
+                  />
                 </div>
-                <ProgressSummary
-                  posts={userData.progress.posts}
-                  friends={userData.progress.friends}
-                  points={userData.progress.points}
-                  onClaimReward={() => toast.success('Revendică recompensa')}
-                  defaultValue='progress'
-                />
               </TabsContent>
 
-              <TabsContent value='posts' className='space-y-6'>
+              {/* Updated Feed content: uses FeedGrid with filters and loading */}
+              <TabsContent value='feed' className='space-y-6'>
+                <FeedGrid userId={user?.id} hasMore={feedHasMore} onLoadMore={handleFeedLoadMore} loadingMore={feedLoading} />
+              </TabsContent>
+
+              {/* Updated Stories content: uses StoriesGrid with filters and loading */}
+              <TabsContent value='stories' className='space-y-6'>
+                <StoriesGrid userId={user?.id} hasMore={storiesHasMore} onLoadMore={handleStoriesLoadMore} loadingMore={storiesLoading} />
+              </TabsContent>
+
+              <TabsContent value='anunturi' className='space-y-6'>
                 <PostsFilters
                   searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
+                  onSearchChange={(value) => setSearchQuery(value)}
                   categoryFilter={categoryFilter}
                   onCategoryChange={setCategoryFilter}
                   statusFilter={statusFilter}
@@ -346,7 +416,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               </TabsContent>
 
               <TabsContent value='settings' className='space-y-6'>
-                <Accordion type='multiple' value={settingsOpen} onValueChange={handleSettingsChange} className='w-full'>
+                <Accordion type='multiple' value={settingsOpen} onValueChange={handleSettingsChange} className='w-full flex flex-col gap-2'>
                   <SettingsAccordion
                     value='verified'
                     icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
@@ -418,9 +488,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
           </div>
 
           <aside className='lg:hidden space-y-4 sm:space-y-6'>
+            <h3 className='text-lg font-semibold'>Market & Social</h3>
             <ActivityFeed
-              activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
-              onLoadMore={() => console.log('Încarcă mai multe activități')}
+              activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
+              onLoadMore={() => console.log('Încarcă mai multe notificări')}
             />
 
             <ProgressSummary
@@ -454,7 +525,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
           }
         }}
         name={name}
-        onNameChange={setName}
+        onNameChange={(value) => setName(value)}
         email={user?.email ?? ''}
         imagePreview={user?.image ?? null}
         files={imageFile ? [imageFile] : []}

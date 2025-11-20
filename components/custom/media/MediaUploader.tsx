@@ -9,9 +9,12 @@ import { Button } from '@/components/ui/button';
 
 interface MediaUploaderProps {
   onFilesChange: (files: File[]) => void;
-  acceptedTypes?: string;
-  maxFiles?: number;
+  showPreview?: boolean;
+  accept?: string; // Changed from acceptedTypes for consistency
+  maxFiles?: number; // Added to limit files
   errorMessage?: string;
+  id?: string; // Added for external triggering
+  name?: string; // Added for form submission
 }
 
 interface PreviewFile {
@@ -22,9 +25,12 @@ interface PreviewFile {
 
 export function MediaUploader({
   onFilesChange,
-  acceptedTypes = 'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  maxFiles = 10,
+  showPreview,
+  accept = 'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  maxFiles = 10, // Default to 10
   errorMessage,
+  id,
+  name, // Added
 }: MediaUploaderProps) {
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
 
@@ -44,7 +50,7 @@ export function MediaUploader({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: acceptedTypes.split(',').reduce((acc, type) => ({ ...acc, [type.trim()]: [] }), {}),
+    accept: accept.split(',').reduce((acc, type) => ({ ...acc, [type.trim()]: [] }), {}),
     maxFiles,
     multiple: true,
   });
@@ -63,7 +69,7 @@ export function MediaUploader({
           errorMessage ? 'border-red-500 bg-red-50' : isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
         }`}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps({ id, name })} />
         <Upload className={`mx-auto h-12 w-12 mb-4 ${errorMessage ? 'text-red-400' : 'text-gray-400'}`} />
         <p className={`text-sm mb-1 ${errorMessage ? 'text-red-600' : 'text-gray-600'}`}>
           {isDragActive ? 'Aruncați fișierele aici...' : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
@@ -73,7 +79,7 @@ export function MediaUploader({
         </p>
       </div>
 
-      {previews.length > 0 && (
+      {previews.length > 0 && showPreview && (
         <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
           {previews.map((preview, index) => (
             <Card key={index} className='relative'>

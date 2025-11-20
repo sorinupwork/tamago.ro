@@ -170,6 +170,28 @@ export const resetPasswordSchema = z.object({
   path: ['confirmPassword'],
 });
 
+export const feedSchema = z.object({
+  text: z.string().optional(),
+  files: z.array(z.instanceof(File)).optional(),
+  tags: z.array(z.string()).optional(),
+}).refine((data) => data.text?.trim() || (data.files && data.files.length > 0), {
+  message: 'Text or media is required',
+  path: ['text'],
+});
+
+export const storySchema = z.object({
+  caption: z.string().optional(),
+  files: z.array(z.instanceof(File)).optional(),
+}).refine((data) => data.caption?.trim() || (data.files && data.files.length > 0), {
+  message: 'Caption or media is required',
+  path: ['caption'],
+});
+
+export const pollSchema = z.object({
+  question: z.string().min(1, 'Întrebarea este obligatorie'),
+  options: z.array(z.object({ value: z.string().min(1, 'Opțiunea nu poate fi goală') })).min(2, 'Minim 2 opțiuni sunt necesare'),
+});
+
 export type AutoSellFormData = z.infer<typeof auto.sellSchema>;
 export type AutoBuyFormData = z.infer<typeof auto.buySchema>;
 export type AutoRentFormData = z.infer<typeof auto.rentSchema>;
@@ -178,3 +200,6 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export type SignupFormData = z.infer<typeof signupSchema>;
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+export type FeedFormData = z.infer<typeof feedSchema>;
+export type StoryFormData = z.infer<typeof storySchema>;
+export type PollFormData = z.infer<typeof pollSchema>;

@@ -39,7 +39,7 @@ export default function RewardsCard({ freePosts, premiumAccess, onSellClick }: R
                 onClick={onSellClick}
               >
                 <Zap className='h-4 w-4 mr-2 text-primary' />
-                Vinde Acum (Mașini/Laptopuri)
+                Vinde Acum
               </Button>
             </TooltipTrigger>
             <TooltipContent>

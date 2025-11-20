@@ -29,6 +29,9 @@ type Props = {
   required?: boolean;
   htmlFor?: string;
   icon?: LucideIcon;
+  name?: string; // Added to support form integration
+  id?: string; // Added for accessibility
+  rows?: number; // Added for rows prop
 };
 
 export default function AppTextarea({

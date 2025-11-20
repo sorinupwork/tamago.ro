@@ -21,22 +21,24 @@ export default function SettingsAccordion({ value, icon, title, content, buttonT
   const [privacyLevel, setPrivacyLevel] = useState(50);
 
   return (
-    <AccordionItem value={value} className='border rounded-lg shadow-sm hover:shadow-md transition-shadow'>
+    <AccordionItem value={value} className='border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-gray-800'>
       <AccordionTrigger className='text-lg font-semibold px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 [&>svg]:rotate-0 [&>svg]:transition-transform [&>svg]:duration-300'>
         <div className='flex items-center gap-2'>
           {icon}
           {title}
-          <Badge variant='secondary' className='ml-2 animate-pulse'>Nou</Badge>
+          <Badge variant='secondary' className='ml-2 animate-pulse'>
+            Nou
+          </Badge>
         </div>
       </AccordionTrigger>
-      <AccordionContent className='px-4 pb-4 space-y-4 animate-in slide-in-from-top-2 duration-300'>
+      <AccordionContent className='px-4 py-4 space-y-4 animate-in slide-in-from-top-2 duration-300 bg-gray-50 dark:bg-gray-700 rounded-b-lg'>
         <div className='flex items-center gap-2'>
           <Trophy className='h-5 w-5 text-yellow-500' />
           <span className='font-medium'>Progres Setări</span>
         </div>
         <Progress value={privacyLevel} className='h-2' />
         <div className='text-sm text-muted-foreground'>Nivel Confidențialitate: {privacyLevel}%</div>
-        
+
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <Bell className='h-4 w-4' />
@@ -45,7 +47,7 @@ export default function SettingsAccordion({ value, icon, title, content, buttonT
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                <Switch className='bg-primary ring-1 ring-foreground' checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Activează notificări pentru actualizări!</p>
@@ -53,19 +55,15 @@ export default function SettingsAccordion({ value, icon, title, content, buttonT
             </Tooltip>
           </TooltipProvider>
         </div>
-        
+
         {content}
-        
+
         {buttonText && onButtonClick && (
           <Button variant='outline' className='w-full hover:scale-105 transition-transform' onClick={onButtonClick}>
             <Zap className='h-4 w-4 mr-2' />
             {buttonText}
           </Button>
         )}
-        
-        <div className='text-center text-xs text-muted-foreground animate-bounce'>
-          🎮 Explorează mai multe setări pentru a câștiga puncte!
-        </div>
       </AccordionContent>
     </AccordionItem>
   );

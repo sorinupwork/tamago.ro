@@ -24,10 +24,10 @@ export default function BadgesCarousel({ badges, title = 'Insignele Tale' }: Bad
             <TooltipProvider>
               <CarouselContent className='-mt-1 h-[200px]'>
                 {badges.map((b, i) => (
-                  <CarouselItem key={i} className='pt-1 basis-1/4'>
+                  <CarouselItem key={i} className='pt-1 basis-1/3 px-2'>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className='w-full h-24 sm:h-32 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center hover:scale-105 hover:shadow-lg transition-all duration-200 flex flex-col items-center justify-center space-y-2'>
+                        <div className='w-full h-24 sm:h-32 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center hover:shadow-lg transition-all duration-200 flex flex-col items-center justify-center space-y-2'>
                           <Star className='h-10 w-10 sm:h-12 sm:w-12 text-secondary animate-pulse' />
                           <Badge
                             variant='secondary'

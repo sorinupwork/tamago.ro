@@ -12,6 +12,7 @@ import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { FeedSection } from '@/components/custom/section/FeedSection';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import QuickActions from '@/components/custom/profile/QuickActions';
 
 const mockStories = mockUsers
   .concat(mockUsers, mockUsers, mockUsers)
@@ -118,7 +119,7 @@ export default function SocialPage() {
   ];
 
   return (
-    <div className='container mx-auto flex flex-col flex-1 overflow-hidden'>
+    <div className='container mx-auto flex flex-col flex-1'>
       <Tabs defaultValue='stories-feed' className='flex-1'>
         <TabsList className='grid w-full grid-cols-3 sm:flex sm:flex-row'>
           <TabsTrigger value='stories-feed'>Stories & Feed</TabsTrigger>
@@ -127,15 +128,19 @@ export default function SocialPage() {
         </TabsList>
 
         <TabsContent value='stories-feed'>
-          <div className='flex flex-col h-screen gap-4 p-4'>
-            <StoriesSection mockStories={mockStories} />
-
-            <FeedSection mockPosts={mockPosts} />
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+            <aside className='col-span-1 md:sticky md:top-20 h-fit overflow-y-auto'>
+              <QuickActions />
+            </aside>
+            <div className='col-span-1 md:col-span-3 flex flex-col gap-4 h-screen'>
+              <StoriesSection mockStories={mockStories} />
+              <FeedSection mockPosts={mockPosts} />
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value='chat'>
-          <div className="flex flex-col sm:flex-row gap-4 h-screen sm:h-screen flex-1 min-h-0 p-4">
+          <div className='flex flex-col sm:flex-row gap-4 h-screen sm:h-screen flex-1 min-h-0 p-4'>
             <AppChatFilter
               search={search}
               setSearch={setSearch}
