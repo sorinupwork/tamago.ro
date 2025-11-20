@@ -8,6 +8,7 @@ import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
 import { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import MapComponent from '../map/MapComponent';
+import WeatherWidget from '../weather/WeatherWidget';
 
 type CardData = {
   icon: ReactNode;
@@ -47,25 +48,61 @@ export default function MarketplaceContactSection({
       return 0;
     });
 
+  // Helper to get weather tips based on temperature (mock logic, can be enhanced)
+  const getWeatherTips = (temp: number) => {
+    if (temp < 10) return 'Dress warmly and stay hydrated!';
+    if (temp > 25) return 'Stay cool, wear sunscreen!';
+    return 'Enjoy the pleasant weather!';
+  };
+
   return (
     <section className={cn(`transition-all duration-300 rounded-lg text-center ${className}`)}>
       {horizontalLayout ? (
-        <div className='flex flex-col md:flex-row gap-4 h-full'>
-          <div className='flex flex-col flex-1'>
-            <h3 className='text-xl font-semibold mb-4'>{title}</h3>
-            <p className='text-muted-foreground mb-4'>{description}</p>
-            <div className='flex flex-col gap-2'>
-              {cards.map((card, index) => (
-                <Card key={index} className='transition-all duration-200 pinch group'>
-                  <CardContent>
-                    <div className='w-8 h-8 mx-auto mb-2 animate-pulse wiggle'>{card.icon}</div>
-                    <h4 className='font-semibold'>{card.title}</h4>
-                    <p className='text-sm text-muted-foreground'>{card.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+        <div className='flex flex-col lg:flex-row gap-4 h-full'>
+          <div className='flex flex-col flex-1 gap-4 sm:flex-row'>
+            <div className='flex flex-col flex-1'>
+              <h3 className='text-xl font-semibold mb-4'>{title}</h3>
+              <p className='text-muted-foreground mb-4'>{description}</p>
+              <div className='flex flex-col gap-2'>
+                {cards.map((card, index) => (
+                  <Card key={index} className='transition-all duration-200 pinch group'>
+                    <CardContent>
+                      <div className='w-8 h-8 mx-auto mb-2 animate-pulse wiggle'>{card.icon}</div>
+                      <h4 className='font-semibold'>{card.title}</h4>
+                      <p className='text-sm text-muted-foreground'>{card.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className='flex flex-col flex-1'>
+              <Card className='transition-all duration-200 hover:shadow-lg flex-1 flex flex-col'>
+                <CardHeader>
+                  <CardTitle className='flex items-center justify-center gap-2'>
+                    <p>Weather Widget</p>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className='flex-1'>
+                  <WeatherWidget />
+                </CardContent>
+              </Card>
+              <Card className='transition-all duration-200 hover:shadow-lg mt-4'>
+                <CardHeader>
+                  <CardTitle className='flex items-center justify-center gap-2'>
+                    <p>Weather Tips</p>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className='text-sm text-muted-foreground'>
+                    {/* Mock tip; in real app, fetch from weather state */}
+                    {getWeatherTips(20)} {/* Default temp; integrate with WeatherWidget state if needed */}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
+
           {showMap && users.length > 0 && (
             <div className='flex flex-col flex-1'>
               <Card className='transition-all duration-200 hover:shadow-lg flex-1 flex flex-col'>
@@ -113,7 +150,7 @@ export default function MarketplaceContactSection({
                   </div>
                 </CardAction>
                 <CardContent className='flex-1'>
-                  <div className='w-full h-96 md:h-full rounded-lg overflow-hidden'>
+                  <div className='w-full h-96 lg:h-full rounded-lg overflow-hidden'>
                     <MapComponent users={filteredMapUsers} />
                   </div>
                 </CardContent>
@@ -135,9 +172,31 @@ export default function MarketplaceContactSection({
                 </CardContent>
               </Card>
             ))}
+
+            <Card className='transition-all duration-200 hover:shadow-lg'>
+              <CardHeader>
+                <CardTitle className='flex items-center justify-center gap-2'>
+                  <p>Weather Widget</p>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WeatherWidget />
+              </CardContent>
+            </Card>
+
+            <Card className='transition-all duration-200 hover:shadow-lg'>
+              <CardHeader>
+                <CardTitle className='flex items-center justify-center gap-2'>
+                  <p>Weather Tips</p>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
+              </CardContent>
+            </Card>
           </div>
           {showMap && users.length > 0 && (
-            <Card className='transition-all duration-200 hover:shadow-xl flex-1 grow'>
+            <Card className='transition-all duration-200 hover:shadow-xl flex-1 grow mt-4'>
               <CardHeader>
                 <CardTitle className='flex flex-col items-start justify-center gap-2'>
                   <div className='flex items-center justify-center gap-2'>

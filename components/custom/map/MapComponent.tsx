@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMap, useMapEvents } from 'react-leaflet';
 import { Car, User } from '@/lib/types';
 import { MapPin, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Moon, Sun } from 'lucide-react';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
@@ -81,7 +83,11 @@ export default function MapComponent({
   scrollWheelZoom = false,
 }: MapComponentProps) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const mapRef = useRef<L.Map>(null);
+
+  const lightTiles = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
   useEffect(() => {
     import('leaflet').then((mod) => {
@@ -129,87 +135,99 @@ export default function MapComponent({
   });
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={mapZoom}
-      style={{ height: '100%', width: '100%' }}
-      scrollWheelZoom={scrollWheelZoom}
-      ref={mapRef}
-    >
-      <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
-      {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
-      {onMapClick && (
-        <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
-      )}
-      {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
-      {filteredCars.map((car) =>
-        car.lat && car.lng ? (
-          <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
-            <Popup>
-              <div className='text-center'>
-                <h3 className='font-semibold'>{car.title}</h3>
-                <p>
-                  {car.brand} - {car.year}
-                </p>
-                <p>${car.price}</p>
-              </div>
-            </Popup>
-          </Marker>
-        ) : null
-      )}
-      {users.map((user) => {
-        const customIcon = L.icon({
-          iconUrl: user.avatar!,
-          iconSize: [40, 40],
-          iconAnchor: [20, 40],
-          popupAnchor: [0, -40],
-          className: 'rounded-full border-2 border-white',
-        });
-        return (
-          <Marker key={user.id} position={user.location!} icon={customIcon}>
-            <Popup maxWidth={320}>
-              <div className='w-80 max-w-xs'>
-                <div className='flex flex-col gap-3'>
-                  <div className='flex items-start gap-3'>
-                    <Avatar>
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className='flex-1'>
-                      <h4 className='text-sm font-semibold'>{user.name}</h4>
-                      <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
-                      <div className='mt-2 flex flex-wrap gap-2'>
-                        <span className='text-xs bg-muted px-2 py-1 rounded-full'>{user.category}</span>
-                        <span className='text-xs bg-accent/10 text-accent px-2 py-1 rounded-full flex items-center gap-1'>
-                          <Star className='w-3 h-3' /> Top
-                        </span>
+    <div className='relative w-full h-full'>
+      <MapContainer
+        center={mapCenter}
+        zoom={mapZoom}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={scrollWheelZoom}
+        ref={mapRef}
+      >
+        <TileLayer
+          url={isDarkMode ? darkTiles : lightTiles}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        />
+        {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
+        {onMapClick && (
+          <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
+        )}
+        {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
+        {filteredCars.map((car) =>
+          car.lat && car.lng ? (
+            <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
+              <Popup>
+                <div className='text-center'>
+                  <h3 className='font-semibold'>{car.title}</h3>
+                  <p>
+                    {car.brand} - {car.year}
+                  </p>
+                  <p>${car.price}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ) : null
+        )}
+        {users.map((user) => {
+          const customIcon = L.icon({
+            iconUrl: user.avatar!,
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40],
+            className: 'rounded-full border-2 border-white',
+          });
+          return (
+            <Marker key={user.id} position={user.location!} icon={customIcon}>
+              <Popup maxWidth={320}>
+                <div className='w-80 max-w-xs'>
+                  <div className='flex flex-col gap-3'>
+                    <div className='flex items-start gap-3'>
+                      <Avatar>
+                        <AvatarImage src={user.avatar} />
+                        <AvatarFallback>{user.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className='flex-1'>
+                        <h4 className='text-sm font-semibold'>{user.name}</h4>
+                        <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
+                        <div className='mt-2 flex flex-wrap gap-2'>
+                          <span className='text-xs bg-muted px-2 py-1 rounded-full'>{user.category}</span>
+                          <span className='text-xs bg-accent/10 text-accent px-2 py-1 rounded-full flex items-center gap-1'>
+                            <Star className='w-3 h-3' /> Top
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className='flex items-center justify-between gap-3'>
-                    <div className='flex-1'>
-                      <div className='flex items-center justify-between text-xs mb-1'>
-                        <span className='text-muted-foreground'>Profile</span>
-                        <span className='font-medium'>78%</span>
+                    <div className='flex items-center justify-between gap-3'>
+                      <div className='flex-1'>
+                        <div className='flex items-center justify-between text-xs mb-1'>
+                          <span className='text-muted-foreground'>Profile</span>
+                          <span className='font-medium'>78%</span>
+                        </div>
+                        <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
+                          <div className='h-2 bg-primary' style={{ width: '78%' }} />
+                        </div>
                       </div>
-                      <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
-                        <div className='h-2 bg-primary' style={{ width: '78%' }} />
+                      <div className='flex flex-col items-end text-xs text-muted-foreground'>
+                        <span className='flex items-center gap-1'>
+                          <MapPin className='w-3 h-3' /> Nearby
+                        </span>
+                        <span>5km</span>
                       </div>
-                    </div>
-                    <div className='flex flex-col items-end text-xs text-muted-foreground'>
-                      <span className='flex items-center gap-1'>
-                        <MapPin className='w-3 h-3' /> Nearby
-                      </span>
-                      <span>5km</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MapContainer>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+      <Button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className='absolute top-4 right-4 z-[1000] bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'
+        size='sm'
+      >
+        {isDarkMode ? <Sun className='w-5 h-5 sm:w-6 sm:h-6' /> : <Moon className='w-5 h-5 sm:w-6 sm:h-6' />}
+      </Button>
+    </div>
   );
 }
