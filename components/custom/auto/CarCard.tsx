@@ -4,7 +4,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useEffect, useState } from 'react';
-import { Calendar, Gauge, Fuel, Settings, MapPin, Car as CarIcon, Palette, User, Star, Zap, ArrowRight, UserIcon, CheckCircle } from 'lucide-react';
+import {
+  Calendar,
+  Gauge,
+  Fuel,
+  Settings,
+  MapPin,
+  Car as CarIcon,
+  Palette,
+  Star,
+  Zap,
+  ArrowRight,
+  UserIcon,
+  CheckCircle,
+  UserCog,
+} from 'lucide-react';
 import DOMPurify from 'dompurify';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +63,18 @@ export function CarCard({ car }: CarCardProps) {
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     if (car.userId) {
-      getUserById(car.userId).then(setUser);
+      getUserById(car.userId).then((fetchedUser) => {
+        setUser(
+          fetchedUser
+            ? {
+                id: fetchedUser._id.toString(),
+                name: fetchedUser.name,
+                avatar: fetchedUser.image,
+                emailVerified: fetchedUser.emailVerified,
+              }
+            : null
+        );
+      });
     }
   }, [car.userId]);
 
@@ -166,7 +191,9 @@ export function CarCard({ car }: CarCardProps) {
             ))}
           </div>
         </div>
-        {car.description && <div className='text-sm text-muted-foreground mb-4' dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />}
+        {car.description && (
+          <div className='text-sm text-muted-foreground mb-4' dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+        )}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
             <Fuel className='h-4 w-4 flex-shrink-0' />
@@ -189,7 +216,7 @@ export function CarCard({ car }: CarCardProps) {
             <span>Culoare: {car.color}</span>
           </div>
           <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <User className='h-4 w-4 flex-shrink-0' />
+            <UserCog className='h-4 w-4 flex-shrink-0' />
             <span>Vânzător: {car.sellerType}</span>
           </div>
           {car.brand && (
@@ -240,7 +267,9 @@ export function CarCard({ car }: CarCardProps) {
             <h5 className='text-sm font-semibold mb-2'>Opțiuni:</h5>
             <div className='flex flex-wrap gap-2'>
               {car.options.map((option, i) => (
-                <Badge key={i} variant='outline'>{option}</Badge>
+                <Badge key={i} variant='outline'>
+                  {option}
+                </Badge>
               ))}
             </div>
           </div>
@@ -257,7 +286,13 @@ export function CarCard({ car }: CarCardProps) {
               </HoverCardTrigger>
               <HoverCardContent className='w-80'>
                 <div className='flex items-center gap-3'>
-                  <Image src={user.avatar || '/placeholder-avatar.png'} alt={user.name || 'User'} width={40} height={40} className='rounded-full' />
+                  <Image
+                    src={user.avatar || '/placeholder-avatar.png'}
+                    alt={user.name || 'User'}
+                    width={40}
+                    height={40}
+                    className='rounded-full'
+                  />
                   <div>
                     <p className='font-semibold'>{user.name || 'Utilizator'}</p>
                     <p className='text-sm text-muted-foreground'>Vezi profilul</p>

@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface SkeletonLoadingProps {
-  variant: 'auth' | 'profile' | 'default' | 'homepage' | 'auto';
+  variant: 'auth' | 'profile' | 'default' | 'homepage' | 'auto' | 'story' | 'feed';
   className?: string;
 }
 
@@ -77,6 +77,52 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
             <Skeleton className='h-4 w-full' />
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (variant === 'story') {
+    return (
+      <div className={cn('flex flex-col transition-all duration-300 hover:shadow-lg w-full max-w-full px-2', className)}>
+        <div className='flex-1 min-w-0'>
+          <div className='w-full min-w-0 whitespace-nowrap overflow-x-auto'>
+            <div className='flex space-x-4 p-4 min-h-[120px]'>
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className='flex flex-col items-center gap-2 shrink-0'>
+                  <Skeleton className='w-12 h-12 rounded-full' />
+                  <Skeleton className='h-3 w-16' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'feed') {
+    return (
+      <div className={cn('space-y-4', className)}>
+        <div className='flex justify-between items-center'>
+          <Skeleton className='h-6 w-32' />
+          <div className='flex items-center space-x-4'>
+            <Skeleton className='h-6 w-16' />
+            <Skeleton className='h-6 w-16' />
+            <Skeleton className='h-10 w-40' />
+          </div>
+        </div>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className='overflow-hidden rounded-lg border'>
+              <Skeleton className='h-48 w-full' />
+              <div className='p-4 space-y-2'>
+                <Skeleton className='h-4 w-full' />
+                <Skeleton className='h-4 w-3/4' />
+                <Skeleton className='h-3 w-1/2' />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

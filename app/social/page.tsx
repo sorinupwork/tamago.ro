@@ -1,55 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, HelpCircle, MessageCircle } from 'lucide-react';
 
 import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
 import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import MarketplaceContactSection from '@/components/custom/section/MarketplaceContactSection';
-import { Message, User as UserType, FeedPost } from '@/lib/types';
-import { mockUsers } from '@/lib/mockData';
+import { Message, User as UserType, StoryWithUser, FeedItem } from '@/lib/types';
+import { getStories } from '@/actions/social/stories/actions'; // NEW: Import for stories
+import { getFeedPosts } from '@/actions/social/feeds/actions'; // NEW: Import for feeds
+import { getUserById } from '@/actions/auth/actions'; // NEW: Import for user fetch
 import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { FeedSection } from '@/components/custom/section/FeedSection';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import QuickActions from '@/components/custom/profile/QuickActions';
+import { mockUsers } from '@/lib/mockData'; // Import mockUsers
 
-const mockStories = mockUsers
-  .concat(mockUsers, mockUsers, mockUsers)
-  .slice(0, 40)
-  .map((user) => ({ ...user, story: 'New update!' }));
-const mockPosts: FeedPost[] = mockUsers.slice(0, 20).map((user, index) => ({
-  id: index + 1,
-  user,
-  text: index % 2 === 0 ? 'Excited for the marketplace!' : 'Check out this deal!',
-  image:
-    index % 2 === 0
-      ? 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=300&q=80'
-      : 'https://images.unsplash.com/photo-1465869185982-5a1a7522cbcb?auto=format&fit=crop&w=300&q=80',
-  likes: index % 2 === 0 ? 12 : 8,
-}));
-
-const extendedMockUsers = mockUsers
-  .concat(
-    mockUsers.map((u, index) => ({
-      ...u,
-      id: (parseInt(u.id) + mockUsers.length + index).toString(),
-      name: u.name + ' Copy',
-      avatar: u.avatar,
-      status: u.status,
-      category: u.category,
-    }))
-  )
-  .concat(
-    mockUsers.map((u, index) => ({
-      ...u,
-      id: (parseInt(u.id) + mockUsers.length * 2 + index).toString(),
-      name: u.name + ' Copy 2',
-      avatar: u.avatar,
-      status: u.status,
-      category: u.category,
-    }))
-  );
+// NEW: Define types
+// Removed local types, now imported from lib/types.ts
 
 export default function SocialPage() {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
@@ -79,12 +48,80 @@ export default function SocialPage() {
     { id: 20, text: 'Mulțumesc pentru ajutor!', sender: 'me' },
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [stories, setStories] = useState<StoryWithUser[]>([]); // NEW: State for real stories
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]); // NEW: State for real feeds
 
-  const filteredUsers = extendedMockUsers
+  // NEW: Fetch real data on mount with Promise.all for user fallback
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [storiesData, feedsData] = await Promise.all([getStories({ limit: 50 }), getFeedPosts({ limit: 20 })]);
+        // Enrich stories with users if missing
+        const enrichedStories = await Promise.all(
+          storiesData.items.map(async (item) => {
+            if (!item.user && item.userId) {
+              const user = await getUserById(item.userId);
+              const normalizedUser = user
+                ? {
+                    id: user._id.toString(),
+                    name: user.name || 'Unknown',
+                    avatar: user.image || '/avatars/default.jpg',
+                    status: user.status || 'Online',
+                    category: user.category || 'Prieteni',
+                    email: user.email || '',
+                    provider: user.provider || 'credentials',
+                    createdAt: user.createdAt?.toISOString(),
+                    updatedAt: user.updatedAt?.toISOString(),
+                    location: user.location || [0, 0],
+                  }
+                : null;
+              return { ...item, user: normalizedUser };
+            }
+            return item;
+          })
+        );
+        setStories(enrichedStories);
+        // Enrich feeds with users if missing
+        const enrichedFeeds = await Promise.all(
+          feedsData.items.map(async (item) => {
+            if (!item.user && item.userId) {
+              const user = await getUserById(item.userId);
+              const normalizedUser = user
+                ? {
+                    id: user._id.toString(),
+                    name: user.name || 'Unknown',
+                    avatar: user.image || '/avatars/default.jpg',
+                    status: user.status || 'Online',
+                    category: user.category || 'Prieteni',
+                    email: user.email || '',
+                    provider: user.provider || 'credentials',
+                    createdAt: user.createdAt?.toISOString(),
+                    updatedAt: user.updatedAt?.toISOString(),
+                    location: user.location || [0, 0],
+                  }
+                : null;
+              return { ...item, user: normalizedUser };
+            }
+            return item;
+          })
+        );
+        setFeedItems(enrichedFeeds);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const filteredUsers = mockUsers
     .filter((user) => user.name.toLowerCase().includes(search.toLowerCase()) && (category === 'Toți' || user.category === category))
     .sort((a, b) => {
-      if (sort === 'name') return a.name.localeCompare(b.name);
-      if (sort === 'status') return (a.status || '').localeCompare(b.status || '');
+      const nameA = a.name || '';
+      const nameB = b.name || '';
+      const statusA = a.status || '';
+      const statusB = b.status || '';
+      if (sort === 'name') return nameA.localeCompare(nameB);
+      if (sort === 'status') return statusA.localeCompare(statusB);
       return 0;
     });
 
@@ -118,6 +155,16 @@ export default function SocialPage() {
     },
   ];
 
+  // Unique users from stories
+  const uniqueUsers = Array.from(
+    new Map(
+      stories
+        .map((story) => story.user)
+        .filter((user) => user !== null)
+        .map((user) => [user.id, user])
+    ).values()
+  );
+
   return (
     <div className='container mx-auto flex flex-col flex-1'>
       <Tabs defaultValue='stories-feed' className='flex-1'>
@@ -133,8 +180,8 @@ export default function SocialPage() {
               <QuickActions />
             </aside>
             <div className='col-span-1 md:col-span-3 flex flex-col gap-4 h-screen'>
-              <StoriesSection mockStories={mockStories} />
-              <FeedSection mockPosts={mockPosts} />
+              <StoriesSection stories={stories} mode='stories' /> {/* CHANGED: Pass real stories */}
+              <FeedSection feedItems={feedItems} /> {/* CHANGED: Removed isLoggedIn prop */}
             </div>
           </div>
         </TabsContent>
@@ -168,7 +215,7 @@ export default function SocialPage() {
                     <MessageCircle className='size-8' />
                   </EmptyMedia>
                   <EmptyTitle>Selectează un utilizator</EmptyTitle>
-                  <EmptyDescription>Alege un utilizator din listă pentru a începe conversația.</EmptyDescription>
+                  <EmptyDescription>Alege un utilizator din listă pentru a început conversația.</EmptyDescription>
                 </EmptyHeader>
               </Empty>
             )}
@@ -181,9 +228,9 @@ export default function SocialPage() {
             description='Contactează utilizatori pentru a negocia și tranzacționa pe platforma noastră marketplace. Comunitatea noastră este aici să te ajute!'
             className='p-4'
             cards={contactCards}
-            users={mockUsers}
+            users={uniqueUsers}
             showMap={true}
-            stories={mockStories}
+            stories={uniqueUsers}
             horizontalLayout={true}
           />
         </TabsContent>

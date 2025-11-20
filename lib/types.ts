@@ -165,3 +165,27 @@ export type RawCarDoc = {
   views?: number;
   userId?: string;
 };
+
+// Centralized types for social features
+export type StoryWithUser = {
+  _id: string;
+  caption: string;
+  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  createdAt: string;
+  expiresAt: string;
+  userId?: string;
+  user: User | null;
+};
+
+export type FeedItem = {
+  _id: string;
+  type: 'post' | 'poll';
+  text?: string;
+  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  tags?: string[];
+  question?: string;
+  options?: string[];
+  createdAt: string;
+  userId?: string;
+  user: User | null;
+};

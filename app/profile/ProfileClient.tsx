@@ -58,6 +58,9 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
 
+  // Debug: Log user ID
+  console.log('User ID from session:', user?.id);
+
   // Mock data for demo; replace with DB fetch later
   const userData = {
     badges: [

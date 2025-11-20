@@ -434,7 +434,7 @@ export default function CarDetailPage() {
                     Licitează
                   </Button>
                 </div>
-                <StoriesSection mockStories={biddersForStories} title='Participanți Licitație' />
+                <StoriesSection users={biddersForStories} mode='users' title='Participanți Licitație' />
               </CardContent>
             </Card>
           )}

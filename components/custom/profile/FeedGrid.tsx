@@ -42,6 +42,8 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore }: F
         const type = showPosts && showPolls ? undefined : showPosts ? 'post' : showPolls ? 'poll' : undefined;
         const data = await getFeedPosts({ userId, type, sortBy: sortBy === 'createdAt' ? -1 : 1 });
         setFeedItems(data.items);
+        // Debug: Log fetched feed items
+        console.log('Fetched feed items for user:', userId, data.items);
       } catch (err) {
         setError('Failed to load feed');
       } finally {
@@ -51,7 +53,7 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore }: F
     fetchFeed();
   }, [userId, sortBy, showPosts, showPolls]);
 
-  if (loading) return <SkeletonLoading variant='profile' />;
+  if (loading) return <SkeletonLoading variant='feed' />;
   if (error) return <div className='text-center text-red-500'>{error}</div>;
 
   return (

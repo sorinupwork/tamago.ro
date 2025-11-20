@@ -178,41 +178,39 @@ export default function MapComponent({
           return (
             <Marker key={user.id} position={user.location!} icon={customIcon}>
               <Popup maxWidth={320}>
-                <div className='w-80 max-w-xs'>
-                  <div className='flex flex-col gap-3'>
-                    <div className='flex items-start gap-3'>
-                      <Avatar>
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback>{user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className='flex-1'>
-                        <h4 className='text-sm font-semibold'>{user.name}</h4>
-                        <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
-                        <div className='mt-2 flex flex-wrap gap-2'>
-                          <span className='text-xs bg-muted px-2 py-1 rounded-full'>{user.category}</span>
-                          <span className='text-xs bg-accent/10 text-accent px-2 py-1 rounded-full flex items-center gap-1'>
-                            <Star className='w-3 h-3' /> Top
-                          </span>
-                        </div>
+                <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
+                  <div className='flex items-start gap-3'>
+                    <Avatar>
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback>{user.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className='flex-1'>
+                      <h4 className='text-sm font-semibold'>{user.name}</h4>
+                      <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
+                      <div className='mt-2 flex flex-wrap gap-2'>
+                        <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>{user.category}</span>
+                        <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full flex items-center gap-1'>
+                          <Star className='w-3 h-3' /> Top
+                        </span>
                       </div>
                     </div>
+                  </div>
 
-                    <div className='flex items-center justify-between gap-3'>
-                      <div className='flex-1'>
-                        <div className='flex items-center justify-between text-xs mb-1'>
-                          <span className='text-muted-foreground'>Profile</span>
-                          <span className='font-medium'>78%</span>
-                        </div>
-                        <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
-                          <div className='h-2 bg-primary' style={{ width: '78%' }} />
-                        </div>
+                  <div className='flex items-center justify-between gap-3'>
+                    <div className='flex-1'>
+                      <div className='flex items-center justify-between text-xs mb-1'>
+                        <span className='text-muted-foreground'>Profile</span>
+                        <span className='font-medium'>78%</span>
                       </div>
-                      <div className='flex flex-col items-end text-xs text-muted-foreground'>
-                        <span className='flex items-center gap-1'>
-                          <MapPin className='w-3 h-3' /> Nearby
-                        </span>
-                        <span>5km</span>
+                      <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
+                        <div className='h-2 bg-primary' style={{ width: '78%' }} />
                       </div>
+                    </div>
+                    <div className='flex flex-col items-end text-xs text-muted-foreground'>
+                      <span className='flex items-center gap-1'>
+                        <MapPin className='w-3 h-3' /> Nearby
+                      </span>
+                      <span>5km</span>
                     </div>
                   </div>
                 </div>

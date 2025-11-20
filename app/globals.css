@@ -231,6 +231,10 @@ body {
   display: none !important;
 }
 
+.leaflet-popup-content {
+  margin: 0 !important;
+}
+
 .leaflet-container {
   z-index: 0;
 }

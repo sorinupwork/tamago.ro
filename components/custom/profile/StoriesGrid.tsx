@@ -35,6 +35,8 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }
       try {
         const data = await getStories({ userId, sortBy: sortBy === 'createdAt' ? -1 : 1 });
         setStories(data.items);
+        // Debug: Log fetched stories
+        console.log('Fetched stories for user:', userId, data.items);
       } catch (err) {
         setError('Failed to load stories');
       } finally {
@@ -44,8 +46,9 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }
     fetchStories();
   }, [userId, sortBy]);
 
-  if (loading) return <SkeletonLoading variant='profile' />;
+  if (loading) return <SkeletonLoading variant='feed' />;
   if (error) return <div className='text-center text-red-500'>{error}</div>;
+  
 
   return (
     <div className='space-y-4'>

@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
+import { email } from 'zod';
 
 type ProfileUpdateResponse = {
   success?: boolean;
@@ -48,7 +49,22 @@ export async function updateProfile(form: FormData): Promise<ProfileUpdateRespon
 export async function getUserById(id: string) {
   try {
     const user = await db.collection('user').findOne({ _id: new ObjectId(id) });
-    return user ? JSON.parse(JSON.stringify(user)) : null;
+    if (user) {
+      return {
+        _id: user._id.toString(),
+        name: user.name || 'Unknown',
+        image: user.image || user.avatar || '/avatars/default.jpg',
+        status: user.status || 'Online',
+        category: user.category || 'Prieteni',
+        email: user.email || '',
+        provider: user.provider || 'credentials',
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        location: user.location || [0, 0],
+        emailVerified: user.emailVerified,
+      };
+    }
+    return null;
   } catch (error) {
     console.error('Error fetching user:', error);
     return null;

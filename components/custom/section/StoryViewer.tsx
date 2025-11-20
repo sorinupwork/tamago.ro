@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, X } from 'lucide-react';
-import { User } from '@/lib/types';
+import { User, StoryWithUser } from '@/lib/types';
 
 type StoryViewerProps = {
-  stories: User[];
+  stories: StoryWithUser[]; // CHANGED: From User[] to StoryWithUser[]
   initialIndex: number;
   onClose: () => void;
 };
@@ -24,9 +24,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialIndex,
   const TAP_THRESHOLD = 10; // px to differentiate tap vs swipe
   const SWIPE_THRESHOLD = 50; // px to count as swipe
 
-  const currentStory = stories[currentIndex];
-  const mediaUrl = currentStory.videoUrl || currentStory.avatar;
-  const isVideo = mediaUrl ? mediaUrl.includes('.mp4') : false;
+  const currentStory = stories[currentIndex]; // CHANGED: Use stories
+  const mediaFile = currentStory.files?.[0]; // NEW: Get first file
+  const mediaUrl = mediaFile?.url; // CHANGED: Use file URL
+  const isVideo = mediaFile?.contentType?.startsWith('video/') || false; // CHANGED: Check contentType for video
   const duration = isVideo ? 10 : 5; // Mock duration: 10s for video, 5s for image
 
   useEffect(() => {
@@ -134,7 +135,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialIndex,
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className='max-w-full max-h-full w-screen h-screen p-0 bg-black' showCloseButton={false}>
         <div className='sr-only'>
-          <DialogTitle>{currentStory.name}</DialogTitle>
+          <DialogTitle>{currentStory.user?.name || 'Unknown'}</DialogTitle>
         </div>
         {/* Progress Bars */}
         <div className='absolute top-4 left-4 right-16 flex gap-1 z-20'>
@@ -167,7 +168,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialIndex,
                 autoPlay
               />
             ) : (
-              <img src={mediaUrl} alt={currentStory.name} className='w-full h-full object-cover' />
+              <img src={mediaUrl} alt={currentStory.user?.name} className='w-full h-full object-cover' />
             )
           ) : (
             <div className='w-full h-full bg-gray-800 flex items-center justify-center text-white'>No media available</div>
@@ -183,8 +184,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialIndex,
           {/* Story Info and close */}
           <div className='absolute top-4 right-4 z-20 flex items-center gap-2'>
             <div className='text-white mr-2'>
-              <h2 className='text-lg font-bold'>{currentStory.name}</h2>
-              <p className='text-sm'>{currentStory.status}</p>
+              <h2 className='text-lg font-bold'>{currentStory.user?.name || 'Unknown'}</h2>
+              <p className='text-sm'>{currentStory.caption || 'No caption'}</p>
             </div>
             <Button onClick={(e) => { e.stopPropagation(); onClose(); }} variant='ghost' size='sm' className='text-white'>
               <X className='w-5 h-5' />
