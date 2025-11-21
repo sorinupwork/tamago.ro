@@ -124,7 +124,6 @@ export default function MapComponent({
   const mapCenter = isUserMode ? center : mapPosition || center;
   const mapZoom = isUserMode ? zoom : 13;
 
-  // Custom car marker icon
   const carIcon = L.icon({
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
     iconSize: [25, 41],
@@ -143,10 +142,7 @@ export default function MapComponent({
         scrollWheelZoom={scrollWheelZoom}
         ref={mapRef}
       >
-        <TileLayer
-          url={isDarkMode ? darkTiles : lightTiles}
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        />
+        <TileLayer url={isDarkMode ? darkTiles : lightTiles} />
         {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
         {onMapClick && (
           <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
@@ -221,7 +217,7 @@ export default function MapComponent({
       </MapContainer>
       <Button
         onClick={() => setIsDarkMode(!isDarkMode)}
-        className='absolute top-4 right-4 z-[1000] bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'
+        className='absolute top-4 right-4 z-1000 bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'
         size='sm'
       >
         {isDarkMode ? <Sun className='w-5 h-5 sm:w-6 sm:h-6' /> : <Moon className='w-5 h-5 sm:w-6 sm:h-6' />}

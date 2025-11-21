@@ -58,9 +58,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
 
-  // Debug: Log user ID
-  console.log('User ID from session:', user?.id);
-
   // Mock data for demo; replace with DB fetch later
   const userData = {
     badges: [
@@ -127,12 +124,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [hasMore, setHasMore] = useState(true);
   const [totalPosts, setTotalPosts] = useState(0);
 
-  // New state for stories
   const [storiesLoading, setStoriesLoading] = useState(false);
   const [storiesHasMore, setStoriesHasMore] = useState(true);
   const [storiesCurrentPage, setStoriesCurrentPage] = useState(1);
 
-  // New state for feed
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedHasMore, setFeedHasMore] = useState(true);
   const [feedCurrentPage, setFeedCurrentPage] = useState(1);
@@ -214,14 +209,12 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     }
   };
 
-  // New handlers for stories
   const handleStoriesLoadMore = () => {
     if (storiesHasMore && !storiesLoading) {
       setStoriesCurrentPage((prev) => prev + 1);
     }
   };
 
-  // New handlers for feed
   const handleFeedLoadMore = () => {
     if (feedHasMore && !feedLoading) {
       setFeedCurrentPage((prev) => prev + 1);
@@ -249,12 +242,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   };
 
   const handleDeletePost = async (postId: string) => {
-    // Placeholder: Not implemented yet
     console.log('Delete not implemented yet for post:', postId);
   };
 
   const handleToggleActive = async (postId: string, current?: Post['status']) => {
-    // Placeholder: Not implemented yet
     console.log('Toggle not implemented yet for post:', postId, 'current status:', current);
   };
 
@@ -307,23 +298,19 @@ export default function ProfileClient({ session }: ProfileClientProps) {
 
             <Tabs defaultValue='overview' className='w-full'>
               <div className='overflow-x-auto p-2'>
-                {/* Adjust md grid to fit added tabs */}
                 <TabsList className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
                   <TabsTrigger value='overview' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
                     General
                   </TabsTrigger>
 
-                  {/* New Feed tab: feed posts, polls, quick-actions posts */}
                   <TabsTrigger value='feed' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
                     Feed
                   </TabsTrigger>
 
-                  {/* New Stories tab */}
                   <TabsTrigger value='stories' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
                     Stories
                   </TabsTrigger>
 
-                  {/* Renamed Posts tab -> Anunțurile Mele (anunturi) */}
                   <TabsTrigger value='anunturi' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
                     Anunțuri
                   </TabsTrigger>
@@ -371,12 +358,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                 </div>
               </TabsContent>
 
-              {/* Updated Feed content: uses FeedGrid with filters and loading */}
               <TabsContent value='feed' className='space-y-6'>
                 <FeedGrid userId={user?.id} hasMore={feedHasMore} onLoadMore={handleFeedLoadMore} loadingMore={feedLoading} />
               </TabsContent>
 
-              {/* Updated Stories content: uses StoriesGrid with filters and loading */}
               <TabsContent value='stories' className='space-y-6'>
                 <StoriesGrid userId={user?.id} hasMore={storiesHasMore} onLoadMore={handleStoriesLoadMore} loadingMore={storiesLoading} />
               </TabsContent>

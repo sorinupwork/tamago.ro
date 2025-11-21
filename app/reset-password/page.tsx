@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, notFound } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((s) => !s);
 
   if (!token) {
-    return <div>Token invalid sau lipsă. Verifică link-ul din email.</div>;
+    notFound();
   }
 
   return (

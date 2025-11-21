@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
@@ -13,6 +12,7 @@ import ForgotPasswordForm from './ForgotPasswordForm';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { signIn } from '@/lib/auth/auth-client';
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -57,22 +57,22 @@ export default function LoginForm() {
           </p>
         </div>
         <AppInput
-          label="Email"
-          type="email"
-          placeholder="m@example.com"
+          label='Email'
+          type='email'
+          placeholder='m@example.com'
           {...form.register('email')}
           required
-          htmlFor="email"
+          htmlFor='email'
           error={form.formState.errors.email ? [{ message: form.formState.errors.email.message }] : []}
           disabled={loading}
         />
         <AppInput
-          label="Parolă"
+          label='Parolă'
           type={showPassword ? 'text' : 'password'}
-          placeholder="Parola"
+          placeholder='Parola'
           {...form.register('password')}
           required
-          htmlFor="password"
+          htmlFor='password'
           error={form.formState.errors.password ? [{ message: form.formState.errors.password.message }] : []}
           rightIcon={showPassword ? EyeOff : Eye}
           onRightIconClick={togglePasswordVisibility}

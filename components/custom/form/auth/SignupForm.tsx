@@ -3,15 +3,15 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signUp, signIn } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { AppInput } from '@/components/custom/input/AppInput';
-import { signupSchema, type SignupFormData } from '@/lib/validations';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { signupSchema, type SignupFormData } from '@/lib/validations';
+import { signUp, signIn } from '@/lib/auth/auth-client';
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);

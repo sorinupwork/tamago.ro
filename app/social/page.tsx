@@ -7,18 +7,15 @@ import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
 import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import MarketplaceContactSection from '@/components/custom/section/MarketplaceContactSection';
 import { Message, User as UserType, StoryWithUser, FeedItem } from '@/lib/types';
-import { getStories } from '@/actions/social/stories/actions'; // NEW: Import for stories
-import { getFeedPosts } from '@/actions/social/feeds/actions'; // NEW: Import for feeds
-import { getUserById } from '@/actions/auth/actions'; // NEW: Import for user fetch
+import { getStories } from '@/actions/social/stories/actions';
+import { getFeedPosts } from '@/actions/social/feeds/actions';
+import { getUserById } from '@/actions/auth/actions';
 import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { FeedSection } from '@/components/custom/section/FeedSection';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import QuickActions from '@/components/custom/profile/QuickActions';
-import { mockUsers } from '@/lib/mockData'; // Import mockUsers
-
-// NEW: Define types
-// Removed local types, now imported from lib/types.ts
+import { mockUsers } from '@/lib/mockData';
 
 export default function SocialPage() {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
@@ -48,15 +45,13 @@ export default function SocialPage() {
     { id: 20, text: 'Mulțumesc pentru ajutor!', sender: 'me' },
   ]);
   const [newMessage, setNewMessage] = useState('');
-  const [stories, setStories] = useState<StoryWithUser[]>([]); // NEW: State for real stories
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]); // NEW: State for real feeds
+  const [stories, setStories] = useState<StoryWithUser[]>([]);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
 
-  // NEW: Fetch real data on mount with Promise.all for user fallback
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [storiesData, feedsData] = await Promise.all([getStories({ limit: 50 }), getFeedPosts({ limit: 20 })]);
-        // Enrich stories with users if missing
         const enrichedStories = await Promise.all(
           storiesData.items.map(async (item) => {
             if (!item.user && item.userId) {
@@ -81,7 +76,6 @@ export default function SocialPage() {
           })
         );
         setStories(enrichedStories);
-        // Enrich feeds with users if missing
         const enrichedFeeds = await Promise.all(
           feedsData.items.map(async (item) => {
             if (!item.user && item.userId) {
@@ -155,7 +149,6 @@ export default function SocialPage() {
     },
   ];
 
-  // Unique users from stories
   const uniqueUsers = Array.from(
     new Map(
       stories
@@ -180,8 +173,8 @@ export default function SocialPage() {
               <QuickActions />
             </aside>
             <div className='col-span-1 md:col-span-3 flex flex-col gap-4 h-screen'>
-              <StoriesSection stories={stories} mode='stories' /> {/* CHANGED: Pass real stories */}
-              <FeedSection feedItems={feedItems} /> {/* CHANGED: Removed isLoggedIn prop */}
+              <StoriesSection stories={stories} mode='stories' />
+              <FeedSection feedItems={feedItems} />
             </div>
           </div>
         </TabsContent>
