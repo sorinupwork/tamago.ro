@@ -48,7 +48,6 @@ export function CarCard({ car }: CarCardProps) {
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
 
-  // Map category to Romanian URL
   const categoryMap = {
     sell: 'vanzare',
     buy: 'cumparare',
@@ -59,7 +58,6 @@ export function CarCard({ car }: CarCardProps) {
 
   const href = `/categorii/auto/${urlCategory}/${car.id}${queryString ? '?' + queryString : ''}`;
 
-  // Fetch user data
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     if (car.userId) {
@@ -78,7 +76,6 @@ export function CarCard({ car }: CarCardProps) {
     }
   }, [car.userId]);
 
-  // Dynamically set highlights as creative remarks/features based on category
   const getHighlights = () => {
     switch (car.category) {
       case 'auction':
@@ -114,7 +111,6 @@ export function CarCard({ car }: CarCardProps) {
 
   const highlights = getHighlights();
 
-  // Dynamic button text based on category
   const getButtonText = () => {
     switch (car.category) {
       case 'auction':
@@ -123,7 +119,7 @@ export function CarCard({ car }: CarCardProps) {
         return 'Închiriază Acum';
       case 'buy':
         return 'Oferă Acum';
-      default: // sell
+      default:
         return 'Cumpără Acum';
     }
   };
@@ -138,7 +134,7 @@ export function CarCard({ car }: CarCardProps) {
         <CarouselContent>
           {car.images.map((img, i) => (
             <CarouselItem key={i}>
-              <div className='aspect-[5/1] bg-muted relative rounded-t-md'>
+              <div className='aspect-5/1 bg-muted relative rounded-t-md'>
                 <Image fill src={img} alt={car.title} className='object-cover object-center rounded-t-md ' />
               </div>
             </CarouselItem>
@@ -166,7 +162,7 @@ export function CarCard({ car }: CarCardProps) {
             <FavoriteButton itemId={car.id} />
             <ShareButton href={href} />
             <QuickActionButton href={href} />
-            <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='flex-shrink-0'>
+            <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='shrink-0'>
               {categoryLabels[car.category as keyof typeof categoryLabels]}
             </Badge>
           </div>
@@ -193,62 +189,62 @@ export function CarCard({ car }: CarCardProps) {
         )}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <Fuel className='h-4 w-4 flex-shrink-0' />
+            <Fuel className='h-4 w-4 shrink-0' />
             <span>Combustibil: {car.fuel}</span>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <Settings className='h-4 w-4 flex-shrink-0' />
+            <Settings className='h-4 w-4 shrink-0' />
             <span>Transmisie: {car.transmission}</span>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <MapPin className='h-4 w-4 flex-shrink-0' />
+            <MapPin className='h-4 w-4 shrink-0' />
             <span>Locație: {car.location}</span>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <CarIcon className='h-4 w-4 flex-shrink-0' />
+            <CarIcon className='h-4 w-4 shrink-0' />
             <span>Caroserie: {car.bodyType}</span>
           </div>
           <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <Palette className='h-4 w-4 flex-shrink-0' />
+            <Palette className='h-4 w-4 shrink-0' />
             <span>Culoare: {car.color}</span>
           </div>
           <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <UserCog className='h-4 w-4 flex-shrink-0' />
+            <UserCog className='h-4 w-4 shrink-0' />
             <span>Vânzător: {car.sellerType}</span>
           </div>
           {car.brand && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <CarIcon className='h-4 w-4 flex-shrink-0' />
+              <CarIcon className='h-4 w-4 shrink-0' />
               <span>Brand: {car.brand}</span>
             </div>
           )}
           {car.year && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Calendar className='h-4 w-4 flex-shrink-0' />
+              <Calendar className='h-4 w-4 shrink-0' />
               <span>An: {car.year}</span>
             </div>
           )}
           {car.mileage && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Gauge className='h-4 w-4 flex-shrink-0' />
+              <Gauge className='h-4 w-4 shrink-0' />
               <span>Km: {car.mileage}</span>
             </div>
           )}
           {car.engineCapacity && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Settings className='h-4 w-4 flex-shrink-0' />
+              <Settings className='h-4 w-4 shrink-0' />
               <span>Capacitate Motor: {car.engineCapacity} cc</span>
             </div>
           )}
           {car.horsepower && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Zap className='h-4 w-4 flex-shrink-0' />
+              <Zap className='h-4 w-4 shrink-0' />
               <span>Putere: {car.horsepower} CP</span>
             </div>
           )}
           {car.is4x4 && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <CarIcon className='h-4 w-4 flex-shrink-0' />
+              <CarIcon className='h-4 w-4 shrink-0' />
               <span>4x4: Da</span>
             </div>
           )}

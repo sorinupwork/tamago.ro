@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/custom/form/auth/LoginForm';
 import SignupForm from '@/components/custom/form/auth/SignupForm';
 import SocialMediaForm from '@/components/custom/form/auth/SocialMediaForm';
-import AuthInfo from '@/components/custom/form/auth/AuthInfo';
+import AuthInfo from '@/components/custom/info/AuthInfo';
 
 export default function ContClient() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'social'>('login');

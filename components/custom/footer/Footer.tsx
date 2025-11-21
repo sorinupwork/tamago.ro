@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Dot } from 'lucide-react';
 
 export function Footer() {
-  // Added: array of partner images to enable easy future additions
   const partners = [
     { src: '/icons/facebook.svg', alt: 'Facebook', colorClass: 'text-blue-500' },
     { src: '/icons/instagram.svg', alt: 'Instagram', colorClass: 'text-purple-500' },
@@ -13,18 +12,16 @@ export function Footer() {
     { src: '/icons/react.svg', alt: 'React', colorClass: 'text-blue-400' },
     { src: '/icons/nextdotjs.svg', alt: 'Next.js', colorClass: 'text-gray-800' },
     { src: '/icons/tailwindcss.svg', alt: 'Tailwind CSS', colorClass: 'text-gray-800' },
-    // Added icons from public folder
     { src: '/icons/resend.svg', alt: 'Resend', colorClass: 'text-indigo-500' },
     { src: '/icons/betterauth.svg', alt: 'BetterAuth', colorClass: 'text-yellow-500' },
   ];
 
   return (
     <footer className='border-t'>
-      {/* increase gap to provide breathing room on tablet/iPad */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8'>
         <div className='text-center'>
           <h3 className='font-semibold mb-2'>Legal</h3>
-          {/* add more vertical spacing at md and up so buttons don't crowd the label */}
+
           <div className='space-y-2 md:space-y-4 flex flex-col items-center'>
             <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
               <Link href='/termeni-conditii' className='flex items-center'>
