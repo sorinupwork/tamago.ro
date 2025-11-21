@@ -26,6 +26,7 @@ type MarketplaceContactSectionProps = {
   gridCols?: string;
   className?: string;
   horizontalLayout?: boolean;
+  showWeather?: boolean;
 };
 
 export default function MarketplaceContactSection({
@@ -37,6 +38,7 @@ export default function MarketplaceContactSection({
   gridCols = 'grid-cols-1 md:grid-cols-3',
   className = '',
   horizontalLayout = false,
+  showWeather = true,
 }: MarketplaceContactSectionProps) {
   const [mapFilter, setMapFilter] = useState<string[]>(['Toți']);
   const [mapSort, setMapSort] = useState<string>('name');
@@ -173,27 +175,31 @@ export default function MarketplaceContactSection({
               </Card>
             ))}
 
-            <Card className='transition-all duration-200 hover:shadow-lg'>
-              <CardHeader>
-                <CardTitle className='flex items-center justify-center gap-2'>
-                  <p>Weather Widget</p>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WeatherWidget />
-              </CardContent>
-            </Card>
+            {showWeather && (
+              <div>
+                <Card className='transition-all duration-200 hover:shadow-lg'>
+                  <CardHeader>
+                    <CardTitle className='flex items-center justify-center gap-2'>
+                      <p>Weather Widget</p>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <WeatherWidget />
+                  </CardContent>
+                </Card>
 
-            <Card className='transition-all duration-200 hover:shadow-lg'>
-              <CardHeader>
-                <CardTitle className='flex items-center justify-center gap-2'>
-                  <p>Weather Tips</p>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
-              </CardContent>
-            </Card>
+                <Card className='transition-all duration-200 hover:shadow-lg'>
+                  <CardHeader>
+                    <CardTitle className='flex items-center justify-center gap-2'>
+                      <p>Weather Tips</p>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
           {showMap && users.length > 0 && (
             <Card className='transition-all duration-200 hover:shadow-xl flex-1 grow mt-4'>

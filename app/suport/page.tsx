@@ -72,6 +72,7 @@ export default function Suport() {
           showMap={false}
           gridCols='grid-cols-1 md:grid-cols-4'
           className='px-4'
+          showWeather={false}
         />
       </div>
     </>
