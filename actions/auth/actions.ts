@@ -2,6 +2,7 @@
 
 import { ObjectId } from 'mongodb';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
@@ -14,6 +15,15 @@ type ProfileUpdateResponse = {
 type UserUpdate = {
   name?: string | null;
   image?: string | null;
+};
+
+type Favorite = {
+  userId: string;
+  itemId: string;
+  title: string;
+  image: string;
+  category: string;
+  createdAt: Date;
 };
 
 export async function updateProfile(form: FormData): Promise<ProfileUpdateResponse> {
@@ -68,4 +78,70 @@ export async function getUserById(id: string) {
     console.error('Error fetching user:', error);
     return null;
   }
+}
+
+export async function isFavorited(itemId: string): Promise<boolean> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    return false;
+  }
+  const userId = session.user.id;
+
+  const favorites = db.collection('favorites');
+  const existing = await favorites.findOne({ userId: new ObjectId(userId), itemId });
+  return !!existing;
+}
+
+export async function toggleFavorite(
+  itemId: string,
+  itemTitle: string,
+  itemImage: string,
+  itemCategory: string
+): Promise<{ success: boolean; isFavorited: boolean }> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    throw new Error('You must be logged in to add to favorites!');
+  }
+  const userId = session.user.id;
+
+  const favorites = db.collection('favorites');
+  const existing = await favorites.findOne({ userId: new ObjectId(userId), itemId });
+
+  if (existing) {
+    await favorites.deleteOne({ _id: existing._id });
+    revalidatePath('/');
+    return { success: true, isFavorited: false };
+  } else {
+    await favorites.insertOne({
+      userId: new ObjectId(userId),
+      itemId,
+      title: itemTitle,
+      image: itemImage,
+      category: itemCategory,
+      createdAt: new Date(),
+    });
+    revalidatePath('/');
+    return { success: true, isFavorited: true };
+  }
+}
+
+export async function getFavorites(): Promise<Favorite[]> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    return [];
+  }
+  const userId = session.user.id;
+
+  const favorites = await db
+    .collection('favorites')
+    .find({ userId: new ObjectId(userId) })
+    .toArray();
+  return favorites.map((fav) => ({
+    userId: fav.userId.toString(),
+    itemId: fav.itemId,
+    title: fav.title,
+    image: fav.image,
+    category: fav.category,
+    createdAt: fav.createdAt,
+  }));
 }

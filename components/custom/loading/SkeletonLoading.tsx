@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface SkeletonLoadingProps {
-  variant: 'auth' | 'profile' | 'default' | 'homepage' | 'auto' | 'story' | 'feed';
+  variant: 'auth' | 'profile' | 'default' | 'homepage' | 'auto' | 'story' | 'feed' | 'favorite';
   className?: string;
 }
 
@@ -120,6 +120,36 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
                 <Skeleton className='h-4 w-3/4' />
                 <Skeleton className='h-3 w-1/2' />
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'favorite') {
+    return (
+      <div className={cn('p-4 space-y-4', className)}>
+        {/* Filter and Sort Buttons */}
+        <div className='flex justify-between items-center gap-4'>
+          <div className='flex gap-2'>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className='h-8 w-16' />
+            ))}
+          </div>
+          <div className='flex gap-2'>
+            <Skeleton className='h-8 w-20' />
+            <Skeleton className='h-8 w-16' />
+          </div>
+        </div>
+        {/* Carousel Items */}
+        <div className='flex gap-4 overflow-hidden'>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className='flex-shrink-0 w-64'>
+              <Skeleton className='h-32 w-full rounded' />
+              <Skeleton className='h-4 w-3/4 mt-2' />
+              <Skeleton className='h-3 w-1/2 mt-1' />
+              <Skeleton className='h-8 w-full mt-2' />
             </div>
           ))}
         </div>

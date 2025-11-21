@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
+import { Phone, Mail, MessageCircle, Clock } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';
 
@@ -34,6 +34,7 @@ import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } 
 import { Car, RawCarDoc, User } from '@/lib/types';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppCounter from '@/components/custom/counter/AppCounter';
+import FavoriteButton from '@/components/custom/button/FavoriteButton';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -49,7 +50,6 @@ export default function CarDetailPage() {
 
   const [imageSrcs, setImageSrcs] = useState<string[]>([]);
 
-  const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [message, setMessage] = useState('');
   const [api, setApi] = useState<CarouselApi>();
@@ -124,7 +124,7 @@ export default function CarDetailPage() {
         options: doc.options || [],
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
-        userId: doc.userId || '',
+        userId: doc.userId ? doc.userId.toString() : '',
       }));
       setAllCars(mappedCars);
       const foundCar = mappedCars.find((c) => c.id === id);
@@ -279,15 +279,7 @@ export default function CarDetailPage() {
                     {car.brand} - {car.year}
                   </p>
                 </div>
-                <Button
-                  variant='ghost'
-                  onClick={() => {
-                    setIsFavorite(!isFavorite);
-                    toast.success(isFavorite ? 'Eliminat din favorite!' : 'Adăugat la favorite!');
-                  }}
-                >
-                  <Heart className={`h-6 w-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-                </Button>
+                <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
               </div>
               <div className='flex items-center gap-2'>
                 <Badge variant={isAuction ? 'destructive' : 'secondary'}>

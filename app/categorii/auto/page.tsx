@@ -112,6 +112,7 @@ export default function AutoPage() {
         lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
+        userId: doc.userId ? doc.userId.toString() : '',
       }));
       setCars(mappedCars);
       setLoading(false);

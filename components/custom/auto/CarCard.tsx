@@ -159,7 +159,7 @@ export function CarCard({ car }: CarCardProps) {
             </p>
           </div>
           <div className='flex items-center gap-1 ml-2'>
-            <FavoriteButton itemId={car.id} />
+            <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
             <ShareButton href={href} />
             <QuickActionButton href={href} />
             <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='shrink-0'>
