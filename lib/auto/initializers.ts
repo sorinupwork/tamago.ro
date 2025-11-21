@@ -1,13 +1,9 @@
 import { categoryMapping } from '@/lib/categories';
-import type { FilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import type { AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
 
 export const defaultActiveTab: keyof typeof categoryMapping = 'vanzare';
 
-export const defaultFilters: FilterState = {
-  minEngineCapacity: '',
-  maxEngineCapacity: '',
-  minHorsepower: '',
-  maxHorsepower: '',
+export const defaultFilters: AutoFilterState = {
   status: '',
   brand: '',
   fuel: [],
@@ -15,10 +11,10 @@ export const defaultFilters: FilterState = {
   bodyType: [],
   color: [],
   priceRange: [0, 1000000],
-  yearRange: [1900, 2025], // Updated from [2000, 2025] to include older cars like 1960
+  yearRange: [1900, 2025],
   mileageRange: [0, 1000000],
-  engineCapacityRange: [0, 5000],
-  horsepowerRange: [0, 1000],
+  engineCapacityRange: [0, 10000],
+  horsepowerRange: [0, 10000],
 };
 
 export const defaultSortCriteria: SortCriteria = {
@@ -39,70 +35,70 @@ export const getInitialActiveTab = (searchParams: URLSearchParams): keyof typeof
   return categorieParam && categorieParam in categoryMapping ? (categorieParam as keyof typeof categoryMapping) : defaultActiveTab;
 };
 
-export const getInitialFilters = (searchParams: URLSearchParams): FilterState => {
+export const getInitialFilters = (searchParams: URLSearchParams): AutoFilterState => {
   const filters = { ...defaultFilters };
-  filters.minEngineCapacity = searchParams.get('minEngineCapacity') || defaultFilters.minEngineCapacity;
-  filters.maxEngineCapacity = searchParams.get('maxEngineCapacity') || defaultFilters.maxEngineCapacity;
-  filters.minHorsepower = searchParams.get('minHorsepower') || defaultFilters.minHorsepower;
-  filters.maxHorsepower = searchParams.get('maxHorsepower') || defaultFilters.maxHorsepower;
-  filters.status = searchParams.get('status') || defaultFilters.status;
-  filters.brand = searchParams.get('brand') || defaultFilters.brand;
-  const fuel = searchParams.get('fuel');
-  filters.fuel = fuel ? fuel.split(',') : defaultFilters.fuel;
-  const transmission = searchParams.get('transmission');
-  filters.transmission = transmission ? transmission.split(',') : defaultFilters.transmission;
-  const bodyType = searchParams.get('bodyType');
-  filters.bodyType = bodyType ? bodyType.split(',') : defaultFilters.bodyType;
-  const color = searchParams.get('color');
-  filters.color = color ? color.split(',') : defaultFilters.color;
+  filters.status = searchParams.get('stare') || defaultFilters.status;
+  filters.brand = searchParams.get('marca') || defaultFilters.brand;
+  filters.fuel = searchParams.getAll('combustibil');
+  filters.transmission = searchParams.getAll('transmisie');
+  filters.bodyType = searchParams.getAll('caroserie');
+  filters.color = searchParams.getAll('culoare');
   filters.priceRange = [
-    parseInt(searchParams.get('priceMin') || defaultFilters.priceRange[0].toString()),
-    parseInt(searchParams.get('priceMax') || defaultFilters.priceRange[1].toString()),
+    parseInt(searchParams.get('pretMin') || defaultFilters.priceRange[0].toString()),
+    parseInt(searchParams.get('pretMax') || defaultFilters.priceRange[1].toString()),
   ];
   filters.yearRange = [
-    parseInt(searchParams.get('yearMin') || defaultFilters.yearRange[0].toString()),
-    parseInt(searchParams.get('yearMax') || defaultFilters.yearRange[1].toString()),
+    parseInt(searchParams.get('anMin') || defaultFilters.yearRange[0].toString()),
+    parseInt(searchParams.get('anMax') || defaultFilters.yearRange[1].toString()),
   ];
   filters.mileageRange = [
-    parseInt(searchParams.get('mileageMin') || defaultFilters.mileageRange[0].toString()),
-    parseInt(searchParams.get('mileageMax') || defaultFilters.mileageRange[1].toString()),
+    parseInt(searchParams.get('kilometrajMin') || defaultFilters.mileageRange[0].toString()),
+    parseInt(searchParams.get('kilometrajMax') || defaultFilters.mileageRange[1].toString()),
+  ];
+  filters.engineCapacityRange = [
+    parseInt(searchParams.get('capacitateMotorMin') || defaultFilters.engineCapacityRange[0].toString()),
+    parseInt(searchParams.get('capacitateMotorMax') || defaultFilters.engineCapacityRange[1].toString()),
+  ];
+  filters.horsepowerRange = [
+    parseInt(searchParams.get('caiPutereMin') || defaultFilters.horsepowerRange[0].toString()),
+    parseInt(searchParams.get('caiPutereMax') || defaultFilters.horsepowerRange[1].toString()),
   ];
   return filters;
 };
 
 export const getInitialSortCriteria = (searchParams: URLSearchParams): SortCriteria => {
   const sortCriteria = { ...defaultSortCriteria };
-  const price = searchParams.get('price');
-  sortCriteria.price = price && price !== '' ? (price as 'asc' | 'desc') : null;
-  const year = searchParams.get('year');
-  sortCriteria.year = year && year !== '' ? (year as 'asc' | 'desc') : null;
-  const mileage = searchParams.get('mileage');
-  sortCriteria.mileage = mileage && mileage !== '' ? (mileage as 'asc' | 'desc') : null;
-  const date = searchParams.get('date');
-  sortCriteria.date = date && date !== '' ? (date as 'asc' | 'desc') : null;
+  const pret = searchParams.get('pret');
+  sortCriteria.price = pret && pret !== '' ? (pret as 'asc' | 'desc') : null;
+  const an = searchParams.get('an');
+  sortCriteria.year = an && an !== '' ? (an as 'asc' | 'desc') : null;
+  const kilometraj = searchParams.get('kilometraj');
+  sortCriteria.mileage = kilometraj && kilometraj !== '' ? (kilometraj as 'asc' | 'desc') : null;
+  const data = searchParams.get('data');
+  sortCriteria.date = data && data !== '' ? (data as 'asc' | 'desc') : null;
   return sortCriteria;
 };
 
-export const getInitialSearchQuery = (searchParams: URLSearchParams) => searchParams.get('searchQuery') || defaultSearchQuery;
+export const getInitialSearchQuery = (searchParams: URLSearchParams) => searchParams.get('cautare') || defaultSearchQuery;
 
 export const getInitialLocationFilter = (searchParams: URLSearchParams): LocationFilter => {
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
-  const address = searchParams.get('address');
-  const radius = searchParams.get('radius');
-  if (lat && lng && address && radius) {
+  const adresa = searchParams.get('adresa');
+  const raza = searchParams.get('raza');
+  if (lat && lng && raza) {
     return {
       location: {
         lat: parseFloat(lat),
         lng: parseFloat(lng),
-        address,
+        address: adresa || '',
         fullAddress: '',
       },
-      radius: parseInt(radius),
+      radius: parseInt(raza),
     };
   }
   return defaultLocationFilter;
 };
 
 export const getInitialCurrentPage = (searchParams: URLSearchParams) =>
-  parseInt(searchParams.get('currentPage') || defaultCurrentPage.toString());
+  parseInt(searchParams.get('pagina') || defaultCurrentPage.toString());

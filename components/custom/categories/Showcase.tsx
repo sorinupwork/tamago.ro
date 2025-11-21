@@ -1,6 +1,6 @@
 'use client';
+
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { categories } from '@/lib/categories';
@@ -10,10 +10,6 @@ import { AppInvertedCarousel } from '../carousel/AppInvertedCarousel';
 
 export function Showcase({ category }: { category: string }) {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    setTimeout(() => setIsVisible(true), 0);
-  }, []);
 
   const heroImages: Record<string, string> = {
     sell: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.1.0&auto=format&fit=crop&w=500&q=60',
@@ -36,7 +32,7 @@ export function Showcase({ category }: { category: string }) {
     router.push(url);
   };
 
-  const extendedSubcategories = [...subcategories, ...subcategories, ...subcategories].slice(0, 20);
+  const extendedSubcategories = [...subcategories];
 
   const rowAItems = extendedSubcategories;
   const rowBItems = extendedSubcategories;
@@ -45,12 +41,8 @@ export function Showcase({ category }: { category: string }) {
   if (!cat) return null;
 
   return (
-    <div className='flex-1 relative w-full mx-auto animate-fade-in overflow-hidden overflow-x-hidden'>
-      <div
-        className={`relative w-full max-w-screen h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg transition-opacity duration-1000 ${
-          isVisible ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
+    <div className='flex-1 relative w-full mx-auto animate-fade-in overflow-hidden'>
+      <div className={`relative w-full max-w-screen h-64 sm:h-80 md:h-96 mb-8 overflow-hidden shadow-lg`}>
         <Image
           src={heroImages[category]}
           alt={`${cat.label} showcase`}
@@ -63,9 +55,7 @@ export function Showcase({ category }: { category: string }) {
 
         <div className='absolute inset-0 flex items-center justify-center px-4'>
           <div className='text-center max-w-full'>
-            <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg wrap-break-word'>
-              {cat.label}
-            </h1>
+            <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg wrap-break-word'>{cat.label}</h1>
             <p className='text-sm sm:text-base md:text-lg text-gray-200 mt-1 drop-shadow wrap-break-word'>
               {`Explorează opțiunile pentru ${cat.label.toLowerCase()}.`}
             </p>

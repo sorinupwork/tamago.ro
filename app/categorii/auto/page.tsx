@@ -34,43 +34,10 @@ import {
   getInitialLocationFilter,
   getInitialCurrentPage,
 } from '@/lib/auto/initializers';
-import type { FilterState, SortCriteria, LocationData, LocationFilter, Car } from '@/lib/types';
+import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
 import { CarCard } from '@/components/custom/auto/CarCard';
-import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-
-type RawCarDoc = {
-  _id: string;
-  title?: string;
-  price?: string | number;
-  year?: string;
-  brand?: string;
-  mileage?: string;
-  fuel?: string;
-  transmission?: string;
-  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
-  uploadedFiles?: string[];
-  carType?: string;
-  color?: string;
-  engineCapacity?: string;
-  horsePower?: string;
-  status?: string;
-  description?: string;
-  features?: string | string[];
-  period?: string;
-  startDate?: string;
-  endDate?: string;
-  currency?: string;
-  is4x4?: boolean;
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  options?: string[];
-  minPrice?: string;
-  maxPrice?: string;
-};
 
 export default function AutoPage() {
   const searchParams = useSearchParams();
@@ -78,7 +45,7 @@ export default function AutoPage() {
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(getInitialActiveTab(searchParams));
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>(getInitialFilters(searchParams));
+  const [filters, setFilters] = useState<AutoFilterState>(getInitialFilters(searchParams));
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(getInitialCurrentPage(searchParams));
   const [searchQuery, setSearchQuery] = useState(getInitialSearchQuery(searchParams));
@@ -108,7 +75,7 @@ export default function AutoPage() {
           break;
       }
 
-      const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
+      const mappedCars: Car[] = carsData.map((doc: RawCarDoc) => ({
         id: doc._id.toString(),
         title: doc.title || '',
         price: String(doc.price || '0'),
@@ -132,7 +99,7 @@ export default function AutoPage() {
         color: doc.color || 'Alb',
         engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
         horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
-        status: doc.status || 'used',
+        status: doc.status === 'new' ? 'nou' : doc.status === 'used' ? 'folosit' : doc.status === 'damaged' ? 'deteriorat' : 'folosit',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
         is4x4: doc.is4x4 || false,
@@ -152,33 +119,45 @@ export default function AutoPage() {
     fetchCars();
   }, [activeTab]);
 
-  // Update URL when state changes, only include non-default values
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
     // For filters, only include changed fields as individual params
     Object.keys(filters).forEach((key) => {
-      const k = key as keyof FilterState;
+      const k = key as keyof AutoFilterState;
       if (JSON.stringify(filters[k]) !== JSON.stringify(defaultFilters[k])) {
         if (k === 'priceRange') {
-          params.set('priceMin', filters[k][0].toString());
-          params.set('priceMax', filters[k][1].toString());
+          params.set('pretMin', filters[k][0].toString());
+          params.set('pretMax', filters[k][1].toString());
         } else if (k === 'yearRange') {
-          params.set('yearMin', filters[k][0].toString());
-          params.set('yearMax', filters[k][1].toString());
+          params.set('anMin', filters[k][0].toString());
+          params.set('anMax', filters[k][1].toString());
         } else if (k === 'mileageRange') {
-          params.set('mileageMin', filters[k][0].toString());
-          params.set('mileageMax', filters[k][1].toString());
+          params.set('kilometrajMin', filters[k][0].toString());
+          params.set('kilometrajMax', filters[k][1].toString());
         } else if (k === 'engineCapacityRange') {
-          params.set('engineCapacityMin', filters[k][0].toString());
-          params.set('engineCapacityMax', filters[k][1].toString());
+          params.set('capacitateMotorMin', filters[k][0].toString());
+          params.set('capacitateMotorMax', filters[k][1].toString());
         } else if (k === 'horsepowerRange') {
-          params.set('horsepowerMin', filters[k][0].toString());
-          params.set('horsepowerMax', filters[k][1].toString());
+          params.set('caiPutereMin', filters[k][0].toString());
+          params.set('caiPutereMax', filters[k][1].toString());
         } else if (Array.isArray(filters[k])) {
-          params.set(k, (filters[k] as string[]).join(','));
+          (filters[k] as string[]).forEach((val) =>
+            params.append(
+              k === 'fuel'
+                ? 'combustibil'
+                : k === 'transmission'
+                  ? 'transmisie'
+                  : k === 'bodyType'
+                    ? 'caroserie'
+                    : k === 'color'
+                      ? 'culoare'
+                      : k,
+              val
+            )
+          );
         } else {
-          params.set(k, filters[k].toString());
+          params.set(k === 'brand' ? 'marca' : k === 'status' ? 'stare' : k, filters[k].toString());
         }
       }
     });
@@ -186,16 +165,20 @@ export default function AutoPage() {
     Object.keys(sortCriteria).forEach((key) => {
       const k = key as keyof SortCriteria;
       if (sortCriteria[k] !== defaultSortCriteria[k]) {
-        params.set(k, sortCriteria[k] || '');
+        params.set(
+          k === 'price' ? 'pret' : k === 'year' ? 'an' : k === 'mileage' ? 'kilometraj' : k === 'date' ? 'data' : k,
+          sortCriteria[k] || ''
+        );
       }
     });
-    if (searchQuery !== defaultSearchQuery) params.set('searchQuery', searchQuery);
+    if (searchQuery !== defaultSearchQuery) params.set('cautare', searchQuery);
     if (locationFilter.location) {
       params.set('lat', locationFilter.location.lat.toString());
       params.set('lng', locationFilter.location.lng.toString());
-      params.set('radius', locationFilter.radius.toString());
+      params.set('raza', locationFilter.radius.toString());
+      params.set('adresa', locationFilter.location.address);
     }
-    if (currentPage !== defaultCurrentPage) params.set('currentPage', currentPage.toString());
+    if (currentPage !== defaultCurrentPage) params.set('pagina', currentPage.toString());
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.replace(newUrl || window.location.pathname, { scroll: false });
   }, [activeTab, filters, sortCriteria, searchQuery, locationFilter, currentPage, router]);
@@ -210,7 +193,7 @@ export default function AutoPage() {
     return getSortedCars(filtered, sortCriteria);
   }, [cars, filters, sortCriteria, searchQuery, activeTab, locationFilter]);
 
-  const computeNewTotalPages = (nextFilters: FilterState, nextSort: SortCriteria, nextSearch: string, nextLocation: LocationFilter) => {
+  const computeNewTotalPages = (nextFilters: AutoFilterState, nextSort: SortCriteria, nextSearch: string, nextLocation: LocationFilter) => {
     const filtered = getFilteredCars(cars, nextFilters, nextSearch, activeTab, categoryMapping, nextLocation);
     const sorted = getSortedCars(filtered, nextSort);
     return calcTotalPages(sorted.length);
@@ -218,21 +201,21 @@ export default function AutoPage() {
 
   const { totalPages, paginatedItems } = paginateArray(filteredCars, currentPage);
 
-  const handleFilterChange = (key: keyof FilterState, value: string | number[] | string[]) => {
+  const handleFilterChange = (key: keyof AutoFilterState, value: string | number[] | string[]) => {
     setFilters((prev) => {
-      const next = { ...prev, [key]: value } as FilterState;
+      const next = { ...prev, [key]: value } as AutoFilterState;
       const newTotal = computeNewTotalPages(next, sortCriteria, searchQuery, locationFilter);
       setCurrentPage((cur) => Math.min(cur, newTotal));
       return next;
     });
   };
 
-  const handleMultiFilterChange = (key: keyof FilterState, value: string, checked: boolean) => {
+  const handleMultiFilterChange = (key: keyof AutoFilterState, value: string, checked: boolean) => {
     setFilters((prev) => {
       const next = {
         ...prev,
         [key]: checked ? [...(prev[key] as string[]), value] : (prev[key] as string[]).filter((item) => item !== value),
-      } as FilterState;
+      } as AutoFilterState;
       const newTotal = computeNewTotalPages(next, sortCriteria, searchQuery, locationFilter);
       setCurrentPage((cur) => Math.min(cur, newTotal));
       return next;
@@ -262,7 +245,7 @@ export default function AutoPage() {
     setLocationFilter(next);
   };
 
-  const removeFilter = (key: keyof FilterState | 'location' | 'searchQuery' | keyof SortCriteria, value: string) => {
+  const removeFilter = (key: keyof AutoFilterState | 'location' | 'searchQuery' | keyof SortCriteria, value: string) => {
     if (key === 'searchQuery') {
       setSearchQuery(defaultSearchQuery);
       const newTotal = computeNewTotalPages(filters, sortCriteria, defaultSearchQuery, locationFilter);
@@ -315,11 +298,11 @@ export default function AutoPage() {
       setCurrentPage((cur) => Math.min(cur, newTotal));
     } else if (key in sortCriteria) {
       handleSortChange(key as keyof SortCriteria, null);
-    } else if (Array.isArray(filters[key as keyof FilterState])) {
-      handleMultiFilterChange(key as keyof FilterState, value, false);
+    } else if (Array.isArray(filters[key as keyof AutoFilterState])) {
+      handleMultiFilterChange(key as keyof AutoFilterState, value, false);
     } else {
       setFilters((prev) => {
-        const next = { ...prev, [key as keyof FilterState]: '' } as FilterState;
+        const next = { ...prev, [key as keyof AutoFilterState]: '' } as AutoFilterState;
         const newTotal = computeNewTotalPages(next, sortCriteria, searchQuery, locationFilter);
         setCurrentPage((cur) => Math.min(cur, newTotal));
         return next;
@@ -355,10 +338,6 @@ export default function AutoPage() {
     if (filter.key === 'engineCapacityRange')
       return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
     if (filter.key === 'horsepowerRange') return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
-    if (filter.key === 'minEngineCapacity') return false;
-    if (filter.key === 'maxEngineCapacity') return false;
-    if (filter.key === 'minHorsepower') return false;
-    if (filter.key === 'maxHorsepower') return false;
     if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
     if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
     if (filter.key in sortCriteria)
@@ -437,7 +416,7 @@ export default function AutoPage() {
             label={`Interval An`}
             value={filters.yearRange}
             onValueChange={(value) => handleFilterChange('yearRange', value)}
-            min={1900} // Changed from 2000 to 1900 to include older cars like 1960
+            min={1900}
             max={2025}
             step={1}
             className='grow'
@@ -465,7 +444,7 @@ export default function AutoPage() {
             value={filters.horsepowerRange}
             onValueChange={(value) => handleFilterChange('horsepowerRange', value)}
             min={0}
-            max={1000}
+            max={10000}
             step={10}
             className='grow'
           />
@@ -514,9 +493,9 @@ export default function AutoPage() {
         <AppSelectInput
           options={[
             { value: 'all', label: 'Status' },
-            { value: 'new', label: 'Nou' },
-            { value: 'used', label: 'Second Hand' },
-            { value: 'damaged', label: 'Deteriorat' },
+            { value: 'nou', label: 'Nou' },
+            { value: 'folosit', label: 'Second Hand' },
+            { value: 'deteriorat', label: 'Deteriorat' },
           ]}
           value={filters.status || 'all'}
           onValueChange={(value) => handleFilterChange('status', (value as string) === 'all' ? '' : (value as string))}

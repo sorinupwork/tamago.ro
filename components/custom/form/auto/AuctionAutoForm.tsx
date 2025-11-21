@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
 import AppTextarea from '../../input/AppTextarea';
@@ -12,7 +14,6 @@ import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { auto, AutoAuctionFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitAuctionAutoForm } from '@/actions/auto/actions';
-import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import { AutoPriceSelector } from '../../input/AutoPriceSelector';
 import LoadingIndicator from '../../loading/LoadingIndicator';
@@ -251,7 +252,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
               placeholder='Introduceți titlul'
               value={form.watch('title')}
               onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-              className='break-all w-full break-words'
+              className='break-all w-full wrap-break-word'
               label='Titlu'
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
               required
@@ -290,7 +291,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
@@ -446,7 +447,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             placeholder='Listează caracteristicile...'
             label='Caracteristici'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <AppCollapsibleCheckboxGroup

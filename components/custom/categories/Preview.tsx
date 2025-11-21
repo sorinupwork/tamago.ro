@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 
-interface PreviewProps {
+type PreviewProps = {
   title: string;
   description: string;
   price?: string;
@@ -44,7 +44,7 @@ interface PreviewProps {
   horsePower?: string;
   transmission?: string;
   is4x4?: boolean;
-}
+};
 
 export function Preview({
   title,
@@ -89,7 +89,7 @@ export function Preview({
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
       </CardHeader>
-      {/* limit height to viewport minus header and allow internal scroll */}
+
       <CardContent className='space-y-4 overflow-auto' style={{ maxHeight: 'calc(100vh - 56px)' }}>
         <div className='flex flex-col md:flex-row gap-2'>
           <h3 className='min-w-0 text-lg font-semibold break-all overflow-wrap-break-word'>{title || 'Titlu Postare'}</h3>
@@ -102,17 +102,17 @@ export function Preview({
             ? minPrice && maxPrice
               ? `${minPrice} - ${maxPrice} ${currency || ''}`
               : minPrice
-              ? `De la ${minPrice} ${currency || ''}`
-              : maxPrice
-              ? `Până la ${maxPrice} ${currency || ''}`
-              : 'Buget nespecificat'
+                ? `De la ${minPrice} ${currency || ''}`
+                : maxPrice
+                  ? `Până la ${maxPrice} ${currency || ''}`
+                  : 'Buget nespecificat'
             : category === 'auction'
-            ? `Licitație de start: ${startingBid} ${currency || ''}`
-            : category === 'rent'
-            ? `${price} ${currency || ''} pe ${
-                period === 'day' ? 'zi' : period === 'week' ? 'săptămână' : period === 'month' ? 'lună' : 'zi'
-              }`
-            : `${price} ${currency || ''}`}
+              ? `Licitație de start: ${startingBid} ${currency || ''}`
+              : category === 'rent'
+                ? `${price} ${currency || ''} pe ${
+                    period === 'day' ? 'zi' : period === 'week' ? 'săptămână' : period === 'month' ? 'lună' : 'zi'
+                  }`
+                : `${price} ${currency || ''}`}
         </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
         {category === 'rent' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
@@ -167,10 +167,10 @@ export function Preview({
               ? minEngineCapacity && maxEngineCapacity
                 ? `${minEngineCapacity} - ${maxEngineCapacity} L`
                 : minEngineCapacity
-                ? `De la ${minEngineCapacity} L`
-                : maxEngineCapacity
-                ? `Până la ${maxEngineCapacity} L`
-                : 'Nespecificat'
+                  ? `De la ${minEngineCapacity} L`
+                  : maxEngineCapacity
+                    ? `Până la ${maxEngineCapacity} L`
+                    : 'Nespecificat'
               : `${engineCapacity || 'Nespecificat'} L`}
           </div>
 
@@ -194,10 +194,10 @@ export function Preview({
               ? minMileage && maxMileage
                 ? `${minMileage} - ${maxMileage} km`
                 : minMileage
-                ? `De la ${minMileage} km`
-                : maxMileage
-                ? `Până la ${maxMileage} km`
-                : 'Nespecificat'
+                  ? `De la ${minMileage} km`
+                  : maxMileage
+                    ? `Până la ${maxMileage} km`
+                    : 'Nespecificat'
               : `${mileage ?? 'Nespecificat'} km`}
           </div>
           <div className='text-sm wrap-break-word overflow-wrap-break-word'>
@@ -206,10 +206,10 @@ export function Preview({
               ? minYear && maxYear
                 ? `${minYear} - ${maxYear}`
                 : minYear
-                ? `Din ${minYear}`
-                : maxYear
-                ? `Până în ${maxYear}`
-                : 'Nespecificat'
+                  ? `Din ${minYear}`
+                  : maxYear
+                    ? `Până în ${maxYear}`
+                    : 'Nespecificat'
               : year || 'Nespecificat'}
           </div>
         </div>

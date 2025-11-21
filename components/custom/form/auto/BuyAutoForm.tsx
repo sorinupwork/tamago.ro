@@ -177,8 +177,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     onPreviewUpdate({
       title: watchedValues.title || '',
       description: watchedValues.description || '',
-      minPrice: form.watch('minPrice') || '',
-      maxPrice: form.watch('maxPrice') || '',
+      minPrice: watchedValues.minPrice || '',
+      maxPrice: watchedValues.maxPrice || '',
       currency: watchedValues.currency || 'EUR',
       location: watchedValues.location?.address || '',
       category: 'buy',
@@ -202,8 +202,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
   }, [
     watchedValues.title,
     watchedValues.description,
-    form.watch('minPrice'),
-    form.watch('maxPrice'),
+    watchedValues.minPrice,
+    watchedValues.maxPrice,
     watchedValues.currency,
     watchedValues.location,
     watchedValues.fuel,
@@ -223,6 +223,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     uploadedFiles,
     options,
     onPreviewUpdate,
+    form,
   ]);
 
   const onSubmit: SubmitHandler<AutoBuyFormData> = async (data) => {
@@ -298,7 +299,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             placeholder='Introduceți titlul'
             value={form.watch('title')}
             onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-            className='break-all w-full break-words'
+            className='break-all w-full wrap-break-word'
             label='Titlu'
             error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
             required
@@ -349,7 +350,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -440,7 +441,13 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
                 { value: 'Other', label: 'Altul' },
               ]}
               value={form.watch('carType')}
-              onValueChange={(v) => form.setValue('carType', v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other', { shouldValidate: true })}
+              onValueChange={(v) =>
+                form.setValue(
+                  'carType',
+                  v as 'SUV' | 'Coupe' | 'Sedan' | 'Hatchback' | 'Convertible' | 'Wagon' | 'Pickup' | 'Van' | 'Other',
+                  { shouldValidate: true }
+                )
+              }
               placeholder='Selectați tipul'
               className='w-full'
               label='Tip Mașină'
@@ -499,7 +506,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             placeholder='Listează cerințele...'
             label='Cerințe suplimentare'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <AppCollapsibleCheckboxGroup

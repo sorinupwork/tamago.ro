@@ -19,7 +19,7 @@ import {
   CheckCircle,
   UserCog,
 } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -130,10 +130,7 @@ export function CarCard({ car }: CarCardProps) {
 
   const buttonText = getButtonText();
 
-  const sanitizedDescription = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return DOMPurify.sanitize(car.description || '');
-  }, [car.description]);
+  const sanitizedDescription = useMemo(() => sanitizeHtml(car.description || ''), [car.description]);
 
   return (
     <Card className='overflow-hidden hover:shadow-md transition-all duration-300  animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>

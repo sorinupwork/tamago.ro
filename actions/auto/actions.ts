@@ -8,10 +8,6 @@ import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionF
 import { Car, Post, RawCarDoc } from '@/lib/types';
 import { auth } from '@/lib/auth/auth';
 
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
-
 export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFiles: string[]; options?: string[] }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
@@ -199,7 +195,6 @@ export async function getGoldenSectionPosts() {
   }
 }
 
-// New server action for fetching user posts with filters, sorting, searching, and pagination
 export async function getUserCars({
   userId,
   category,

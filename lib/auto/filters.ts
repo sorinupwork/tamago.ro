@@ -1,26 +1,27 @@
 import { calculateDistance } from '@/lib/services';
-import type { Car, FilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import type { Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
 import { defaultFilters } from './initializers';
 
 export function getFilteredCars(
   cars: Car[],
-  filters: FilterState,
+  filters: AutoFilterState,
   searchQuery: string,
   activeTab: string,
   categoryMapping: Record<string, string>,
   locationFilter: LocationFilter
 ): Car[] {
   let filtered = cars.slice();
-
-  const minEC = filters.minEngineCapacity ? parseInt(filters.minEngineCapacity) : filters.engineCapacityRange[0];
-  const maxEC = filters.maxEngineCapacity ? parseInt(filters.maxEngineCapacity) : filters.engineCapacityRange[1];
-  const minHP = filters.minHorsepower ? parseInt(filters.minHorsepower) : filters.horsepowerRange[0];
-  const maxHP = filters.maxHorsepower ? parseInt(filters.maxHorsepower) : filters.horsepowerRange[1];
-
-  filtered = filtered.filter((car) => (car.engineCapacity || 0) >= minEC && (car.engineCapacity || 0) <= maxEC);
-  filtered = filtered.filter((car) => (car.horsepower || 0) >= minHP && (car.horsepower || 0) <= maxHP);
+  filtered = filtered.filter(
+    (car) => (car.engineCapacity || 0) >= filters.engineCapacityRange[0] && (car.engineCapacity || 0) <= filters.engineCapacityRange[1]
+  );
+  filtered = filtered.filter(
+    (car) => (car.horsepower || 0) >= filters.horsepowerRange[0] && (car.horsepower || 0) <= filters.horsepowerRange[1]
+  );
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
-  filtered = filtered.filter((car) => parseFloat(car.price.replace(/\./g, '')) >= filters.priceRange[0] && parseFloat(car.price.replace(/\./g, '')) <= filters.priceRange[1]);
+  filtered = filtered.filter(
+    (car) =>
+      parseFloat(car.price.replace(/\./g, '')) >= filters.priceRange[0] && parseFloat(car.price.replace(/\./g, '')) <= filters.priceRange[1]
+  );
   filtered = filtered.filter((car) => car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1]);
   filtered = filtered.filter((car) => car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1]);
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
@@ -48,9 +49,8 @@ export function getFilteredCars(
   return filtered;
 }
 
-// build applied filters badges data
 export function getAppliedFilters(
-  filters: FilterState,
+  filters: AutoFilterState,
   sortCriteria: SortCriteria,
   searchQuery: string,
   locationFilter: LocationFilter
@@ -64,19 +64,9 @@ export function getAppliedFilters(
     ...(locationFilter.location
       ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }]
       : []),
-    ...(filters.minEngineCapacity
-      ? [{ key: 'minEngineCapacity', value: filters.minEngineCapacity, label: `Capacitate Motor Min: ${filters.minEngineCapacity}` }]
+    ...(filters.status
+      ? [{ key: 'status', value: filters.status, label: `Stare: ${filters.status.charAt(0).toUpperCase() + filters.status.slice(1)}` }]
       : []),
-    ...(filters.maxEngineCapacity
-      ? [{ key: 'maxEngineCapacity', value: filters.maxEngineCapacity, label: `Capacitate Motor Max: ${filters.maxEngineCapacity}` }]
-      : []),
-    ...(filters.minHorsepower
-      ? [{ key: 'minHorsepower', value: filters.minHorsepower, label: `Cai Putere Min: ${filters.minHorsepower}` }]
-      : []),
-    ...(filters.maxHorsepower
-      ? [{ key: 'maxHorsepower', value: filters.maxHorsepower, label: `Cai Putere Max: ${filters.maxHorsepower}` }]
-      : []),
-    ...(filters.status ? [{ key: 'status', value: filters.status, label: `Status: ${filters.status}` }] : []),
     ...(searchQuery ? [{ key: 'searchQuery', value: searchQuery, label: `Căutare: ${searchQuery}` }] : []),
     ...(filters.priceRange[0] !== defaultFilters.priceRange[0] || filters.priceRange[1] !== defaultFilters.priceRange[1]
       ? [
@@ -102,6 +92,25 @@ export function getAppliedFilters(
             key: 'mileageRange',
             value: `${filters.mileageRange[0]}-${filters.mileageRange[1]}`,
             label: `Interval Kilometraj: ${filters.mileageRange[0]} - ${filters.mileageRange[1]} km`,
+          },
+        ]
+      : []),
+    ...(filters.engineCapacityRange[0] !== defaultFilters.engineCapacityRange[0] ||
+    filters.engineCapacityRange[1] !== defaultFilters.engineCapacityRange[1]
+      ? [
+          {
+            key: 'engineCapacityRange',
+            value: `${filters.engineCapacityRange[0]}-${filters.engineCapacityRange[1]}`,
+            label: `Interval Capacitate Motor: ${filters.engineCapacityRange[0]} - ${filters.engineCapacityRange[1]} cc`,
+          },
+        ]
+      : []),
+    ...(filters.horsepowerRange[0] !== defaultFilters.horsepowerRange[0] || filters.horsepowerRange[1] !== defaultFilters.horsepowerRange[1]
+      ? [
+          {
+            key: 'horsepowerRange',
+            value: `${filters.horsepowerRange[0]}-${filters.horsepowerRange[1]}`,
+            label: `Interval Cai Putere: ${filters.horsepowerRange[0]} - ${filters.horsepowerRange[1]}`,
           },
         ]
       : []),

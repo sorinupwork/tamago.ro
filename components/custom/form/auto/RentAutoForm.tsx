@@ -4,6 +4,9 @@ import { useEffect, useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
+import { toast } from 'sonner';
+import { MapPin } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
 import AppTextarea from '../../input/AppTextarea';
@@ -12,7 +15,6 @@ import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { auto, AutoRentFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import { submitRentAutoForm } from '@/actions/auto/actions';
-import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import LoadingIndicator from '../../loading/LoadingIndicator';
 import { DateRangePicker } from '../../input/DateRangePicker';
@@ -22,7 +24,6 @@ import { AppInput } from '../../input/AppInput';
 import { AppSelectInput } from '../../input/AppSelectInput';
 import { AppCheckbox } from '../../input/AppCheckbox';
 import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
-import { MapPin } from 'lucide-react';
 
 export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -63,12 +64,6 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
       driverTelephone: '',
     },
   });
-
-  useEffect(() => {
-    form.register('driverName');
-    form.register('driverContact');
-    form.register('driverTelephone');
-  }, [form]);
 
   const watchedValues = useWatch({ control: form.control });
 
@@ -282,7 +277,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
               placeholder='Introduceți titlul'
               value={form.watch('title')}
               onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
-              className='break-all w-full overflow-wrap-break-word break-words'
+              className='break-all w-full overflow-wrap-break-word wrap-break-word'
               label='Titlu'
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
               required
@@ -314,7 +309,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
             required
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0'>
@@ -472,7 +467,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             placeholder='Listează caracteristicile...'
             label='Caracteristici'
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
-            className='min-w-0 w-full break-words'
+            className='min-w-0 w-full wrap-break-word'
           />
 
           <Collapsible
@@ -510,7 +505,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți numele șoferului'
                 value={form.watch('driverName')}
                 onChange={(e) => form.setValue('driverName', e.target.value, { shouldValidate: true })}
-                className='break-all w-full break-words'
+                className='break-all w-full wrap-break-word'
                 label='Nume Șofer'
                 error={form.formState.errors.driverName ? [form.formState.errors.driverName] : undefined}
                 required={driverOpen}
@@ -520,7 +515,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți contactul șoferului'
                 value={form.watch('driverContact')}
                 onChange={(e) => form.setValue('driverContact', e.target.value, { shouldValidate: true })}
-                className='break-all w-full break-words'
+                className='break-all w-full wrap-break-word'
                 label='Contact Șofer'
                 error={form.formState.errors.driverContact ? [form.formState.errors.driverContact] : undefined}
                 required={driverOpen}
@@ -530,7 +525,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
                 placeholder='Introduceți telefonul șoferului'
                 value={form.watch('driverTelephone')}
                 onChange={(e) => form.setValue('driverTelephone', e.target.value, { shouldValidate: true })}
-                className='break-all w-full break-words'
+                className='break-all w-full wrap-break-word'
                 label='Telefon Șofer'
                 error={form.formState.errors.driverTelephone ? [form.formState.errors.driverTelephone] : undefined}
                 required={driverOpen}

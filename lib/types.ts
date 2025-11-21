@@ -1,7 +1,43 @@
 import { ObjectId } from 'mongodb';
 
+export type RawCarDoc = {
+  _id: ObjectId | string;
+  title?: string;
+  price?: string | number;
+  year?: string;
+  brand?: string;
+  mileage?: string;
+  fuel?: string;
+  transmission?: string;
+  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
+  uploadedFiles?: string[];
+  carType?: string;
+  color?: string;
+  engineCapacity?: string;
+  horsePower?: string;
+  status?: string;
+  description?: string;
+  features?: string | string[];
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  currency?: string;
+  is4x4?: boolean;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  options?: string[];
+  minPrice?: string;
+  maxPrice?: string;
+  urlCategory?: string;
+  carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
+  views?: number;
+  userId?: string;
+};
+
 export type Car = {
-  id: string; // Changed to string for _id
+  id: string;
   title: string;
   price: string;
   currency?: string;
@@ -41,14 +77,45 @@ export type Car = {
 };
 
 export type Post = {
-  id: string; // Changed from number to string for _id
+  id: string;
   title: string;
   desc?: string;
   icon?: React.ComponentType<{ className?: string }>;
   verified?: boolean;
   isNew?: boolean;
   imageUrl?: string;
-  category: string; // Add category for navigation
+  category: string;
+};
+
+export type FeedPost = {
+  id: number;
+  user: User;
+  text: string;
+  image?: string;
+  likes: number;
+};
+
+export type FeedItem = {
+  _id: string;
+  type: 'post' | 'poll';
+  text?: string;
+  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  tags?: string[];
+  question?: string;
+  options?: string[];
+  createdAt: string;
+  userId?: string;
+  user: User | null;
+};
+
+export type StoryWithUser = {
+  _id: string;
+  caption: string;
+  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  createdAt: string;
+  expiresAt: string;
+  userId?: string;
+  user: User | null;
 };
 
 export type Subcategory = {
@@ -60,23 +127,23 @@ export type Subcategory = {
 };
 
 export type User = {
-  id: string; // MongoDB _id as string
+  id: string;
   name: string;
   email: string;
-  password?: string; // Only for credentials provider; hashed in DB
+  password?: string;
   provider: 'credentials' | 'google' | 'facebook' | 'instagram';
-  avatar?: string; // Changed from image to avatar for consistency with mock data
+  avatar?: string;
   emailVerified?: Date;
   createdAt: Date;
   updatedAt: Date;
-  role?: 'user' | 'admin'; // Optional for future roles
-  badges?: string[]; // Array of badge names (e.g., ['First Post', 'Verified'])
-  progress?: { posts: number; friends: number; points: number }; // Progress metrics
-  rewards?: { freePosts: number; premiumAccess: boolean }; // Rewards like free posts
-  status?: string; // Added for mock data and StoriesSection
-  category?: string; // Added for mock data and StoriesSection
-  location?: [number, number]; // Added for mock data
-  videoUrl?: string; // Added for story media
+  role?: 'user' | 'admin';
+  badges?: string[];
+  progress?: { posts: number; friends: number; points: number };
+  rewards?: { freePosts: number; premiumAccess: boolean };
+  status?: string;
+  category?: string;
+  location?: [number, number];
+  videoUrl?: string;
 };
 
 export type Message = {
@@ -85,11 +152,7 @@ export type Message = {
   sender: 'me' | 'other';
 };
 
-export type FilterState = {
-  minEngineCapacity: string;
-  maxEngineCapacity: string;
-  minHorsepower: string;
-  maxHorsepower: string;
+export type AutoFilterState = {
   status: string;
   brand: string;
   fuel: string[];
@@ -120,72 +183,4 @@ export type LocationData = {
 export type LocationFilter = {
   location: LocationData | null;
   radius: number;
-};
-
-export type FeedPost = {
-  id: number;
-  user: User;
-  text: string;
-  image?: string;
-  likes: number;
-};
-
-export type RawCarDoc = {
-  _id: ObjectId | string;
-  title?: string;
-  price?: string | number;
-  year?: string;
-  brand?: string;
-  mileage?: string;
-  fuel?: string;
-  transmission?: string;
-  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
-  uploadedFiles?: string[];
-  carType?: string;
-  color?: string;
-  engineCapacity?: string;
-  horsePower?: string;
-  status?: string;
-  description?: string;
-  features?: string | string[];
-  period?: string;
-  startDate?: string;
-  endDate?: string;
-  currency?: string;
-  is4x4?: boolean;
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  options?: string[];
-  minPrice?: string;
-  maxPrice?: string;
-  urlCategory?: string;
-  carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
-  views?: number;
-  userId?: string;
-};
-
-// Centralized types for social features
-export type StoryWithUser = {
-  _id: string;
-  caption: string;
-  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string;
-  expiresAt: string;
-  userId?: string;
-  user: User | null;
-};
-
-export type FeedItem = {
-  _id: string;
-  type: 'post' | 'poll';
-  text?: string;
-  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  tags?: string[];
-  question?: string;
-  options?: string[];
-  createdAt: string;
-  userId?: string;
-  user: User | null;
 };

@@ -13,7 +13,10 @@ export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
       if (result !== 0) return result;
     }
     if (sortCriteria.price) {
-      result = sortCriteria.price === 'asc' ? parseFloat(a.price.replace(/\./g, '')) - parseFloat(b.price.replace(/\./g, '')) : parseFloat(b.price.replace(/\./g, '')) - parseFloat(a.price.replace(/\./g, ''));
+      result =
+        sortCriteria.price === 'asc'
+          ? parseFloat(a.price.replace(/\./g, '')) - parseFloat(b.price.replace(/\./g, ''))
+          : parseFloat(b.price.replace(/\./g, '')) - parseFloat(a.price.replace(/\./g, ''));
       if (result !== 0) return result;
     }
     if (sortCriteria.year) {

@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
+import sanitizeHtml from 'sanitize-html';
+import { toast } from 'sonner';
+
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,9 +25,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
-import { Heart, Phone, Mail, MessageCircle, Clock } from 'lucide-react';
 import { MediaPreview } from '@/components/custom/media/MediaPreview';
-import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapComponent from '@/components/custom/map/MapComponent';
 import { CarCard } from '@/components/custom/auto/CarCard';
@@ -31,7 +33,7 @@ import { StoriesSection } from '@/components/custom/section/StoriesSection';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import { Car, RawCarDoc, User } from '@/lib/types';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import DOMPurify from 'dompurify';
+import AppCounter from '@/components/custom/counter/AppCounter';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -49,13 +51,11 @@ export default function CarDetailPage() {
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
+  const [message, setMessage] = useState('');
   const [api, setApi] = useState<CarouselApi>();
   const carouselRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-
-  // Sanitize description on client
-  const sanitizedDescription = useMemo(() => DOMPurify.sanitize(car?.description || ''), [car?.description]);
 
   // Mock bid history for auctions (keeping as is)
   const bidHistory = [
@@ -66,26 +66,7 @@ export default function CarDetailPage() {
 
   // Mock auction end time (24 hours from now)
   const [auctionEndTime] = useState(() => new Date(Date.now() + 24 * 60 * 60 * 1000));
-  const [timeLeft, setTimeLeft] = useState('');
 
-  // Update countdown every second
-  useState(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = auctionEndTime.getTime() - now.getTime();
-      if (diff > 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-      } else {
-        setTimeLeft('Licitația s-a încheiat');
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  });
-
-  // Fetch real cars based on category
   useEffect(() => {
     const fetchCars = async () => {
       setLoading(true);
@@ -108,7 +89,7 @@ export default function CarDetailPage() {
           break;
       }
 
-      const mappedCars: Car[] = carsData.map((doc: RawCarDoc, index: number) => ({
+      const mappedCars: Car[] = carsData.map((doc: RawCarDoc) => ({
         id: doc._id.toString(),
         title: doc.title || '',
         price: String(doc.price || '0'),
@@ -158,7 +139,7 @@ export default function CarDetailPage() {
     if (api && !api.canScrollNext() && isMobile) {
       if (detailsRef.current) {
         const rect = detailsRef.current.getBoundingClientRect();
-        const top = rect.top + window.scrollY - 60; // offset for nav height
+        const top = rect.top + window.scrollY - 60;
         window.scrollTo({ top, behavior: 'smooth' });
       }
     } else {
@@ -185,27 +166,24 @@ export default function CarDetailPage() {
   const isSell = car.category === 'sell';
   const isBuy = car.category === 'buy';
 
-  // Get similar cars (same category, different id)
   const similarCars = allCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
 
-  // Prepare bidders for StoriesSection with bid info
   const biddersForStories: User[] = bidHistory.map((bid, index) => ({
     id: (index + 1).toString(),
     name: bid.bidder,
     email: `mock${index}@example.com`,
     provider: 'credentials' as const,
-    avatar: `/avatars/0${(index % 4) + 1}.png`, // Cycle through avatars
+    avatar: `/avatars/0${(index % 4) + 1}.png`,
     createdAt: new Date(),
     updatedAt: new Date(),
     status: `Bid: $${bid.amount}`,
     category: 'auction',
-    location: [45.9432 + index * 0.01, 24.9668 + index * 0.01] as [number, number], // Mock location
+    location: [45.9432 + index * 0.01, 24.9668 + index * 0.01] as [number, number],
   }));
 
   const handleBid = () => {
     const bid = parseInt(bidAmount);
     if (isNaN(bid) || bid <= parseFloat(car.price.replace(/\./g, ''))) {
-      // Parse string for comparison
       toast.error('Suma licitației trebuie să fie mai mare decât prețul curent.');
       return;
     }
@@ -331,7 +309,9 @@ export default function CarDetailPage() {
                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
                   <div className='flex items-center gap-2 text-sm font-medium text-red-700'>
                     <Clock className='h-4 w-4' />
-                    <span>Timp rămas: {timeLeft}</span>
+                    <span>
+                      Timp rămas: <AppCounter auctionEndTime={auctionEndTime} />
+                    </span>
                   </div>
                 </div>
               )}
@@ -514,10 +494,15 @@ export default function CarDetailPage() {
                       <DrawerDescription>Trimite un mesaj direct vânzătorului pentru întrebări despre {car.title}.</DrawerDescription>
                     </DrawerHeader>
                     <div className='p-4'>
-                      <Textarea placeholder='Scrie mesajul tău aici...' className='min-h-32' />
+                      <Textarea
+                        placeholder='Scrie mesajul tău aici...'
+                        className='min-h-32'
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                      />
                     </div>
                     <DrawerFooter>
-                      <Button onClick={() => handleSendMessage('')}>Trimite Mesaj</Button>
+                      <Button onClick={() => handleSendMessage(message)}>Trimite Mesaj</Button>
                       <DrawerClose asChild>
                         <Button variant='outline'>Închide</Button>
                       </DrawerClose>
@@ -533,7 +518,7 @@ export default function CarDetailPage() {
               <CardTitle>Descriere</CardTitle>
             </CardHeader>
             <CardContent>
-              <div dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(car?.description || '') }} />
             </CardContent>
           </Card>
 

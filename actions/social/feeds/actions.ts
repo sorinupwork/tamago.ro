@@ -3,7 +3,7 @@
 import { put } from '@vercel/blob';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { ObjectId } from 'mongodb'; // Added for type safety
+import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
@@ -11,26 +11,24 @@ import { feedSchema, pollSchema } from '@/lib/validations';
 
 type FileLike = File | Blob;
 
-interface PostDocument {
+type PostDocument = {
   _id: ObjectId;
   type: 'post';
   text: string;
   files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  userId?: string; // Changed to string
+  userId?: string;
   createdAt: Date;
   tags: string[];
-}
+};
 
-interface PollDocument {
+type PollDocument = {
   _id: ObjectId;
   type: 'poll';
   question: string;
   options: string[];
-  userId?: string; // Changed to string
+  userId?: string;
   createdAt: Date;
-}
-
-type FeedDocument = PostDocument | PollDocument;
+};
 
 export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: string, postId?: string) {
   if (!files || files.length === 0) return [];
@@ -73,7 +71,7 @@ export async function createFeedAction(formData: FormData): Promise<void> {
     text: validated.text || '',
     files: uploaded,
     tags: validated.tags || [],
-    userId: userId || undefined, // Changed to string
+    userId: userId || undefined,
     createdAt: new Date(),
   };
   await db.collection('feeds').insertOne(doc);
@@ -99,7 +97,7 @@ export async function createPollAction(formData: FormData): Promise<void> {
     type: 'poll',
     question: validated.question,
     options: validated.options.map((o) => o.value),
-    userId: userId || undefined, // Changed to string
+    userId: userId || undefined,
     createdAt: new Date(),
   };
   await db.collection('feeds').insertOne(doc);
@@ -111,43 +109,43 @@ export async function createPollAction(formData: FormData): Promise<void> {
 
 export async function getFeedPosts(params: { userId?: string; page?: number; limit?: number; type?: string; sortBy?: 1 | -1 } = {}) {
   const page = Math.max(1, params.page || 1);
-  const limit = Math.max(1, params.limit || 20); // Default for feeds UI
+  const limit = Math.max(1, params.limit || 20);
   const filter: Record<string, unknown> = {};
-  if (params.userId) filter.userId = params.userId; // Changed to string
+  if (params.userId) filter.userId = params.userId;
   if (params.type) filter.type = params.type;
   const collection = db.collection('feeds');
-  const total = await collection.countDocuments(filter);
-  // Debug: Log filter and items found
-  console.log('FeedPosts Filter:', filter);
-  // NEW: Aggregate to populate user data
-  const items = await collection.aggregate([
-    { $match: filter },
-    { $lookup: { from: 'user', localField: 'userId', foreignField: '_id', as: 'user' } },
-    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-    { $sort: { createdAt: params.sortBy || -1 } },
-    { $skip: (page - 1) * limit },
-    { $limit: limit }
-  ]).toArray();
-  console.log('FeedPosts Items found:', items.length);
-  // NEW: Normalize with populated user, userId for fallback, and type-specific fields
+  await collection.countDocuments(filter);
+  const items = await collection
+    .aggregate([
+      { $match: filter },
+      { $lookup: { from: 'user', localField: 'userId', foreignField: '_id', as: 'user' } },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      { $sort: { createdAt: params.sortBy || -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ])
+    .toArray();
+
   const normalized = items.map((it) => ({
     _id: it._id.toString(),
     type: it.type,
     userId: it.userId?.toString(),
     ...(it.type === 'post' ? { text: it.text, tags: it.tags, files: it.files } : { question: it.question, options: it.options }),
     createdAt: it.createdAt.toISOString(),
-    user: it.user ? {
-      id: it.user._id.toString(),
-      name: it.user.name || 'Unknown',
-      avatar: it.user.image || it.user.avatar || '/avatars/default.jpg',
-      status: it.user.status || 'Online',
-      category: it.user.category || 'Prieteni',
-      email: it.user.email || '',
-      provider: it.user.provider || 'credentials',
-      createdAt: it.user.createdAt,
-      updatedAt: it.user.updatedAt,
-      location: it.user.location || [0, 0],
-    } : null,
+    user: it.user
+      ? {
+          id: it.user._id.toString(),
+          name: it.user.name || 'Unknown',
+          avatar: it.user.image || '/avatars/01.jpg',
+          status: it.user.status || 'Online',
+          category: it.user.category || 'Prieteni',
+          email: it.user.email || '',
+          provider: it.user.provider || 'credentials',
+          createdAt: it.user.createdAt,
+          updatedAt: it.user.updatedAt,
+          location: it.user.location || [0, 0],
+        }
+      : null,
   }));
 
   return { items: normalized, total: normalized.length, hasMore: false };
@@ -157,26 +155,4 @@ export async function getPolls(params: { userId?: string; page?: number; limit?:
   return getFeedPosts({ ...params, type: 'poll' });
 }
 
-export async function getStories(params: { userId?: string; page?: number; limit?: number; sortBy?: 1 | -1 } = {}) {
-  const page = Math.max(1, params.page || 1);
-  const limit = Math.max(1, params.limit || 20);
-  const filter: Record<string, unknown> = {};
-  if (params.userId) filter.userId = params.userId; // Changed to string
-  filter.expiresAt = { $gt: new Date() };
-  const collection = db.collection('stories');
-  const total = await collection.countDocuments(filter);
-  const items = await collection
-    .find(filter)
-    .sort({ createdAt: params.sortBy || -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .toArray();
-  const normalized = items.map((it) => ({
-    _id: it._id.toString(),
-    caption: it.caption,
-    files: it.files,
-    createdAt: it.createdAt.toISOString(),
-    expiresAt: it.expiresAt.toISOString(),
-  }));
-  return { items: normalized, total, hasMore: page * limit < total };
-}
+
