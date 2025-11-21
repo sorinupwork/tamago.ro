@@ -27,6 +27,7 @@ export async function createStoryAction(formData: FormData): Promise<void> {
     userId: userId || undefined,
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
   await db.collection('stories').insertOne(doc);
 
@@ -74,6 +75,7 @@ export async function getStories(params: { userId?: string; page?: number; limit
           location: it.user.location || [0, 0],
         }
       : null,
+    reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
   }));
 
   return { items: normalized, total: normalized.length, hasMore: false };

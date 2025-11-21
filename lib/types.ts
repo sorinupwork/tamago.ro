@@ -95,6 +95,17 @@ export type FeedPost = {
   likes: number;
 };
 
+export type Reaction = {
+  likes: { total: number; userIds: string[] };
+  comments: {
+    id: string;
+    text: string;
+    userId: string;
+    createdAt: string;
+    replies: { id: string; text: string; userId: string; createdAt: string }[];
+  }[];
+};
+
 export type FeedItem = {
   _id: string;
   type: 'post' | 'poll';
@@ -103,9 +114,12 @@ export type FeedItem = {
   tags?: string[];
   question?: string;
   options?: string[];
+  votes?: number[];
+  votedUsers?: string[];
   createdAt: string;
   userId?: string;
   user: User | null;
+  reactions: Reaction;
 };
 
 export type StoryWithUser = {
@@ -116,6 +130,7 @@ export type StoryWithUser = {
   expiresAt: string;
   userId?: string;
   user: User | null;
+  reactions: Reaction;
 };
 
 export type Subcategory = {

@@ -19,6 +19,16 @@ type PostDocument = {
   userId?: string;
   createdAt: Date;
   tags: string[];
+  reactions: {
+    likes: { total: number; userIds: string[] };
+    comments: {
+      id: string;
+      text: string;
+      userId: string;
+      createdAt: Date;
+      replies: { id: string; text: string; userId: string; createdAt: Date }[];
+    }[];
+  };
 };
 
 type PollDocument = {
@@ -26,8 +36,20 @@ type PollDocument = {
   type: 'poll';
   question: string;
   options: string[];
+  votes: number[];
+  votedUsers: string[];
   userId?: string;
   createdAt: Date;
+  reactions: {
+    likes: { total: number; userIds: string[] };
+    comments: {
+      id: string;
+      text: string;
+      userId: string;
+      createdAt: Date;
+      replies: { id: string; text: string; userId: string; createdAt: Date }[];
+    }[];
+  };
 };
 
 export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: string, postId?: string) {
@@ -73,6 +95,7 @@ export async function createFeedAction(formData: FormData): Promise<void> {
     tags: validated.tags || [],
     userId: userId || undefined,
     createdAt: new Date(),
+    reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
   await db.collection('feeds').insertOne(doc);
 
@@ -97,8 +120,11 @@ export async function createPollAction(formData: FormData): Promise<void> {
     type: 'poll',
     question: validated.question,
     options: validated.options.map((o) => o.value),
+    votes: validated.options.map(() => 0),
+    votedUsers: [],
     userId: userId || undefined,
     createdAt: new Date(),
+    reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
   await db.collection('feeds').insertOne(doc);
 
@@ -126,27 +152,40 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
     ])
     .toArray();
 
-  const normalized = items.map((it) => ({
-    _id: it._id.toString(),
-    type: it.type,
-    userId: it.userId?.toString(),
-    ...(it.type === 'post' ? { text: it.text, tags: it.tags, files: it.files } : { question: it.question, options: it.options }),
-    createdAt: it.createdAt.toISOString(),
-    user: it.user
-      ? {
-          id: it.user._id.toString(),
-          name: it.user.name || 'Unknown',
-          avatar: it.user.image || '/avatars/01.jpg',
-          status: it.user.status || 'Online',
-          category: it.user.category || 'Prieteni',
-          email: it.user.email || '',
-          provider: it.user.provider || 'credentials',
-          createdAt: it.user.createdAt,
-          updatedAt: it.user.updatedAt,
-          location: it.user.location || [0, 0],
-        }
-      : null,
-  }));
+  const normalized = items.map((it) => {
+    const base = {
+      _id: it._id.toString(),
+      type: it.type,
+      userId: it.userId?.toString(),
+      createdAt: it.createdAt.toISOString(),
+      user: it.user
+        ? {
+            id: it.user._id.toString(),
+            name: it.user.name || 'Unknown',
+            avatar: it.user.image || '/avatars/01.jpg',
+            status: it.user.status || 'Online',
+            category: it.user.category || 'Prieteni',
+            email: it.user.email || '',
+            provider: it.user.provider || 'credentials',
+            createdAt: it.user.createdAt,
+            updatedAt: it.user.updatedAt,
+            location: it.user.location || [0, 0],
+          }
+        : null,
+      reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
+    };
+    if (it.type === 'post') {
+      return { ...base, text: it.text, tags: it.tags, files: it.files };
+    } else {
+      return {
+        ...base,
+        question: it.question,
+        options: it.options,
+        votes: it.votes || it.options.map(() => 0),
+        votedUsers: it.votedUsers || [],
+      };
+    }
+  });
 
   return { items: normalized, total: normalized.length, hasMore: false };
 }
@@ -155,4 +194,75 @@ export async function getPolls(params: { userId?: string; page?: number; limit?:
   return getFeedPosts({ ...params, type: 'poll' });
 }
 
+export async function addLikeAction(itemId: string, itemType: 'feed' | 'story'): Promise<void> {
+  const headersObj = await headers();
+  const session = await auth.api.getSession({ headers: headersObj });
+  if (!session?.user?.id) throw new Error('Not authenticated');
+  const userId = session.user.id;
+  const collection = itemType === 'feed' ? db.collection('feeds') : db.collection('stories');
+  const item = await collection.findOne({ _id: new ObjectId(itemId) });
+  if (!item) throw new Error('Item not found');
+  const reactions = item.reactions || { likes: { total: 0, userIds: [] }, comments: [] };
+  const hasLiked = reactions.likes.userIds.includes(userId);
+  if (hasLiked) {
+    reactions.likes.total -= 1;
+    reactions.likes.userIds = reactions.likes.userIds.filter((id: string) => id !== userId);
+  } else {
+    reactions.likes.total += 1;
+    reactions.likes.userIds.push(userId);
+  }
+  await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
+  revalidatePath('/social');
+}
 
+export async function addCommentAction(itemId: string, text: string, itemType: 'feed' | 'story'): Promise<void> {
+  const headersObj = await headers();
+  const session = await auth.api.getSession({ headers: headersObj });
+  if (!session?.user?.id) throw new Error('Not authenticated');
+  const userId = session.user.id;
+  const collection = itemType === 'feed' ? db.collection('feeds') : db.collection('stories');
+  const item = await collection.findOne({ _id: new ObjectId(itemId) });
+  if (!item) throw new Error('Item not found');
+  const reactions = item.reactions || { likes: { total: 0, userIds: [] }, comments: [] };
+  if (itemType === 'story' && reactions.comments.length >= 1) throw new Error('Stories allow max 1 comment');
+  const id = Date.now().toString(); // Generate ID server-side
+  reactions.comments.push({ id, text, userId, createdAt: new Date(), replies: [] });
+  await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
+  revalidatePath('/social');
+}
+
+export async function addReplyAction(itemId: string, commentId: string, text: string, itemType: 'feed' | 'story'): Promise<void> {
+  const headersObj = await headers();
+  const session = await auth.api.getSession({ headers: headersObj });
+  if (!session?.user?.id) throw new Error('Not authenticated');
+  const userId = session.user.id;
+  const collection = itemType === 'feed' ? db.collection('feeds') : db.collection('stories');
+  const item = await collection.findOne({ _id: new ObjectId(itemId) });
+  if (!item) throw new Error('Item not found');
+  const reactions = item.reactions || { likes: { total: 0, userIds: [] }, comments: [] };
+  const comment = reactions.comments.find((c: { id: string }) => c.id === commentId);
+  if (!comment) throw new Error('Comment not found');
+  if (itemType === 'story' && comment.replies.length >= 1) throw new Error('Stories allow max 1 reply per comment');
+  const replyId = Date.now().toString(); // Generate ID server-side
+  comment.replies.push({ id: replyId, text, userId, createdAt: new Date() });
+  await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
+  revalidatePath('/social');
+}
+
+export async function voteOnPollAction(pollId: string, optionIndex: number): Promise<void> {
+  const headersObj = await headers();
+  const session = await auth.api.getSession({ headers: headersObj });
+  if (!session?.user?.id) throw new Error('Not authenticated');
+  const userId = session.user.id;
+  const collection = db.collection('feeds');
+  const poll = await collection.findOne({ _id: new ObjectId(pollId), type: 'poll' });
+  if (!poll) throw new Error('Poll not found');
+  if (!poll.votes) poll.votes = poll.options.map(() => 0);
+  if (!poll.votedUsers) poll.votedUsers = [];
+  if (poll.votedUsers.includes(userId)) throw new Error('Already voted');
+  if (optionIndex < 0 || optionIndex >= poll.votes.length) throw new Error('Invalid option');
+  poll.votes[optionIndex] += 1;
+  poll.votedUsers.push(userId);
+  await collection.updateOne({ _id: new ObjectId(pollId) }, { $set: { votes: poll.votes, votedUsers: poll.votedUsers } });
+  revalidatePath('/social');
+}

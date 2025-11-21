@@ -70,7 +70,7 @@ export default function SocialPage() {
                     location: user.location || [0, 0],
                   }
                 : null;
-              return { ...item, user: normalizedUser };
+              return { ...item, user: normalizedUser, reactions: item.reactions || { likes: { total: 0, userIds: [] }, comments: [] } };
             }
             return item;
           })
@@ -94,7 +94,7 @@ export default function SocialPage() {
                     location: user.location || [0, 0],
                   }
                 : null;
-              return { ...item, user: normalizedUser };
+              return { ...item, user: normalizedUser, reactions: item.reactions || { likes: { total: 0, userIds: [] }, comments: [] } };
             }
             return item;
           })
@@ -173,8 +173,8 @@ export default function SocialPage() {
               <QuickActions />
             </aside>
             <div className='col-span-1 md:col-span-3 flex flex-col gap-4 h-screen'>
-              <StoriesSection stories={stories} mode='stories' />
-              <FeedSection feedItems={feedItems} />
+              <StoriesSection stories={stories} mode='stories' setStories={setStories} />
+              <FeedSection feedItems={feedItems} setFeedItems={setFeedItems} />
             </div>
           </div>
         </TabsContent>

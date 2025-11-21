@@ -523,6 +523,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             className='min-w-0 w-full'
             uploaderKey={uploaderKey}
             onFilesChange={handleFilesChange}
+            showPreview
           />
         </FieldGroup>
       </FieldSet>

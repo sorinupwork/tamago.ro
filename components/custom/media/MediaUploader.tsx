@@ -15,6 +15,7 @@ interface MediaUploaderProps {
   errorMessage?: string;
   id?: string; // Added for external triggering
   name?: string; // Added for form submission
+  disabled?: boolean; // Added to disable the uploader
 }
 
 interface PreviewFile {
@@ -31,6 +32,7 @@ export function MediaUploader({
   errorMessage,
   id,
   name, // Added
+  disabled = false, // Added default
 }: MediaUploaderProps) {
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
 
@@ -53,6 +55,7 @@ export function MediaUploader({
     accept: accept.split(',').reduce((acc, type) => ({ ...acc, [type.trim()]: [] }), {}),
     maxFiles,
     multiple: true,
+    disabled, // Added to disable dropzone
   });
 
   const removePreview = (index: number) => {
@@ -66,13 +69,23 @@ export function MediaUploader({
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-default transition-colors ${
-          errorMessage ? 'border-red-500 bg-red-50' : isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
+          disabled
+            ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
+            : errorMessage
+            ? 'border-red-500 bg-red-50'
+            : isDragActive
+            ? 'border-primary bg-primary/10'
+            : 'border-gray-300 hover:border-primary'
         }`}
       >
         <input {...getInputProps({ id, name })} />
         <Upload className={`mx-auto h-12 w-12 mb-4 ${errorMessage ? 'text-red-400' : 'text-gray-400'}`} />
         <p className={`text-sm mb-1 ${errorMessage ? 'text-red-600' : 'text-gray-600'}`}>
-          {isDragActive ? 'Aruncați fișierele aici...' : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
+          {disabled
+            ? 'Uploader disabled'
+            : isDragActive
+            ? 'Aruncați fișierele aici...'
+            : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
         </p>
         <p className={`text-xs ${errorMessage ? 'text-red-500' : 'text-gray-500'}`}>
           Acceptă imagini, videouri și documente (minim 1, maxim {maxFiles} fișiere)

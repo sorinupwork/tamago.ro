@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { LucideIcon } from 'lucide-react';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import {
@@ -15,9 +14,8 @@ import {
   BtnStrikeThrough,
   BtnLink,
   BtnClearFormatting,
+  Editor,
 } from 'react-simple-wysiwyg';
-
-const Editor = dynamic(() => import('react-simple-wysiwyg').then((mod) => mod.Editor), { ssr: false });
 
 type Props = {
   value?: string;
@@ -29,9 +27,9 @@ type Props = {
   required?: boolean;
   htmlFor?: string;
   icon?: LucideIcon;
-  name?: string; // Added to support form integration
-  id?: string; // Added for accessibility
-  rows?: number; // Added for rows prop
+  name?: string;
+  id?: string;
+  rows?: number;
 };
 
 export default function AppTextarea({

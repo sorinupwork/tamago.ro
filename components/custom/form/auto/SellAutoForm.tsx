@@ -442,6 +442,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
             uploaderKey={uploaderKey}
             onFilesChange={handleFilesChange}
             required
+            showPreview
           />
         </FieldGroup>
       </FieldSet>

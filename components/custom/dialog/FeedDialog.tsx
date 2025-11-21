@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
-import { FileText, Image as ImageIcon, Video, Smile } from 'lucide-react';
+import { FileText, Smile } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import sanitizeHtml from 'sanitize-html';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,14 +23,22 @@ type Props = {
 
 export default function FeedDialog({ open, onOpenChange }: Props) {
   const [isPending, startTransition] = useTransition();
-  const { control, handleSubmit, watch, reset, formState: { errors, isValid } } = useForm<FeedFormData>({
+  const [uploaderKey, setUploaderKey] = useState(0);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<FeedFormData>({
     resolver: zodResolver(feedSchema),
     defaultValues: { text: '', files: [], tags: [] },
   });
 
-  const text = watch('text');
-  const files = watch('files') || [];
-  const tags = watch('tags') || [];
+  const watchedValues = useWatch({ control });
+  const text = watchedValues.text;
+  const files = useMemo(() => watchedValues.files || [], [watchedValues.files]);
+  const tags = watchedValues.tags || [];
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 
@@ -51,8 +60,11 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
   };
 
   const handleRemoveFile = () => {
-    // Update files in form
+    setValue('files', []);
+    setUploaderKey((prev) => prev + 1);
   };
+
+  const sanitizedText = sanitizeHtml(text || '', { allowedTags: [], allowedAttributes: {} });
 
   return (
     <Dialog
@@ -62,7 +74,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
         if (!v) reset();
       }}
     >
-      <DialogContent className='max-w-lg'>
+      <DialogContent className='max-w-lg' onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className='flex items-center'>
             <FileText className='h-5 w-5 mr-2' />
@@ -89,13 +101,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
           <Controller
             name='tags'
             control={control}
-            render={({ field }) => (
-              <AppTagsInput
-                label='Tag-uri (pentru căutare)'
-                tags={field.value || []}
-                onTagsChange={field.onChange}
-              />
-            )}
+            render={({ field }) => <AppTagsInput label='Tag-uri (pentru căutare)' tags={field.value || []} onTagsChange={field.onChange} />}
           />
 
           <Controller
@@ -105,12 +111,13 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
               <AppMediaUploaderInput
                 id='feed-media'
                 name='files'
-                uploaderKey={2}
+                uploaderKey={uploaderKey}
                 onFilesChange={(f) => field.onChange(f.slice(0, 1))}
                 accept='image/*,video/*'
                 maxFiles={1}
                 className='mt-1'
                 showPreview={false}
+                disabled={files.length > 0}
               />
             )}
           />
@@ -144,9 +151,9 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                   X
                 </Button>
               </div>
-              {text?.trim() && (
-                <div className='bg-gray-100 p-3 rounded-lg'>
-                  <p className='text-sm'>{text}</p>
+              {sanitizedText && (
+                <div className='bg-muted p-3 rounded-lg'>
+                  <p className='text-sm'>{sanitizedText}</p>
                 </div>
               )}
               {tags.length > 0 && (

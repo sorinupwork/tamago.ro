@@ -465,6 +465,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             uploaderKey={uploaderKey}
             onFilesChange={handleFilesChange}
             required
+            showPreview
           />
         </FieldGroup>
       </FieldSet>

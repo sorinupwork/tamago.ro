@@ -548,6 +548,7 @@ export function RentAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate
             uploaderKey={uploaderKey}
             onFilesChange={handleFilesChange}
             required
+            showPreview
           />
         </FieldGroup>
       </FieldSet>

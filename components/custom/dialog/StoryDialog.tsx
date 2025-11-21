@@ -1,10 +1,12 @@
 'use client';
-import React, { useEffect, useMemo, useTransition } from 'react';
+
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import sanitizeHtml from 'sanitize-html';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,13 +23,21 @@ type Props = {
 
 export default function StoryDialog({ open, onOpenChange }: Props) {
   const [isPending, startTransition] = useTransition();
-  const { control, handleSubmit, watch, reset, formState: { errors, isValid } } = useForm<StoryFormData>({
+  const [uploaderKey, setUploaderKey] = useState(0);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<StoryFormData>({
     resolver: zodResolver(storySchema),
     defaultValues: { caption: '', files: [] },
   });
 
-  const caption = watch('caption');
-  const files = watch('files') || [];
+  const watchedValues = useWatch({ control });
+  const caption = watchedValues.caption;
+  const files = useMemo(() => watchedValues.files || [], [watchedValues.files]);
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 
@@ -48,8 +58,11 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
   };
 
   const handleRemoveFile = () => {
-    // Update files
+    setValue('files', []);
+    setUploaderKey((prev) => prev + 1);
   };
+
+  const sanitizedCaption = sanitizeHtml(caption || '', { allowedTags: [], allowedAttributes: {} });
 
   return (
     <Dialog
@@ -59,7 +72,7 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
         if (!v) reset();
       }}
     >
-      <DialogContent className='max-w-md'>
+      <DialogContent className='max-w-md' onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className='flex items-center'>
             <Camera className='h-5 w-5 mr-2' />
@@ -76,20 +89,21 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
               render={({ field }) => (
                 <AppMediaUploaderInput
                   name='files'
-                  uploaderKey={1}
+                  uploaderKey={uploaderKey}
                   onFilesChange={(f) => field.onChange(f.slice(0, 1))}
                   accept='image/*,video/*'
                   maxFiles={1}
                   className='mt-1'
                   showPreview={false}
+                  disabled={files.length > 0}
                 />
               )}
             />
           </div>
 
           {previews.length > 0 && (
-            <div className='space-y-2'>
-              <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
+            <div>
+              <div className='relative w-full h-64 rounded-t-lg overflow-hidden border'>
                 {files[0]?.type.startsWith('image/') ? (
                   <Image
                     src={previews[0]}
@@ -116,9 +130,9 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
                   X
                 </Button>
               </div>
-              {caption?.trim() && (
-                <div className='bg-linear-to-r from-blue-500 to-purple-600 text-white p-3 rounded-lg shadow-md'>
-                  <p className='text-sm font-bold'>{caption}</p>
+              {sanitizedCaption && (
+                <div className='border border-t-0 p-3 rounded-b-lg shadow-md'>
+                  <p className='text-sm font-semibold'>{sanitizedCaption}</p>
                 </div>
               )}
             </div>

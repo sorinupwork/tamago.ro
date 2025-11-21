@@ -16,6 +16,7 @@ type AppMediaUploaderInputProps = {
   name?: string; // Added for form integration
   maxFiles?: number; // Added to limit files
   showPreview?: boolean; // Added to toggle preview display
+  disabled?: boolean; // Added to disable the uploader
 };
 
 export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
@@ -31,6 +32,7 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
   name,
   maxFiles,
   showPreview,
+  disabled,
 }) => {
   return (
     <Field className={className}>
@@ -48,6 +50,7 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
           maxFiles={maxFiles}
           showPreview={showPreview}
           name={name}
+          disabled={disabled}
         />
       </div>
       {error && <FieldError errors={error} />}

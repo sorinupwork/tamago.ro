@@ -1,5 +1,7 @@
 import { Camera } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
+import { MapPin, Star } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -8,45 +10,48 @@ import { StoryViewer } from '../media/StoryViewer';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { MapPin, Star } from 'lucide-react';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 type StoriesSectionProps = {
   stories?: StoryWithUser[];
   users?: User[];
-  mode?: 'stories' | 'users';
+  mode: 'stories' | 'users';
   title?: string;
+  setStories?: React.Dispatch<React.SetStateAction<StoryWithUser[]>>;
 };
 
-export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], users = [], mode = 'stories', title = 'Stories' }) => {
+export const StoriesSection: React.FC<StoriesSectionProps> = ({
+  stories = [],
+  users = [],
+  mode,
+  title = 'Stories',
+  setStories,
+}) => {
   const baseId = useId();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const [selectedStory, setSelectedStory] = useState<{ stories: StoryWithUser[]; index: number } | null>(null);
+  const [selectedStory, setSelectedStory] = useState<{ userId: string; index: number } | null>(null); // Updated: Store only userId and index
   const [activeProfile, setActiveProfile] = useState<User | null>(null);
 
   const isMobile = useIsMobile();
   const isStoriesMode = mode === 'stories';
-  const items = isStoriesMode ? stories : users.map(user => ({ user }));
+  const items = isStoriesMode ? stories : users.map((user) => ({ user }));
 
-  // Group stories by userId to get unique users if stories
-  const uniqueUsers = isStoriesMode ? stories.reduce((acc, story) => {
-    const userId = story.user?.id;
-    if (userId && !acc.some(u => u.user?.id === userId)) {
-      acc.push(story);
-    }
-    return acc;
-  }, [] as StoryWithUser[]) : items;
+  const uniqueUsers = isStoriesMode
+    ? stories.reduce((acc, story) => {
+        const userId = story.user?.id;
+        if (userId && !acc.some((u) => u.user?.id === userId)) {
+          acc.push(story);
+        }
+        return acc;
+      }, [] as StoryWithUser[])
+    : items;
 
-  const handleStoryClick = (userId: string, clickedIndex: number) => {
-    if (!isStoriesMode) return; // No viewer for users mode
-    // Get all stories for this user
-    const userStories = stories.filter(story => story.user?.id === userId);
-    // Find the index of the clicked story within the user's stories
-    const initialIndex = userStories.findIndex(story => story._id === stories[clickedIndex]._id);
-    setSelectedStory({ stories: userStories, index: initialIndex });
+  const handleStoryClick = (userId: string) => {
+    if (!isStoriesMode) return;
+    setTimeout(() => setSelectedStory({ userId, index: 0 }), 0);
   };
 
   const handleUserClick = (user: User) => {
@@ -95,7 +100,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
                     <div
                       key={`${baseId}-${index}`}
                       className='flex flex-col items-center gap-2 hover:scale-105 transition-transform shrink-0 cursor-default'
-                      onClick={() => isStoriesMode ? handleStoryClick(user?.id || '', index) : handleUserClick(user!)}
+                      onClick={() => (isStoriesMode ? handleStoryClick(user?.id || '') : handleUserClick(user!))}
                     >
                       {!isMobile && !isStoriesMode ? (
                         <HoverCard>
@@ -116,9 +121,13 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
                                   <h4 className='text-sm font-semibold'>{user?.name || 'Unknown'}</h4>
                                   <p className='text-sm text-muted-foreground truncate'>{user?.status}</p>
                                   <p className='text-sm text-muted-foreground truncate'>{user?.email}</p>
-                                  <p className='text-sm text-muted-foreground truncate'>Joined: {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+                                  <p className='text-sm text-muted-foreground truncate'>
+                                    Joined: {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                  </p>
                                   <div className='mt-2 flex flex-wrap gap-2'>
-                                    <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>{user?.category}</span>
+                                    <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>
+                                      {user?.category}
+                                    </span>
                                     <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full flex items-center gap-1'>
                                       <Star className='w-3 h-3' /> Top
                                     </span>
@@ -137,7 +146,9 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
                                   </div>
                                 </div>
                                 <div className='flex flex-col items-end text-xs text-muted-foreground'>
-                                  <span className='flex items-center gap-1'><MapPin className='w-3 h-3' /> Nearby</span>
+                                  <span className='flex items-center gap-1'>
+                                    <MapPin className='w-3 h-3' /> Nearby
+                                  </span>
                                   <span>5km</span>
                                 </div>
                               </div>
@@ -164,12 +175,15 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
       </Card>
       {selectedStory && (
         <StoryViewer
-          stories={selectedStory.stories}
+          key={selectedStory.userId + '-' + selectedStory.index}
+          stories={stories}
+          userId={selectedStory.userId}
           initialIndex={selectedStory.index}
           onClose={() => setSelectedStory(null)}
+          setStories={setStories}
         />
       )}
-      {/* Mobile dialog for user profile */}
+
       <Dialog open={!!activeProfile} onOpenChange={() => setActiveProfile(null)}>
         <DialogContent className='max-w-sm w-full'>
           <DialogTitle>{activeProfile?.name}</DialogTitle>
@@ -184,9 +198,13 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
                   <h4 className='text-sm font-semibold'>{activeProfile.name}</h4>
                   <p className='text-sm text-muted-foreground truncate'>{activeProfile.status}</p>
                   <p className='text-sm text-muted-foreground truncate'>{activeProfile.email}</p>
-                  <p className='text-sm text-muted-foreground truncate'>Joined: {activeProfile.createdAt ? new Date(activeProfile.createdAt).toLocaleDateString() : 'N/A'}</p>
+                  <p className='text-sm text-muted-foreground truncate'>
+                    Joined: {activeProfile.createdAt ? new Date(activeProfile.createdAt).toLocaleDateString() : 'N/A'}
+                  </p>
                   <div className='mt-2 flex flex-wrap gap-2'>
-                    <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>{activeProfile.category}</span>
+                    <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>
+                      {activeProfile.category}
+                    </span>
                     <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full flex items-center gap-1'>
                       <Star className='w-3 h-3' /> Top
                     </span>
@@ -205,7 +223,9 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], us
                   </div>
                 </div>
                 <div className='flex flex-col items-end text-xs text-muted-foreground'>
-                  <span className='flex items-center gap-1'><MapPin className='w-3 h-3' /> Nearby</span>
+                  <span className='flex items-center gap-1'>
+                    <MapPin className='w-3 h-3' /> Nearby
+                  </span>
                   <span>5km</span>
                 </div>
               </div>

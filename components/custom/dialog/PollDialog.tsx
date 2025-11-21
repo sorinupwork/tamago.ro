@@ -48,7 +48,7 @@ export default function PollDialog({ open, onOpenChange }: Props) {
         if (!v) reset();
       }}
     >
-      <DialogContent className='max-w-md'>
+      <DialogContent className='max-w-md' onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className='flex items-center'>
             <BarChart className='h-5 w-5 mr-2' />
