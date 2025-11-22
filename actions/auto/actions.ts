@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers';
 import { Car as CarIcon } from 'lucide-react';
+import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
@@ -136,6 +137,9 @@ export async function getGoldenSectionPosts() {
     const topCars = allCars.sort((a, b) => (b._id > a._id ? 1 : -1)).slice(0, 6);
 
     const posts: Post[] = topCars.map((carDoc: ExtendedRawCarDoc) => {
+      const createdAt = (carDoc._id as ObjectId).getTimestamp();
+      const isNew = Date.now() - createdAt.getTime() < 24 * 60 * 60 * 1000;
+
       const mappedCar: Car = {
         id: carDoc._id.toString(),
         title: carDoc.title || '',
@@ -182,7 +186,7 @@ export async function getGoldenSectionPosts() {
         desc: mappedCar.description || 'No description available',
         icon: CarIcon,
         verified: true,
-        isNew: true,
+        isNew,
         imageUrl: mappedCar.images[0],
         category: carDoc.urlCategory,
       };
