@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { FileText, Smile } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';

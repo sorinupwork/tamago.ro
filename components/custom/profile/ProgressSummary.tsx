@@ -23,19 +23,18 @@ export default function ProgressSummary({ posts, friends, points, onClaimReward,
         <AccordionContent className='px-4 pb-4 space-y-4'>
           <div>
             <div className='flex justify-between text-xs mb-1'>
-              <span>Postări (Listări Vânzări)</span> {/* Updated for marketplace context */}
+              <span>Postări (Listări Vânzări)</span>
               <span>{posts}/20</span>
             </div>
             <Progress value={(posts / 20) * 100} className='h-2' />
           </div>
           <div>
             <div className='flex justify-between text-xs mb-1'>
-              <span>Prieteni (Rețea Socială)</span> {/* Updated for social context */}
+              <span>Prieteni (Rețea Socială)</span>
               <span>{friends}/10</span>
             </div>
             <Progress value={(friends / 10) * 100} className='h-2' />
           </div>
-          {/* Added points progress bar */}
           <div>
             <div className='flex justify-between text-xs mb-1'>
               <span>Puncte (Recompense Vânzări)</span>

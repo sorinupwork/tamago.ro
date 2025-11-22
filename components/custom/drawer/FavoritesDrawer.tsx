@@ -22,7 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
-import { useSession, signIn } from '@/lib/auth/auth-client';
+import { useSession } from '@/lib/auth/auth-client';
 import { getFavorites } from '@/actions/auth/actions';
 import FavoriteButton from '../button/FavoriteButton';
 

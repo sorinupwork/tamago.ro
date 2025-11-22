@@ -23,11 +23,8 @@ export const defaultSortCriteria: SortCriteria = {
   mileage: null,
   date: null,
 };
-
 export const defaultSearchQuery = '';
-
 export const defaultLocationFilter: LocationFilter = { location: null, radius: 50 };
-
 export const defaultCurrentPage = 1;
 
 export const getInitialActiveTab = (searchParams: URLSearchParams): keyof typeof categoryMapping => {

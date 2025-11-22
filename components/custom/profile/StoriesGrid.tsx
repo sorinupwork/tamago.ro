@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,9 +36,8 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }
       try {
         const data = await getStories({ userId, sortBy: sortBy === 'createdAt' ? -1 : 1 });
         setStories(data.items);
-        // Debug: Log fetched stories
         console.log('Fetched stories for user:', userId, data.items);
-      } catch (err) {
+      } catch {
         setError('Failed to load stories');
       } finally {
         setLoading(false);
@@ -48,7 +48,6 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }
 
   if (loading) return <SkeletonLoading variant='feed' />;
   if (error) return <div className='text-center text-red-500'>{error}</div>;
-  
 
   return (
     <div className='space-y-4'>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Bell, Settings, Zap, Trophy } from 'lucide-react';
+import { Bell, Zap, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
@@ -47,7 +47,11 @@ export default function SettingsAccordion({ value, icon, title, content, buttonT
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Switch className='bg-primary ring-1 ring-foreground' checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                <Switch
+                  className='bg-primary ring-1 ring-foreground'
+                  checked={notificationsEnabled}
+                  onCheckedChange={setNotificationsEnabled}
+                />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Activează notificări pentru actualizări!</p>

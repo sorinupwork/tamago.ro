@@ -14,9 +14,7 @@ interface ChatInputProps {
 export default function ChatInput({ input, setInput, sendMessage, error, setError }: ChatInputProps) {
   return (
     <div className='p-4 border-t'>
-      {error && (
-        <ErrorAlert message={error} />
-      )}
+      {error && <ErrorAlert message={error} />}
       <div className='flex justify-center'>
         <div className='flex gap-2 w-full max-w-md'>
           <Button variant='outline' size='sm' className='h-10' aria-label='Adaugă atașament'>
@@ -26,10 +24,10 @@ export default function ChatInput({ input, setInput, sendMessage, error, setErro
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
-              if (error) setError(''); // Clear error on input change
+              if (error) setError('');
             }}
             placeholder='Scrie un mesaj...'
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
             className='flex-1 h-10'
           />
           <Button onClick={sendMessage} size='sm' className='h-10'>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { categoryMapping, categoryLabels } from '@/lib/categories';
+import { categories, categoryMapping } from '@/lib/categories';
 
 type Props = {
   activeTab: keyof typeof categoryMapping;
@@ -16,7 +16,7 @@ export const AutoTabs: React.FC<Props> = ({ activeTab, onChange, className }) =>
       <TabsList className='grid w-full grid-cols-4 h-10 sm:h-12 gap-2 bg-muted/50'>
         {(Object.keys(categoryMapping) as (keyof typeof categoryMapping)[]).map((tab) => {
           const mapped = categoryMapping[tab as keyof typeof categoryMapping];
-          const label = categoryLabels[mapped as keyof typeof categoryLabels] ?? String(tab);
+          const label = categories.find(cat => cat.key === mapped)?.label ?? String(tab);
           return (
             <TabsTrigger
               key={tab}

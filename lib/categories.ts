@@ -14,11 +14,4 @@ export const categoryMapping = {
   licitatie: 'auction',
 } as const;
 
-export const categoryLabels = {
-  sell: 'Ofertă',
-  buy: 'Cerere',
-  rent: 'Închiriere',
-  auction: 'Licitație',
-} as const;
-
 

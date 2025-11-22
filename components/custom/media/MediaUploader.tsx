@@ -3,36 +3,37 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, FileVideo } from 'lucide-react';
+
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-interface MediaUploaderProps {
+type MediaUploaderProps = {
   onFilesChange: (files: File[]) => void;
   showPreview?: boolean;
-  accept?: string; // Changed from acceptedTypes for consistency
-  maxFiles?: number; // Added to limit files
+  accept?: string;
+  maxFiles?: number;
   errorMessage?: string;
-  id?: string; // Added for external triggering
-  name?: string; // Added for form submission
-  disabled?: boolean; // Added to disable the uploader
-}
+  id?: string;
+  name?: string;
+  disabled?: boolean;
+};
 
-interface PreviewFile {
+type PreviewFile = {
   file: File;
   preview: string;
   type: 'image' | 'video' | 'document';
-}
+};
 
 export function MediaUploader({
   onFilesChange,
   showPreview,
   accept = 'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  maxFiles = 10, // Default to 10
+  maxFiles = 10,
   errorMessage,
   id,
-  name, // Added
-  disabled = false, // Added default
+  name,
+  disabled = false,
 }: MediaUploaderProps) {
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
 
@@ -55,7 +56,7 @@ export function MediaUploader({
     accept: accept.split(',').reduce((acc, type) => ({ ...acc, [type.trim()]: [] }), {}),
     maxFiles,
     multiple: true,
-    disabled, // Added to disable dropzone
+    disabled,
   });
 
   const removePreview = (index: number) => {
@@ -72,10 +73,10 @@ export function MediaUploader({
           disabled
             ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
             : errorMessage
-            ? 'border-red-500 bg-red-50'
-            : isDragActive
-            ? 'border-primary bg-primary/10'
-            : 'border-gray-300 hover:border-primary'
+              ? 'border-red-500 bg-red-50'
+              : isDragActive
+                ? 'border-primary bg-primary/10'
+                : 'border-gray-300 hover:border-primary'
         }`}
       >
         <input {...getInputProps({ id, name })} />
@@ -84,8 +85,8 @@ export function MediaUploader({
           {disabled
             ? 'Uploader disabled'
             : isDragActive
-            ? 'Aruncați fișierele aici...'
-            : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
+              ? 'Aruncați fișierele aici...'
+              : 'Trageți și aruncați fișiere sau faceți clic pentru a selecta'}
         </p>
         <p className={`text-xs ${errorMessage ? 'text-red-500' : 'text-gray-500'}`}>
           Acceptă imagini, videouri și documente (minim 1, maxim {maxFiles} fișiere)

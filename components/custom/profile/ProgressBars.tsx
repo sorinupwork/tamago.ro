@@ -1,7 +1,7 @@
-import React from 'react';
+import { TrendingUp } from 'lucide-react';
+
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type ProgressBarsProps = {
@@ -13,7 +13,7 @@ type ProgressBarsProps = {
 export default function ProgressBars({ posts, friends, points }: ProgressBarsProps) {
   return (
     <TooltipProvider>
-      <Card className='rounded-xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'>
+      <Card className='rounded-xl hover:shadow-lg transition-all duration-300 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'>
         <CardHeader>
           <CardTitle className='flex items-center text-lg font-semibold'>
             <TrendingUp className='h-5 w-5 mr-2 text-primary animate-pulse' />

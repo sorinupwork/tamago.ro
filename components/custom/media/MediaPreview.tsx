@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, Image as ImageIcon, Eye, Download, ScanEye, Play, Share2, ZoomIn } from 'lucide-react';
+import { FileText, Image as ImageIcon, Eye, Download, Play, Share2, ZoomIn } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 

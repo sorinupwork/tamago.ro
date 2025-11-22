@@ -34,7 +34,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
 
 // Function to calculate distance (Haversine formula) - can be replaced with OSRM routing if needed
 export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Radius of the Earth in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =

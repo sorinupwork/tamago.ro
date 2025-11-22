@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Accordion } from '@/components/ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
-import EditDrawer from '@/components/custom/profile/EditDrawer';
+import EditProfileDrawer from '@/components/custom/drawer/EditProfileDrawer';
 import PostsGrid from '@/components/custom/profile/PostsGrid';
 import ActivityFeed from '@/components/custom/profile/ActivityFeed';
 import ProgressSummary from '@/components/custom/profile/ProgressSummary';
@@ -24,7 +24,6 @@ import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
 import FeedGrid from '@/components/custom/profile/FeedGrid';
 import SecurityCard from '@/components/custom/profile/SecurityCard';
-import { signOut } from '@/lib/auth/auth-client';
 import { getUserCars } from '@/actions/auto/actions';
 
 type User = {
@@ -469,11 +468,16 @@ export default function ProfileClient({ session }: ProfileClientProps) {
           </div>
 
           <aside className='lg:hidden space-y-4 sm:space-y-6'>
-            <h3 className='text-lg font-semibold'>Market & Social</h3>
             <ActivityFeed
               activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
               onLoadMore={() => console.log('Încarcă mai multe notificări')}
             />
+
+            <RecentActivity
+              activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
+            />
+
+            <QuickActions />
 
             <ProgressSummary
               posts={userData.progress.posts}
@@ -481,8 +485,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               points={userData.progress.points}
               onClaimReward={() => console.log('Revendică recompensa')}
             />
-
-            <QuickActions />
 
             <ProTip
               tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
@@ -493,7 +495,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
         </div>
       </div>
 
-      <EditDrawer
+      <EditProfileDrawer
         open={isEditing}
         onOpenChange={(open) => {
           if (!open) {

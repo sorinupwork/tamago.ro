@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { categoryLabels } from '@/lib/categories';
+import { categories } from '@/lib/categories';
 import FavoriteButton from '../button/FavoriteButton';
 import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
@@ -127,6 +127,7 @@ export function CarCard({ car }: CarCardProps) {
   const buttonText = getButtonText();
 
   const sanitizedDescription = useMemo(() => sanitizeHtml(car.description || ''), [car.description]);
+  const categoryLabel = categories.find(cat => cat.key === car.category)?.label || car.category;
 
   return (
     <Card className='overflow-hidden hover:shadow-md transition-all duration-300  animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>
@@ -163,7 +164,7 @@ export function CarCard({ car }: CarCardProps) {
             <ShareButton href={href} />
             <QuickActionButton href={href} />
             <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='shrink-0'>
-              {categoryLabels[car.category as keyof typeof categoryLabels]}
+              {categoryLabel}
             </Badge>
           </div>
         </div>

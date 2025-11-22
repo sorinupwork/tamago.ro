@@ -225,7 +225,7 @@ export async function addCommentAction(itemId: string, text: string, itemType: '
   if (!item) throw new Error('Item not found');
   const reactions = item.reactions || { likes: { total: 0, userIds: [] }, comments: [] };
   if (itemType === 'story' && reactions.comments.length >= 1) throw new Error('Stories allow max 1 comment');
-  const id = Date.now().toString(); // Generate ID server-side
+  const id = Date.now().toString();
   reactions.comments.push({ id, text, userId, createdAt: new Date(), replies: [] });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
   revalidatePath('/social');
@@ -243,7 +243,7 @@ export async function addReplyAction(itemId: string, commentId: string, text: st
   const comment = reactions.comments.find((c: { id: string }) => c.id === commentId);
   if (!comment) throw new Error('Comment not found');
   if (itemType === 'story' && comment.replies.length >= 1) throw new Error('Stories allow max 1 reply per comment');
-  const replyId = Date.now().toString(); // Generate ID server-side
+  const replyId = Date.now().toString(); 
   comment.replies.push({ id: replyId, text, userId, createdAt: new Date() });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
   revalidatePath('/social');

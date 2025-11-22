@@ -27,7 +27,7 @@ import { AppLogo } from '../logo/AppLogo';
 import { AppNavActions } from './AppNavActions';
 import { subcategories } from '@/lib/subcategories';
 import { categories } from '@/lib/categories';
-import { FavoritesDrawer } from './FavoritesDrawer';
+import { FavoritesDrawer } from '../drawer/FavoritesDrawer';
 
 export function AppNavigation() {
   const [searchOpen, setSearchOpen] = useState(false);

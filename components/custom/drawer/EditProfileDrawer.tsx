@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
-import { updateProfile } from '@/actions/auth/actions'; // server action
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { updateProfile } from '@/actions/auth/actions';
 import LoadingIndicator from '../loading/LoadingIndicator';
 
 type Props = {
@@ -16,23 +17,22 @@ type Props = {
   name: string;
   onNameChange: (v: string) => void;
   email: string;
-  imagePreview?: string | null; // Add prop for current image
-  files?: File[]; // files passed from parent
+  imagePreview?: string | null;
+  files?: File[];
   userId?: string;
   onFilesChange?: (files: File[]) => void;
   onImageRemove?: () => void;
-  // keep for optional backward compatibility, but form will handle its own save
   onSave?: () => void;
   isSaving?: boolean;
 };
 
-export default function EditDrawer({
+export default function EditProfileDrawer({
   open,
   onOpenChange,
   name,
   onNameChange,
   email,
-  imagePreview, // New prop
+  imagePreview,
   files = [],
   userId,
   onFilesChange,
@@ -40,29 +40,28 @@ export default function EditDrawer({
 }: Props) {
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [saving, setSaving] = useState(false);
-  const [localImageFile, setLocalImageFile] = useState<File | null>(null); // Store selected file locally
-  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null); // Local preview state
+  const [localImageFile, setLocalImageFile] = useState<File | null>(null);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     if (open) {
       setTimeout(() => nameRef.current?.focus(), 140);
-      setLocalImagePreview(imagePreview || null); // Initialize with current image
-      setLocalImageFile(null); // Reset file
+      setLocalImagePreview(imagePreview || null);
+      setLocalImageFile(null);
     }
   }, [open, imagePreview]);
 
-  // On file selection, set local file and preview (no upload yet)
   const handleFilesChange = (selectedFiles: File[]) => {
     const f = selectedFiles?.[0];
     if (!f) {
       setLocalImageFile(null);
-      setLocalImagePreview(imagePreview || null); // Reset to current
+      setLocalImagePreview(imagePreview || null);
       onFilesChange?.([]);
       return;
     }
     setLocalImageFile(f);
-    setLocalImagePreview(URL.createObjectURL(f)); // Immediate local preview
+    setLocalImagePreview(URL.createObjectURL(f));
     onFilesChange?.(selectedFiles);
   };
 
@@ -75,7 +74,6 @@ export default function EditDrawer({
     setSaving(true);
     let uploadedImageUrl: string | null = null;
     try {
-      // Upload only on submit
       if (localImageFile) {
         const uploadForm = new FormData();
         uploadForm.append('files', localImageFile);
@@ -110,10 +108,9 @@ export default function EditDrawer({
     }
   };
 
-  // Cancel: reset to current image
   const handleCancel = () => {
     setLocalImageFile(null);
-    setLocalImagePreview(imagePreview || null); // Reset to current
+    setLocalImagePreview(imagePreview || null);
     onFilesChange?.([]);
     onOpenChange(false);
   };

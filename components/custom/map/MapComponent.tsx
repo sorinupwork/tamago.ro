@@ -22,7 +22,6 @@ type Location = {
 };
 
 type MapComponentProps = {
-  // For user display mode
   users?: User[];
   center?: [number, number];
   zoom?: number;

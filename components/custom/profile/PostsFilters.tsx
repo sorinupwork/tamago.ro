@@ -23,10 +23,7 @@ export default function PostsFilters({
   sortBy,
   onSortChange,
 }: PostsFiltersProps) {
-  const categoryOptions = [
-    { value: 'all', label: 'Toate Categoriile' },
-    // Add more as needed, e.g., { value: 'cars', label: 'Mașini' }
-  ];
+  const categoryOptions = [{ value: 'all', label: 'Toate Categoriile' }];
 
   const statusOptions = [
     { value: 'all', label: 'Toate Statusurile' },

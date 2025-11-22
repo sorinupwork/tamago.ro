@@ -1,9 +1,9 @@
-import React from 'react';
 import Image from 'next/image';
+import { Edit, Trash, Eye, EyeOff } from 'lucide-react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Eye, EyeOff } from 'lucide-react';
 
 type Post = {
   id: string;
@@ -36,18 +36,10 @@ export default function PostCard({
     <Card className='hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-primary/20 hover:border-l-primary'>
       <CardContent className='p-4'>
         <div className='flex items-center gap-4'>
-          {/* Image */}
-          <div className='relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0'>
-            <Image
-              src={imageSrc}
-              alt={post.title}
-              fill
-              className='object-cover'
-              sizes='80px'
-            />
+          <div className='relative w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0'>
+            <Image src={imageSrc} alt={post.title} fill className='object-cover' sizes='80px' />
           </div>
 
-          {/* Details */}
           <div className='flex-1 min-w-0'>
             <div className='flex items-start justify-between gap-2'>
               <div className='min-w-0 flex-1'>
@@ -59,15 +51,14 @@ export default function PostCard({
                   </Badge>
                 </div>
               </div>
-              <div className='text-right flex-shrink-0'>
+              <div className='text-right shrink-0'>
                 <p className='font-bold text-sm'>{post.price ? `${post.price} ${post.currency || 'RON'}` : 'Preț nedefinit'}</p>
                 <span className='text-xs text-muted-foreground'>{post.views ?? 0} vizualizări</span>
               </div>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className='flex items-center gap-1 flex-shrink-0'>
+          <div className='flex items-center gap-1 shrink-0'>
             <Button size='sm' variant='ghost' onClick={() => onView(post)} className='h-8 w-8 p-0'>
               <Eye className='h-4 w-4' />
             </Button>
