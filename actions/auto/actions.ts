@@ -182,7 +182,7 @@ export async function getGoldenSectionPosts() {
         desc: mappedCar.description || 'No description available',
         icon: CarIcon,
         verified: true,
-        isNew: false,
+        isNew: true,
         imageUrl: mappedCar.images[0],
         category: carDoc.urlCategory,
       };

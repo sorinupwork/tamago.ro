@@ -17,7 +17,7 @@ export default async function Home() {
   }));
 
   return (
-    <div className='flex flex-col items-center justify-center grow gap-4 text-center'>
+    <div className='flex flex-col items-center justify-center grow text-center gap-4 py-4'>
       <AppCarousel title='Categorii Populare' items={subcategories} />
       <AppGoldenSection title='Anunțuri Verificate' posts={serializedPosts} />
     </div>

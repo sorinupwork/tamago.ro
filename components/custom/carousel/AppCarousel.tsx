@@ -24,12 +24,12 @@ type AppCarouselProps = {
 
 export default function AppCarousel({ title, items, autoplay = true, interval = 3000, pauseOnHover = true }: AppCarouselProps) {
   return (
-    <section className='py-8'>
-      <h2 className='text-2xl text-secondary font-bold mb-4 text-center sm:text-end w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
+    <section>
+      <h2 className='text-2xl text-secondary font-bold text-center sm:text-end w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         {title}
       </h2>
       <Carousel
-        className='w-full max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-full'
+        className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl 2xl:max-w-full'
         autoplay={autoplay}
         autoplayInterval={interval}
         pauseOnHover={pauseOnHover}
@@ -41,16 +41,18 @@ export default function AppCarousel({ title, items, autoplay = true, interval = 
           {items.map((category) => {
             const Icon = category.icon as React.ComponentType<{ className?: string }>;
             return (
-              <CarouselItem key={category.id} className='basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6'>
-                <Card className='lift hover:shadow-lg transition-shadow duration-300 h-64 cursor-default'>
+              <CarouselItem key={category.id} className='basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/7'>
+                <Card className='hover:shadow-lg duration-300 aspect-square cursor-default ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition group'>
                   <CardContent className='flex flex-col items-center gap-2 px-2 sm:px-4 h-full'>
-                    {Icon && <Icon className='w-8 h-8 sm:w-10 sm:h-10 text-primary shrink-0 mt-2 sm:mt-4' />}
+                    {Icon && (
+                      <Icon className='w-8 h-8 sm:w-10 sm:h-10 text-primary shrink-0 group-hover:animate-[wiggle_0.5s_ease-in-out]' />
+                    )}
                     <div className='flex flex-col flex-1 text-center'>
                       <h3 className='font-bold text-base sm:text-lg truncate'>{category.title}</h3>
-                      <p className='text-xs sm:text-sm text-muted-foreground line-clamp-3'>{category.description}</p>
+                      <p className='text-sm text-muted-foreground line-clamp-2'>{category.description}</p>
                     </div>
                     <Link href={category.href} className='cursor-default'>
-                      <Button variant='outline' size='sm' className='mt-2 mb-2 sm:mb-4 hover:bg-primary hover:text-white transition-colors'>
+                      <Button variant='outline' size='lg' className=' hover:bg-primary hover:text-white transition-colors'>
                         Alege acum <ArrowRight className='ml-1 h-3 w-3 sm:h-4 sm:w-4' />
                       </Button>
                     </Link>
@@ -60,8 +62,8 @@ export default function AppCarousel({ title, items, autoplay = true, interval = 
             );
           })}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <CarouselPrevious className='ring-1 ring-white shadow-sm' />
+        <CarouselNext className='ring-1 ring-white shadow-sm' />
       </Carousel>
     </section>
   );

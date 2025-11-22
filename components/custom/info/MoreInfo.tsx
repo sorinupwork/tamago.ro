@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function MoreInfo() {
   return (
-    <section className='bg-background w-full max-w-7xl mx-auto py-2'>
+    <section className='bg-background w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl py-2'>
       <h2 className='text-2xl font-bold text-center sm:text-end mb-4 text-secondary hover:shine'>Mai Multe Resurse</h2>
       <div className='flex flex-col gap-4'>
         <div className='flex flex-col md:flex-row gap-4'>
