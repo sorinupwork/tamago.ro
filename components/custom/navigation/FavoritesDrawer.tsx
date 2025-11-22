@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import {
   Drawer,
@@ -43,7 +44,11 @@ type FavoritesDrawerProps = {
 };
 
 export function FavoritesDrawer({
-  triggerIcon = <Heart className='w-4 h-4' />,
+  triggerIcon = (
+    <div className='p-1'>
+      <Heart className='w-4 h-4' />
+    </div>
+  ),
   triggerText = 'Favorite',
   filterOptions = ['all', 'Auto', 'Electronics', 'Home', 'Fashion', 'Sports', 'Books', 'Toys'],
   sortOptions = ['title', 'none'],
@@ -57,6 +62,7 @@ export function FavoritesDrawer({
   const [filters, setFilters] = useState<string[]>(['all']);
   const [sort, setSort] = useState<string>('title');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const router = useRouter();
 
   const categoryMap = {
     sell: 'vanzare',
@@ -84,10 +90,10 @@ export function FavoritesDrawer({
   }, [session]);
 
   useEffect(() => {
-    if (drawerOpen && session) {
+    if (drawerOpen) {
       fetchFavorites();
     }
-  }, [drawerOpen, session, fetchFavorites]);
+  }, [drawerOpen, fetchFavorites]);
 
   const handleFavoritesUpdate = useCallback(() => {
     fetchFavorites();
@@ -204,19 +210,19 @@ export function FavoritesDrawer({
                 <div className='min-h-[300px] flex items-center justify-center'>
                   <Empty>
                     <EmptyMedia>
-                      <Heart className='w-12 h-12' />
+                      <Heart className='w-12 h-12 p-2' />
                     </EmptyMedia>
-                    <EmptyTitle>{!session ? 'Log in to view favorites' : 'No favorites found'}</EmptyTitle>
+                    <EmptyTitle>{!session ? 'Conectează-te pentru a vedea favoritele' : 'Nu ai favorite găsite'}</EmptyTitle>
                     <EmptyDescription>
                       {!session
-                        ? 'You need to be logged in to see your favorite items. Sign in to access your personalized favorites list.'
-                        : "You haven't added any favorites yet. Browse our collection and add items to your favorites for quick access."}
+                        ? 'Trebuie să fii conectat pentru a vedea articolele favorite. Conectează-te pentru a accesa lista personalizată de favorite.'
+                        : 'Nu ai adăugat încă favorite. Caută în colecția noastră și adaugă articole pentru acces rapid.'}
                     </EmptyDescription>
                     {!session ? (
-                      <Button onClick={() => signIn.email({ email: '', password: '' })}>Sign In</Button>
+                      <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
                     ) : (
                       <DrawerClose asChild>
-                        <Button onClick={() => onOpenSearch?.()}>Browse Items</Button>
+                        <Button onClick={() => onOpenSearch?.()}>Caută articole</Button>
                       </DrawerClose>
                     )}
                   </Empty>

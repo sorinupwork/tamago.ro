@@ -1,9 +1,13 @@
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Share2, Edit, LogOut, Calendar, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { signOut } from '@/lib/auth/auth-client';
 
 type User = {
   id: string;
@@ -27,15 +31,25 @@ type HeaderProfileProps = {
   imagePreview: string | null;
   shareProfile: () => void;
   setIsEditing: (editing: boolean) => void;
-  handleLogout: () => void;
 };
 
-export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing, handleLogout }: HeaderProfileProps) {
+export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing }: HeaderProfileProps) {
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    await signOut();
+    toast.success('Deconectat cu succes!');
+    router.push('/cont');
+  };
+
   return (
     <Card className='relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6'>
       <div className='absolute inset-0 bg-linear-to-r from-primary/10 to-secondary/10 rounded-2xl pointer-events-none' />
 
-      <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm flex-shrink-0'>
+      <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm shrink-0'>
         <AvatarImage src={imagePreview || user?.image || '/placeholder.svg'} />
         <AvatarFallback className='text-2xl font-bold'>{(user?.name || 'U').charAt(0)}</AvatarFallback>
       </Avatar>
@@ -88,8 +102,8 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
         <Button onClick={() => setIsEditing(true)} variant='outline' className='hover:scale-105 transition-transform'>
           <Edit className='h-4 w-4 mr-2' /> Editează Profilul
         </Button>
-        <Button onClick={handleLogout} variant='destructive' className='hover:scale-105 transition-transform'>
-          <LogOut className='h-4 w-4 mr-2' /> Deconectare
+        <Button onClick={handleLogout} disabled={loggingOut} variant='destructive' className='hover:scale-105 transition-transform'>
+          <LogOut className='h-4 w-4 mr-2' /> {loggingOut ? 'Se deconectează...' : 'Deconectare'}
         </Button>
       </div>
     </Card>

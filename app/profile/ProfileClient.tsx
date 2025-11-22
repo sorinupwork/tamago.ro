@@ -235,12 +235,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    toast.success('Deconectat cu succes!');
-    router.push('/cont');
-  };
-
   const handleDeletePost = async (postId: string) => {
     console.log('Delete not implemented yet for post:', postId);
   };
@@ -293,7 +287,6 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               imagePreview={imagePreview}
               shareProfile={shareProfile}
               setIsEditing={setIsEditing}
-              handleLogout={handleLogout}
             />
 
             <Tabs defaultValue='overview' className='w-full'>
