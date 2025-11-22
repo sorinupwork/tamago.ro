@@ -251,7 +251,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         currentIndex: currentA,
         offset: 0,
         apiKeyPrefix: 'a',
-        opts: { align: 'center', loop: true, startIndex: 0 },
+        opts: { align: 'center', loop: true, startIndex: 1 },
       })}
 
       {RenderRow({
@@ -260,7 +260,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         currentIndex: currentB,
         offset: 0,
         apiKeyPrefix: 'b',
-        opts: { align: 'center', loop: true, startIndex: 16 },
+        opts: { align: 'center', loop: true, startIndex: 6 },
       })}
     </div>
   );
