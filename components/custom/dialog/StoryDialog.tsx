@@ -13,6 +13,7 @@ import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploade
 import { createStoryAction } from '@/actions/social/stories/actions';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
+import AppTextarea from '@/components/custom/input/AppTextarea';
 
 type Props = {
   open: boolean;
@@ -128,15 +129,12 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
             )}
 
             <div>
-              <Label htmlFor='caption'>Descriere</Label>
-              <textarea
-                id='caption'
+              <AppTextarea
                 name='caption'
+                label='Descriere'
                 placeholder='Spune ceva...'
-                rows={2}
                 value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className='mt-1 w-full rounded-md p-2 bg-input text-foreground'
+                onChange={setCaption}
               />
             </div>
 

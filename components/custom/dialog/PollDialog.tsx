@@ -64,13 +64,12 @@ export default function PollDialog({ open, onOpenChange }: Props) {
           <form action={createPollAction} className='space-y-4'>
             <div>
               <Label htmlFor='poll-question'>Întrebare</Label>
-              <input
+              <AppInput
                 id='poll-question'
                 name='question'
                 placeholder='Întreabă ceva...'
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                className='mt-1 w-full rounded-md p-2 bg-input text-foreground'
               />
             </div>
 
@@ -89,7 +88,6 @@ export default function PollDialog({ open, onOpenChange }: Props) {
                         <X className='h-4 w-4' />
                       </Button>
                     )}
-                    {/* make sure every option is sent as repeated "options" fields */}
                     <input type='hidden' name='options' value={opt} />
                   </div>
                 ))}

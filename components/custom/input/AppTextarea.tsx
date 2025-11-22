@@ -42,6 +42,9 @@ export default function AppTextarea({
   required,
   htmlFor,
   icon: Icon,
+  name,
+  id,
+  rows,
 }: Props) {
   const handleChange = (payload: unknown) => {
     if (!onChange) return;
@@ -80,6 +83,8 @@ export default function AppTextarea({
             value={value}
             onChange={(p: unknown) => handleChange(p)}
             placeholder={placeholder}
+            name={name}
+            id={id}
           >
             <Toolbar>
               <BtnUndo />

@@ -16,6 +16,7 @@ type Props<T> = {
   className?: string;
   label?: string;
   loadingLabel?: string;
+  type?: 'button' | 'submit';
 };
 
 export default function LoadMoreButton<T = unknown>({
@@ -29,6 +30,7 @@ export default function LoadMoreButton<T = unknown>({
   className = '',
   label = 'Load More',
   loadingLabel = 'Loading...',
+  type = 'button',
 }: Props<T>) {
   const [page, setPage] = useState<number>(initialPage);
   const [loading, setLoading] = useState(false);
@@ -69,6 +71,7 @@ export default function LoadMoreButton<T = unknown>({
       size='lg'
       className={`rounded-full shadow-lg bg-background hover:bg-accent transition-all duration-200 hover:scale-110 active:scale-95 ${className}`}
       disabled={disabled || effectiveLoading}
+      type={type}
     >
       {effectiveLoading ? loadingLabel : label}
     </Button>
