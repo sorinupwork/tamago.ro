@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
+import { User } from '@/lib/types';
 
 type ProfileUpdateResponse = {
   success?: boolean;
@@ -24,6 +25,7 @@ type Favorite = {
   image: string;
   category: string;
   createdAt: Date;
+  user: User | null;
 };
 
 export async function updateProfile(form: FormData): Promise<ProfileUpdateResponse> {
@@ -104,6 +106,23 @@ export async function toggleFavorite(
   }
   const userId = session.user.id;
 
+  let userDetails = null;
+  const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+  if (user) {
+    userDetails = {
+      id: user._id.toString(),
+      name: user.name || 'Unknown',
+      avatar: user.image || '/avatars/default.jpg',
+      status: user.status || 'Online',
+      category: user.category || 'Prieteni',
+      email: user.email || '',
+      provider: user.provider || 'credentials',
+      createdAt: user.createdAt?.toISOString(),
+      updatedAt: user.updatedAt?.toISOString(),
+      location: user.location || [0, 0],
+    };
+  }
+
   const favorites = db.collection('favorites');
   const existing = await favorites.findOne({ userId: new ObjectId(userId), itemId });
 
@@ -118,6 +137,7 @@ export async function toggleFavorite(
       title: itemTitle,
       image: itemImage,
       category: itemCategory,
+      user: userDetails,
       createdAt: new Date(),
     });
     revalidatePath('/');
@@ -132,10 +152,9 @@ export async function getFavorites(): Promise<Favorite[]> {
   }
   const userId = session.user.id;
 
-  const favorites = await db
-    .collection('favorites')
-    .find({ userId: new ObjectId(userId) })
-    .toArray();
+  const collection = db.collection('favorites');
+  await collection.createIndex({ userId: 1 });
+  const favorites = await collection.find({ userId: new ObjectId(userId) }).toArray();
   return favorites.map((fav) => ({
     userId: fav.userId.toString(),
     itemId: fav.itemId,
@@ -143,5 +162,6 @@ export async function getFavorites(): Promise<Favorite[]> {
     image: fav.image,
     category: fav.category,
     createdAt: fav.createdAt,
+    user: fav.user || null,
   }));
 }

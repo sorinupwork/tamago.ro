@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { FileText, Smile } from 'lucide-react';
+import { FileText, Smile, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { useForm, Controller, useWatch } from 'react-hook-form';
@@ -18,6 +18,7 @@ import { createFeedAction } from '@/actions/social/feeds/actions';
 import { feedSchema, FeedFormData } from '@/lib/validations';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 type Props = {
   open: boolean;
@@ -64,8 +65,9 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
     });
   };
 
-  const handleRemoveFile = () => {
-    setValue('files', []);
+  const handleRemoveFile = (index: number) => {
+    const newFiles = files.filter((_, i) => i !== index);
+    setValue('files', newFiles);
     setUploaderKey((prev) => prev + 1);
   };
 
@@ -133,45 +135,84 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                   id='feed-media'
                   name='files'
                   uploaderKey={uploaderKey}
-                  onFilesChange={(f) => field.onChange(f.slice(0, 1))}
+                  onFilesChange={(f) => field.onChange(f.slice(0, 5))}
                   accept='image/*,video/*'
-                  maxFiles={1}
+                  maxFiles={5}
                   className='mt-1'
                   showPreview={false}
-                  disabled={files.length > 0}
+                  disabled={files.length >= 5}
                 />
               )}
             />
 
             {previews.length > 0 && (
               <div className='space-y-2'>
-                <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
-                  {files[0]?.type.startsWith('image/') ? (
-                    <Image
-                      src={previews[0]}
-                      alt='Feed preview'
-                      width={400}
-                      height={256}
-                      className='w-full h-full object-cover animate-spin-slow'
-                      style={{ animationDuration: '10s' }}
-                    />
-                  ) : (
-                    <video
-                      src={previews[0]}
-                      className='w-full h-full object-cover'
-                      controls={false}
-                      muted
-                      autoPlay
-                      onLoadedData={(e) => {
-                        const video = e.target as HTMLVideoElement;
-                        setTimeout(() => video.pause(), 5000);
-                      }}
-                    />
-                  )}
-                  <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={handleRemoveFile}>
-                    X
-                  </Button>
-                </div>
+                {previews.length === 1 ? (
+                  <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
+                    {files[0]?.type.startsWith('image/') ? (
+                      <Image
+                        src={previews[0]}
+                        alt='Feed preview'
+                        width={400}
+                        height={256}
+                        className='w-full h-full object-cover animate-spin-slow'
+                        style={{ animationDuration: '10s' }}
+                      />
+                    ) : (
+                      <video
+                        src={previews[0]}
+                        className='w-full h-full object-cover'
+                        controls={false}
+                        muted
+                        autoPlay
+                        onLoadedData={(e) => {
+                          const video = e.target as HTMLVideoElement;
+                          setTimeout(() => video.pause(), 5000);
+                        }}
+                      />
+                    )}
+                    <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={() => handleRemoveFile(0)}>
+                      X
+                    </Button>
+                  </div>
+                ) : (
+                  <Carousel opts={{ loop: true, align: 'start' }} className='w-full'>
+                    <CarouselContent className='-ml-4'>
+                      {previews.map((preview, index) => (
+                        <CarouselItem key={index} className='pl-4 md:basis-1/2 lg:basis-1/3'>
+                          <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
+                            {files[index]?.type.startsWith('image/') ? (
+                              <Image
+                                src={preview}
+                                alt={`Feed preview ${index + 1}`}
+                                width={400}
+                                height={256}
+                                className='w-full h-full object-cover'
+                              />
+                            ) : (
+                              <video
+                                src={preview}
+                                className='w-full h-full object-cover'
+                                controls={false}
+                                muted
+                                autoPlay
+                                onLoadedData={(e) => {
+                                  const video = e.target as HTMLVideoElement;
+                                  setTimeout(() => video.pause(), 5000);
+                                }}
+                              />
+                            )}
+                            <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={() => handleRemoveFile(index)}>
+                              X
+                            </Button>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
+                )}
                 {sanitizedText && (
                   <div className='bg-muted p-3 rounded-lg'>
                     <p className='text-sm'>{sanitizedText}</p>
@@ -190,7 +231,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
             )}
 
             <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-              {isPending ? 'Posting...' : 'Postează pe Feed'}
+              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Postează pe Feed'}
             </Button>
           </form>
         )}

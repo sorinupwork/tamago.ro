@@ -7,6 +7,7 @@ import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
 import { uploadFilesToVercelBlob } from '../feeds/actions';
 import { storySchema } from '@/lib/validations';
+import { ObjectId } from 'mongodb';
 
 export async function createStoryAction(formData: FormData): Promise<void> {
   const data = {
@@ -18,6 +19,25 @@ export async function createStoryAction(formData: FormData): Promise<void> {
   const session = await auth.api.getSession({ headers: headersObj });
   const userId = session?.user?.id ?? undefined;
 
+  let userDetails = null;
+  if (userId) {
+    const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+    if (user) {
+      userDetails = {
+        id: user._id.toString(),
+        name: user.name || 'Unknown',
+        avatar: user.image || '/avatars/default.jpg',
+        status: user.status || 'Online',
+        category: user.category || 'Prieteni',
+        email: user.email || '',
+        provider: user.provider || 'credentials',
+        createdAt: user.createdAt?.toISOString(),
+        updatedAt: user.updatedAt?.toISOString(),
+        location: user.location || [0, 0],
+      };
+    }
+  }
+
   const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
 
   const uploaded = await uploadFilesToVercelBlob(files, userId);
@@ -25,6 +45,7 @@ export async function createStoryAction(formData: FormData): Promise<void> {
     caption: validated.caption,
     files: uploaded,
     userId: userId || undefined,
+    user: userDetails, // Embed user details
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     reactions: { likes: { total: 0, userIds: [] }, comments: [] },
@@ -43,16 +64,13 @@ export async function getStories(params: { userId?: string; page?: number; limit
   if (params.userId) filter.userId = params.userId;
 
   const collection = db.collection('stories');
+  await collection.createIndex({ userId: 1 });
   await collection.countDocuments(filter);
   const items = await collection
-    .aggregate([
-      { $match: filter },
-      { $lookup: { from: 'user', localField: 'userId', foreignField: '_id', as: 'user' } },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-      { $sort: { createdAt: params.sortBy || -1 } },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-    ])
+    .find(filter)
+    .sort({ createdAt: params.sortBy || -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
     .toArray();
   const normalized = items.map((it) => ({
     _id: it._id.toString(),
@@ -61,20 +79,7 @@ export async function getStories(params: { userId?: string; page?: number; limit
     createdAt: it.createdAt.toISOString(),
     expiresAt: it.expiresAt.toISOString(),
     userId: it.userId?.toString(),
-    user: it.user
-      ? {
-          id: it.user._id.toString(),
-          name: it.user.name || 'Unknown',
-          avatar: it.user.image || it.user.avatar || '/avatars/default.jpg',
-          status: it.user.status || 'Online',
-          category: it.user.category || 'Prieteni',
-          email: it.user.email || '',
-          provider: it.user.provider || 'credentials',
-          createdAt: it.user.createdAt,
-          updatedAt: it.user.updatedAt,
-          location: it.user.location || [0, 0],
-        }
-      : null,
+    user: it.user || null,
     reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
   }));
 

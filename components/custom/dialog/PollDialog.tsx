@@ -1,9 +1,10 @@
 'use client';
 
-import { BarChart, Plus, X } from 'lucide-react';
+import { BarChart, Plus, X, Loader2 } from 'lucide-react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function PollDialog({ open, onOpenChange }: Props) {
+  const [isPending, startTransition] = useTransition();
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -38,13 +40,15 @@ export default function PollDialog({ open, onOpenChange }: Props) {
     name: 'options',
   });
 
-  const onSubmit = async (data: PollFormData) => {
-    const formData = new FormData();
-    formData.append('question', data.question);
-    data.options.forEach((option) => formData.append('options', option.value));
-    await createPollAction(formData);
-    onOpenChange(false);
-    reset();
+  const onSubmit = (data: PollFormData) => {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append('question', data.question);
+      data.options.forEach((option) => formData.append('options', option.value));
+      await createPollAction(formData);
+      onOpenChange(false);
+      reset();
+    });
   };
 
   return (
@@ -128,8 +132,8 @@ export default function PollDialog({ open, onOpenChange }: Props) {
               </Button>
             </div>
 
-            <Button type='submit' className='w-full' disabled={!isValid}>
-              Creează Sondaj
+            <Button type='submit' className='w-full' disabled={!isValid || isPending}>
+              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Creează Sondaj'}
             </Button>
           </form>
         )}

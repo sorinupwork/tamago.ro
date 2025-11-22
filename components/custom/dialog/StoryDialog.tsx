@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { useForm, Controller, useWatch } from 'react-hook-form';
@@ -176,7 +176,7 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
             <input type='hidden' name='caption' value={caption} />
 
             <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-              {isPending ? 'Posting...' : 'Postează Povestea'}
+              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Postează Povestea'}
             </Button>
           </form>
         )}

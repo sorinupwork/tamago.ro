@@ -105,7 +105,7 @@ export default function MarketplaceContactSection({
             </div>
           </div>
 
-          {showMap && users.length > 0 && (
+          {showMap && (
             <div className='flex flex-col flex-1'>
               <Card className='transition-all duration-200 hover:shadow-lg flex-1 flex flex-col'>
                 <CardHeader>

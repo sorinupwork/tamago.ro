@@ -244,9 +244,10 @@ export async function getUserCars({
         sort.title = 1;
       }
 
-      const total = await db.collection(collection).countDocuments(query);
-      const cars = await db
-        .collection(collection)
+      const coll = db.collection(collection);
+      await coll.createIndex({ userId: 1 }); // Add index for efficient userId queries
+      const total = await coll.countDocuments(query);
+      const cars = await coll
         .find(query)
         .sort(sort)
         .skip((page - 1) * limit)

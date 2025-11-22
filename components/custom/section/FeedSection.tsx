@@ -1,52 +1,57 @@
-import Image from 'next/image';
-import { ThumbsUp, Share, ChevronUp, MessageSquare, MoreVertical, MapPin, Star } from 'lucide-react';
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
-import { useSession } from '@/lib/auth/auth-client';
-import sanitizeHtml from 'sanitize-html';
+'use client';
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { addCommentAction, addLikeAction, addReplyAction, getFeedPosts, voteOnPollAction } from '@/actions/social/feeds/actions';
+import { useSession } from '@/lib/auth/auth-client';
+import { FeedPost, FeedItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FeedPost, FeedItem } from '@/lib/types';
-import { AppInput } from '../input/AppInput';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
+import React, { useCallback, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { MessageSquare, ThumbsUp, Share, ChevronUp, MoreVertical, MapPin, Star } from 'lucide-react';
+import sanitizeHtml from 'sanitize-html';
+
+import { AppInput } from '../input/AppInput';
+import SkeletonLoading from '../loading/SkeletonLoading';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { Progress } from '@/components/ui/progress';
-import { addLikeAction, addCommentAction, addReplyAction, voteOnPollAction, getFeedPosts } from '@/actions/social/feeds/actions';
-import { getUserById } from '@/actions/auth/actions';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../empty/Empty';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type FeedSectionProps = {
   feedItems: FeedItem[];
-  setFeedItems: React.Dispatch<React.SetStateAction<FeedItem[]>>;
 };
 
-export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItems }) => {
+export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems: initialFeedItems }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [buttonOpacity, setButtonOpacity] = useState(0);
+  const [feedItems, setFeedItems] = useState(initialFeedItems);
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
   const [replyingTo, setReplyingTo] = useState<{ itemId: string; commentId: string } | null>(null);
   const [newReply, setNewReply] = useState<{ [key: string]: string }>({});
-  const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
-  const fetchedUserIdsRef = useRef<Set<string>>(new Set());
 
   const isTouchDevice = useIsMobile();
   const [activeProfile, setActiveProfile] = useState<FeedPost['user'] | null>(null);
 
   const [filterType, setFilterType] = useState<'all' | 'post' | 'poll'>('all');
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+
+  const [hydrated, setHydrated] = useState(false);
+  React.useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const checkScrollPosition = useCallback(() => {
     const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
@@ -68,31 +73,8 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
     setLoading(true);
     try {
       const newData = await getFeedPosts({ limit: 20, page: 1 });
-      const enrichedItems = await Promise.all(
-        newData.items.map(async (item) => {
-          if (!item.user && item.userId) {
-            const user = await getUserById(item.userId);
-            const normalizedUser = user
-              ? {
-                  id: user._id.toString(),
-                  name: user.name || 'Unknown',
-                  avatar: user.image || '/avatars/default.jpg',
-                  status: user.status || 'Online',
-                  category: user.category || 'Prieteni',
-                  email: user.email || '',
-                  provider: user.provider || 'credentials',
-                  createdAt: user.createdAt?.toISOString(),
-                  updatedAt: user.updatedAt?.toISOString(),
-                  location: user.location || [0, 0],
-                }
-              : null;
-            return { ...item, user: normalizedUser, reactions: item.reactions || { likes: { total: 0, userIds: [] }, comments: [] } };
-          }
-          return item;
-        })
-      );
-      setFeedItems(enrichedItems);
-      setCurrentPage(1);
+      // Removed enrichment since getFeedPosts already embeds user details
+      setFeedItems(newData.items);
     } catch (error) {
       console.error('Error loading more:', error);
     } finally {
@@ -226,33 +208,6 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
     }
   };
 
-  useEffect(() => {
-    const fetchUserNames = async () => {
-      const userIds = new Set<string>();
-      feedItems.forEach((item) => {
-        item.reactions?.comments?.forEach((comment) => {
-          userIds.add(comment.userId);
-          comment.replies?.forEach((reply) => userIds.add(reply.userId));
-        });
-      });
-      const names: { [key: string]: string } = {};
-      const idsToFetch = Array.from(userIds).filter((id) => !fetchedUserIdsRef.current.has(id));
-      for (const id of idsToFetch) {
-        try {
-          const user = await getUserById(id);
-          names[id] = user?.name || 'Unknown';
-        } catch {
-          names[id] = 'Unknown';
-        }
-        fetchedUserIdsRef.current.add(id);
-      }
-      if (Object.keys(names).length > 0) {
-        setUserNames((prev) => ({ ...prev, ...names }));
-      }
-    };
-    fetchUserNames();
-  }, [feedItems]);
-
   const filteredItems = feedItems.filter((item) => filterType === 'all' || item.type === filterType);
 
   return (
@@ -279,7 +234,9 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
         onScrollViewport={checkScrollPosition}
       >
         <div className='space-y-4 pb-6 px-2 min-h-[400px]'>
-          {filteredItems.length > 0 && !loading ? (
+          {loading ? (
+            <SkeletonLoading variant='feed' />
+          ) : filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <Card key={item._id} className='transition-all duration-300 hover:shadow-lg'>
                 <CardHeader className='flex flex-row items-center justify-between gap-2'>
@@ -368,11 +325,27 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
                   {item.type === 'post' ? (
                     <>
                       <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.text || '') }} />
-                      {item.files?.[0] && (
-                        <div className='relative w-full h-96 mt-2 rounded'>
-                          <Image src={item.files[0].url} alt='Post' fill className='object-cover rounded' />
-                        </div>
-                      )}
+                      {item.files &&
+                        item.files.length > 0 &&
+                        (item.files.length === 1 ? (
+                          <div className='relative w-full h-96 mt-2 rounded'>
+                            <Image src={item.files[0].url} alt='Post' fill className='object-cover rounded' />
+                          </div>
+                        ) : (
+                          <Carousel opts={{ loop: true, align: 'start' }} className='w-full mt-2'>
+                            <CarouselContent className='-ml-4'>
+                              {item.files.map((file, idx) => (
+                                <CarouselItem key={idx} className='pl-4 md:basis-1/2 lg:basis-1/3'>
+                                  <div className='relative w-full h-96 rounded'>
+                                    <Image src={file.url} alt={`Post ${idx + 1}`} fill className='object-cover rounded' />
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                          </Carousel>
+                        ))}
                       {item.tags && item.tags.length > 0 && (
                         <div className='mt-2 flex flex-wrap gap-1'>
                           {item.tags.map((tag, idx) => (
@@ -401,12 +374,12 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
                                       size='sm'
                                       className='w-full justify-start'
                                       onClick={() => voteOnPoll(item._id, idx)}
-                                      disabled={!isLoggedIn || (item.votedUsers || []).includes(session?.user?.id || '')}
+                                      disabled={!hydrated || !isLoggedIn || (item.votedUsers || []).includes(session?.user?.id || '')}
                                     >
                                       {option}
                                     </Button>
                                   </TooltipTrigger>
-                                  {isLoggedIn && !(item.votedUsers || []).includes(session?.user?.id || '') && (
+                                  {hydrated && isLoggedIn && !(item.votedUsers || []).includes(session?.user?.id || '') && (
                                     <TooltipContent>
                                       <p>Vote!</p>
                                     </TooltipContent>
@@ -421,16 +394,22 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
                           })}
                         </div>
                       </TooltipProvider>
-                      {!isLoggedIn && <p className='text-xs text-muted-foreground mt-2'>Log in to vote.</p>}
+                      {!hydrated || (!isLoggedIn && <p className='text-xs text-muted-foreground mt-2'>Log in to vote.</p>)}
                     </>
                   )}
                   <ButtonGroup className='mt-2'>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant='ghost' size='sm' onClick={() => handleLike(item._id)} disabled={!isLoggedIn}>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={() => handleLike(item._id)}
+                            disabled={!hydrated || !isLoggedIn}
+                            suppressHydrationWarning
+                          >
                             <ThumbsUp
-                              className={`w-4 h-4 ${(item.reactions || { likes: { total: 0, userIds: [] } }).likes.userIds.includes(session?.user?.id || '') ? 'fill-secondary text-secondary' : ''}`}
+                              className={`w-4 h-4 ${hydrated && (item.reactions || { likes: { total: 0, userIds: [] } }).likes.userIds.includes(session?.user?.id || '') ? 'fill-secondary text-secondary' : ''}`}
                             />{' '}
                             {(item.reactions || { likes: { total: 0, userIds: [] } }).likes.total}
                           </Button>
@@ -447,7 +426,14 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
                       {(item.reactions || { comments: [] }).comments.map((comment) => (
                         <div key={comment.id} className='border-l-2 pl-2'>
                           <p>
-                            <strong>{comment.userId === session?.user?.id ? 'Tu' : userNames[comment.userId] || 'User'}:</strong>{' '}
+                            <strong>
+                              {comment.userId === session?.user?.id
+                                ? 'Tu'
+                                : comment.userId === item.userId
+                                  ? item.user?.name || 'User'
+                                  : 'User'}
+                              :
+                            </strong>{' '}
                             {comment.text}
                           </p>
                           <Button
@@ -467,7 +453,14 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
                           {comment.replies.map((reply) => (
                             <div key={reply.id} className='ml-4 border-l-2 pl-2'>
                               <p>
-                                <strong>{reply.userId === session?.user?.id ? 'Tu' : userNames[reply.userId] || 'User'}:</strong>{' '}
+                                <strong>
+                                  {reply.userId === session?.user?.id
+                                    ? 'Tu'
+                                    : reply.userId === item.userId
+                                      ? item.user?.name || 'User'
+                                      : 'User'}
+                                  :
+                                </strong>{' '}
                                 {reply.text}
                               </p>
                             </div>
@@ -509,19 +502,29 @@ export const FeedSection: React.FC<FeedSectionProps> = ({ feedItems, setFeedItem
               </Card>
             ))
           ) : (
-            <SkeletonLoading variant='feed' />
+            <div className='min-h-[400px] flex items-center justify-center'>
+              <Empty>
+                <EmptyMedia>
+                  <MessageSquare className='w-12 h-12 p-2' />
+                </EmptyMedia>
+                <EmptyTitle>Nu există postări încă</EmptyTitle>
+                <EmptyDescription>Fii primul care creează o postare și începe conversația!</EmptyDescription>
+              </Empty>
+            </div>
           )}
-          <div className='flex justify-center mt-4'>
-            <Button
-              onClick={loadMore}
-              variant='outline'
-              size='lg'
-              className='rounded-full shadow-lg bg-background hover:bg-accent transition-all duration-200 hover:scale-110 active:scale-95'
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Load More'}
-            </Button>
-          </div>
+          {filteredItems.length > 0 && (
+            <div className='flex justify-center mt-4'>
+              <Button
+                onClick={loadMore}
+                variant='outline'
+                size='lg'
+                className='rounded-full shadow-lg bg-background hover:bg-accent transition-all duration-200 hover:scale-110 active:scale-95'
+                disabled={loading}
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </Button>
+            </div>
+          )}
         </div>
         <div className='absolute bottom-6 left-4 transition-opacity duration-300' style={{ opacity: buttonOpacity }}>
           <Button

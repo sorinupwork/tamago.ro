@@ -1,7 +1,10 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, X, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
 import sanitizeHtml from 'sanitize-html';
+import { Loader2 } from 'lucide-react'; // Add this import for the spinner
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -46,6 +49,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   const [newComment, setNewComment] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
+  const [isCommentLoading, setIsCommentLoading] = useState(false); // Add this state
 
   const hasUserCommented = currentStory.reactions.comments.some((comment) => comment.userId === session?.user?.id);
 
@@ -241,7 +245,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   };
 
   const handleAddComment = async () => {
-    if (!isLoggedIn || !newComment.trim() || currentStory.reactions.comments.length >= 1 || !setStories) return;
+    if (!isLoggedIn || !newComment.trim() || !setStories) return;
+    setIsCommentLoading(true); // Set loading to true
     try {
       await addCommentAction(currentStory._id, newComment, 'story');
       setNewComment('');
@@ -252,21 +257,27 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
                 ...s,
                 reactions: {
                   ...s.reactions,
-                  comments: [
-                    ...s.reactions.comments,
-                    {
-                      id: Date.now().toString(),
-                      text: newComment,
-                      userId: session?.user?.id || '',
-                      createdAt: new Date().toISOString(),
-                      replies: [],
-                    },
-                  ],
+                  reactions: {
+                    ...s.reactions,
+                    comments: [
+                      ...s.reactions.comments,
+                      {
+                        id: Date.now().toString(),
+                        text: newComment,
+                        userId: session?.user?.id || '',
+                        createdAt: new Date().toISOString(),
+                        replies: [],
+                      },
+                    ],
+                  },
                 },
               }
             : s
         )
       );
+      // Fetch and set user name immediately for the new comment
+      const user = await getUserById(session?.user?.id || '');
+      setUserNames((prev) => ({ ...prev, [session?.user?.id || '']: user?.name || 'Unknown' }));
       setIsPaused(true);
       setIsPlaying(false);
       if (videoRef.current) videoRef.current.pause();
@@ -276,6 +287,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
       }
     } catch (error) {
       console.error('Error adding comment:', error);
+    } finally {
+      setIsCommentLoading(false); // Set loading to false
     }
   };
 
@@ -410,18 +423,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
                 {!isLoggedIn && <TooltipContent>Conectează-te pentru a utiliza această funcție</TooltipContent>}
               </Tooltip>
             </TooltipProvider>
-            {hasUserCommented && (
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlayPause();
-                }}
-                variant='secondary'
-                size='sm'
-              >
-                {isPlaying ? <Pause className='w-4 h-4' /> : <Play className='w-4 h-4' />}
-              </Button>
-            )}
           </div>
           <div className='flex flex-col gap-3'>
             {(currentStory.reactions || { comments: [] }).comments.length === 0 && (
@@ -436,22 +437,36 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
                   className='flex-1'
                   disabled={!isLoggedIn}
                 />
-                <Button onClick={handleAddComment} size='sm' disabled={!isLoggedIn}>
-                  Post
+                <Button onClick={handleAddComment} size='sm' disabled={!isLoggedIn || isCommentLoading}>
+                  {isCommentLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Post'}
                 </Button>
               </div>
             )}
             {(currentStory.reactions || { comments: [] }).comments.length > 0 && (
               <div className='space-y-2'>
-                <p className='text-background dark:text-foreground text-sm'>
-                  <strong>
-                    {currentStory.reactions.comments[0].userId === session?.user?.id
-                      ? 'Tu'
-                      : userNames[currentStory.reactions.comments[0].userId] || 'User'}
-                    :
-                  </strong>{' '}
-                  {(currentStory.reactions || { comments: [] }).comments[0].text}
-                </p>
+                <div className='flex items-center gap-2'>
+                  <p className='text-background dark:text-foreground text-sm flex-1'>
+                    <strong>
+                      {currentStory.reactions.comments[0].userId === session?.user?.id
+                        ? 'Tu'
+                        : userNames[currentStory.reactions.comments[0].userId] || 'Utilizator necunoscut'}
+                      :
+                    </strong>{' '}
+                    {(currentStory.reactions || { comments: [] }).comments[0].text}
+                  </p>
+                  {currentStory.reactions.comments[0].userId === session?.user?.id && (
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        togglePlayPause();
+                      }}
+                      variant='secondary'
+                      size='sm'
+                    >
+                      {isPlaying ? <Pause className='w-4 h-4' /> : <Play className='w-4 h-4' />}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
             {!isLoggedIn && <p className='text-xs text-gray-400'>Conectează-te pentru a comenta.</p>}

@@ -17,6 +17,18 @@ type PostDocument = {
   text: string;
   files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
   userId?: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+    status: string;
+    category: string;
+    email: string;
+    provider: string;
+    createdAt: string;
+    updatedAt: string;
+    location: [number, number];
+  } | null;
   createdAt: Date;
   tags: string[];
   reactions: {
@@ -39,6 +51,18 @@ type PollDocument = {
   votes: number[];
   votedUsers: string[];
   userId?: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+    status: string;
+    category: string;
+    email: string;
+    provider: string;
+    createdAt: string;
+    updatedAt: string;
+    location: [number, number];
+  } | null;
   createdAt: Date;
   reactions: {
     likes: { total: number; userIds: string[] };
@@ -85,6 +109,26 @@ export async function createFeedAction(formData: FormData): Promise<void> {
   const session = await auth.api.getSession({ headers: headersObj });
   const userId = session?.user?.id ?? undefined;
 
+  // Fetch user details to embed
+  let userDetails = null;
+  if (userId) {
+    const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+    if (user) {
+      userDetails = {
+        id: user._id.toString(),
+        name: user.name || 'Unknown',
+        avatar: user.image || '/avatars/01.jpg',
+        status: user.status || 'Online',
+        category: user.category || 'Prieteni',
+        email: user.email || '',
+        provider: user.provider || 'credentials',
+        createdAt: user.createdAt?.toISOString(),
+        updatedAt: user.updatedAt?.toISOString(),
+        location: user.location || [0, 0],
+      };
+    }
+  }
+
   const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
   const uploaded = await uploadFilesToVercelBlob(files, userId);
   const doc: PostDocument = {
@@ -94,6 +138,7 @@ export async function createFeedAction(formData: FormData): Promise<void> {
     files: uploaded,
     tags: validated.tags || [],
     userId: userId || undefined,
+    user: userDetails, // Embed user details
     createdAt: new Date(),
     reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
@@ -107,13 +152,33 @@ export async function createFeedAction(formData: FormData): Promise<void> {
 export async function createPollAction(formData: FormData): Promise<void> {
   const data = {
     question: (formData.get('question') as string) || '',
-    options: (formData.getAll('options') as string[]).filter(Boolean),
+    options: (formData.getAll('options') as string[]).filter(Boolean).map((value) => ({ value })),
   };
   const validated = pollSchema.parse(data);
 
   const headersObj = await headers();
   const session = await auth.api.getSession({ headers: headersObj });
   const userId = session?.user?.id ?? undefined;
+
+  // Fetch user details to embed
+  let userDetails = null;
+  if (userId) {
+    const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+    if (user) {
+      userDetails = {
+        id: user._id.toString(),
+        name: user.name || 'Unknown',
+        avatar: user.image || '/avatars/01.jpg',
+        status: user.status || 'Online',
+        category: user.category || 'Prieteni',
+        email: user.email || '',
+        provider: user.provider || 'credentials',
+        createdAt: user.createdAt?.toISOString(),
+        updatedAt: user.updatedAt?.toISOString(),
+        location: user.location || [0, 0],
+      };
+    }
+  }
 
   const doc: PollDocument = {
     _id: new ObjectId(),
@@ -123,6 +188,7 @@ export async function createPollAction(formData: FormData): Promise<void> {
     votes: validated.options.map(() => 0),
     votedUsers: [],
     userId: userId || undefined,
+    user: userDetails, // Embed user details
     createdAt: new Date(),
     reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
@@ -140,16 +206,13 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
   if (params.userId) filter.userId = params.userId;
   if (params.type) filter.type = params.type;
   const collection = db.collection('feeds');
+  await collection.createIndex({ userId: 1 }); // Add index for efficient userId queries
   await collection.countDocuments(filter);
   const items = await collection
-    .aggregate([
-      { $match: filter },
-      { $lookup: { from: 'user', localField: 'userId', foreignField: '_id', as: 'user' } },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-      { $sort: { createdAt: params.sortBy || -1 } },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-    ])
+    .find(filter)
+    .sort({ createdAt: params.sortBy || -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
     .toArray();
 
   const normalized = items.map((it) => {
@@ -158,20 +221,7 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
       type: it.type,
       userId: it.userId?.toString(),
       createdAt: it.createdAt.toISOString(),
-      user: it.user
-        ? {
-            id: it.user._id.toString(),
-            name: it.user.name || 'Unknown',
-            avatar: it.user.image || '/avatars/01.jpg',
-            status: it.user.status || 'Online',
-            category: it.user.category || 'Prieteni',
-            email: it.user.email || '',
-            provider: it.user.provider || 'credentials',
-            createdAt: it.user.createdAt,
-            updatedAt: it.user.updatedAt,
-            location: it.user.location || [0, 0],
-          }
-        : null,
+      user: it.user || null, // Use embedded user
       reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
     };
     if (it.type === 'post') {
@@ -224,7 +274,9 @@ export async function addCommentAction(itemId: string, text: string, itemType: '
   const item = await collection.findOne({ _id: new ObjectId(itemId) });
   if (!item) throw new Error('Item not found');
   const reactions = item.reactions || { likes: { total: 0, userIds: [] }, comments: [] };
-  if (itemType === 'story' && reactions.comments.length >= 1) throw new Error('Stories allow max 1 comment');
+  if (itemType === 'story' && reactions.comments.length >= 1) {
+    throw new Error('Maximum one comment allowed per story');
+  }
   const id = Date.now().toString();
   reactions.comments.push({ id, text, userId, createdAt: new Date(), replies: [] });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
@@ -243,7 +295,7 @@ export async function addReplyAction(itemId: string, commentId: string, text: st
   const comment = reactions.comments.find((c: { id: string }) => c.id === commentId);
   if (!comment) throw new Error('Comment not found');
   if (itemType === 'story' && comment.replies.length >= 1) throw new Error('Stories allow max 1 reply per comment');
-  const replyId = Date.now().toString(); 
+  const replyId = Date.now().toString();
   comment.replies.push({ id: replyId, text, userId, createdAt: new Date() });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
   revalidatePath('/social');

@@ -58,7 +58,7 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
             onChange={onChange}
             onKeyDown={onKeyDown}
             min={min}
-            className={`transition-all duration-200 focus:scale-101 ${LeftIcon ? 'pl-10' : ''} ${RightIcon ? 'pr-10' : ''}`}
+            className={`transition-all duration-200 focus:scale-101 dark:text-foreground ${LeftIcon ? 'pl-10' : ''} ${RightIcon ? 'pr-10' : ''}`}
             {...rest}
           />
           {RightIcon && (

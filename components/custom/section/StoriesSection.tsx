@@ -1,3 +1,5 @@
+'use client';
+
 import { Camera } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { MapPin, Star } from 'lucide-react';
@@ -10,7 +12,7 @@ import { StoryViewer } from '../media/StoryViewer';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 
 type StoriesSectionProps = {
   stories?: StoryWithUser[];
@@ -20,27 +22,24 @@ type StoriesSectionProps = {
   setStories?: React.Dispatch<React.SetStateAction<StoryWithUser[]>>;
 };
 
-export const StoriesSection: React.FC<StoriesSectionProps> = ({
-  stories = [],
-  users = [],
-  mode,
-  title = 'Stories',
-  setStories,
-}) => {
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories = [], users = [], mode, title = 'Stories', setStories }) => {
   const baseId = useId();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const [selectedStory, setSelectedStory] = useState<{ userId: string; index: number } | null>(null); // Updated: Store only userId and index
+  const [selectedStory, setSelectedStory] = useState<{ userId: string; index: number } | null>(null);
   const [activeProfile, setActiveProfile] = useState<User | null>(null);
 
   const isMobile = useIsMobile();
   const isStoriesMode = mode === 'stories';
   const items = isStoriesMode ? stories : users.map((user) => ({ user }));
 
+  // Local state for stories to enable updates
+  const [storiesState, setStoriesState] = useState(stories);
+
   const uniqueUsers = isStoriesMode
-    ? stories.reduce((acc, story) => {
+    ? storiesState.reduce((acc, story) => {
         const userId = story.user?.id;
         if (userId && !acc.some((u) => u.user?.id === userId)) {
           acc.push(story);
@@ -73,24 +72,32 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({
             ref={scrollAreaRef}
             className='w-full min-w-0 whitespace-nowrap'
             orientation='horizontal'
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-            onMouseDown={(e) => {
-              setIsDragging(true);
-              setStartX(e.clientX);
-              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-              if (viewport) setScrollLeft(viewport.scrollLeft);
-            }}
-            onMouseMove={(e) => {
-              if (!isDragging) return;
-              e.preventDefault();
-              const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-              if (viewport) {
-                const walk = (e.clientX - startX) * 2;
-                viewport.scrollLeft = scrollLeft - walk;
-              }
-            }}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
+            style={{ cursor: isMobile && isDragging ? 'grabbing' : isMobile ? 'grab' : 'default' }}
+            onMouseDown={
+              isMobile
+                ? (e) => {
+                    setIsDragging(true);
+                    setStartX(e.clientX);
+                    const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+                    if (viewport) setScrollLeft(viewport.scrollLeft);
+                  }
+                : undefined
+            }
+            onMouseMove={
+              isMobile
+                ? (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
+                    if (viewport) {
+                      const walk = (e.clientX - startX) * 2;
+                      viewport.scrollLeft = scrollLeft - walk;
+                    }
+                  }
+                : undefined
+            }
+            onMouseUp={isMobile ? () => setIsDragging(false) : undefined}
+            onMouseLeave={isMobile ? () => setIsDragging(false) : undefined}
           >
             <div className='flex space-x-4 p-4 min-h-[120px]'>
               {uniqueUsers.length > 0 ? (
@@ -166,7 +173,15 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({
                   );
                 })
               ) : (
-                <SkeletonLoading variant='story' />
+                <div className='min-h-[120px] flex items-center justify-center w-full'>
+                  <Empty>
+                    <EmptyMedia>
+                      <Camera className='w-12 h-12 p-2' />
+                    </EmptyMedia>
+                    <EmptyTitle>Nu există povești încă</EmptyTitle>
+                    <EmptyDescription>Fii primul care împărtășește o poveste și angajează comunitatea!</EmptyDescription>
+                  </Empty>
+                </div>
               )}
             </div>
             <ScrollBar orientation='horizontal' />
@@ -176,11 +191,11 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({
       {selectedStory && (
         <StoryViewer
           key={selectedStory.userId + '-' + selectedStory.index}
-          stories={stories}
+          stories={storiesState}
           userId={selectedStory.userId}
           initialIndex={selectedStory.index}
           onClose={() => setSelectedStory(null)}
-          setStories={setStories}
+          setStories={setStoriesState}
         />
       )}
 
