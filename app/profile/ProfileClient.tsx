@@ -1,5 +1,6 @@
 'use client';
-
+import { getFeedPosts } from '@/actions/social/feeds/actions';
+import { getStories } from '@/actions/social/stories/actions';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Settings, Bell, TrendingUp, Lock, Eye } from 'lucide-react';
@@ -23,8 +24,8 @@ import RewardsCard from '@/components/custom/profile/RewardsCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
 import FeedGrid from '@/components/custom/profile/FeedGrid';
-import SecurityCard from '@/components/custom/profile/SecurityCard';
 import { getUserCars } from '@/actions/auto/actions';
+import SecurityCard from '@/components/custom/profile/SecurityCard';
 
 type User = {
   id: string;
@@ -49,11 +50,41 @@ type Session = {
   user: User;
 };
 
-type ProfileClientProps = {
-  session: Session;
+type FeedItemLocal = {
+  _id: string;
+  type: 'post' | 'poll';
+  text?: string;
+  question?: string;
+  options?: string[];
+  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  createdAt: string; // changed to required string
+  tags?: string[];
+  // ...other optional fields used by UI...
 };
 
-export default function ProfileClient({ session }: ProfileClientProps) {
+type StoryLocal = {
+  _id: string;
+  caption?: string;
+  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  createdAt: string; // changed to required string
+  expiresAt: string; // changed to required string
+};
+
+type ProfileClientProps = {
+  session: Session;
+  initialFeedItems?: FeedItemLocal[]; // new SSR props
+  initialFeedHasMore?: boolean;
+  initialStoriesItems?: StoryLocal[];
+  initialStoriesHasMore?: boolean;
+};
+
+export default function ProfileClient({
+  session,
+  initialFeedItems = [],
+  initialFeedHasMore = false,
+  initialStoriesItems = [],
+  initialStoriesHasMore = false,
+}: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
 
@@ -123,12 +154,23 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [hasMore, setHasMore] = useState(true);
   const [totalPosts, setTotalPosts] = useState(0);
 
+  // keep client-side copies to support load-more via server actions without full refresh
+  const [clientFeedItems, setClientFeedItems] = useState<FeedItemLocal[]>(initialFeedItems);
+  const [clientFeedPage, setClientFeedPage] = useState(1);
+  const [clientFeedLoading, setClientFeedLoading] = useState(false);
+  const [clientFeedHasMore, setClientFeedHasMore] = useState(initialFeedHasMore);
+
   const [storiesLoading, setStoriesLoading] = useState(false);
-  const [storiesHasMore, setStoriesHasMore] = useState(true);
+  const [storiesHasMore, setStoriesHasMore] = useState(initialStoriesHasMore);
   const [storiesCurrentPage, setStoriesCurrentPage] = useState(1);
 
+  const [clientStories, setClientStories] = useState<StoryLocal[]>(initialStoriesItems);
+  const [clientStoriesPage, setClientStoriesPage] = useState(1);
+  const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
+  const [clientStoriesHasMore, setClientStoriesHasMore] = useState(initialStoriesHasMore);
+
   const [feedLoading, setFeedLoading] = useState(false);
-  const [feedHasMore, setFeedHasMore] = useState(true);
+  const [feedHasMore, setFeedHasMore] = useState(initialFeedHasMore);
   const [feedCurrentPage, setFeedCurrentPage] = useState(1);
 
   const [settingsOpen, setSettingsOpen] = useState<string[]>(['verified']);
@@ -208,15 +250,35 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     }
   };
 
-  const handleStoriesLoadMore = () => {
-    if (storiesHasMore && !storiesLoading) {
-      setStoriesCurrentPage((prev) => prev + 1);
+  // keep in sync if server props change (router.refresh after create actions / revalidate)
+  useEffect(() => setClientFeedItems(initialFeedItems), [initialFeedItems]);
+  useEffect(() => setClientStories(initialStoriesItems), [initialStoriesItems]);
+
+  const handleStoriesLoadMore = async () => {
+    if (!clientStoriesHasMore || clientStoriesLoading) return;
+    setClientStoriesLoading(true);
+    try {
+      const next = clientStoriesPage + 1;
+      const res = await getStories({ userId: user?.id, page: next, limit: 10 });
+      setClientStories((prev) => [...prev, ...(res.items || [])]);
+      setClientStoriesPage(next);
+      setClientStoriesHasMore(Boolean(res.hasMore));
+    } finally {
+      setClientStoriesLoading(false);
     }
   };
 
-  const handleFeedLoadMore = () => {
-    if (feedHasMore && !feedLoading) {
-      setFeedCurrentPage((prev) => prev + 1);
+  const handleFeedLoadMore = async () => {
+    if (!clientFeedHasMore || clientFeedLoading) return;
+    setClientFeedLoading(true);
+    try {
+      const next = clientFeedPage + 1;
+      const res = await getFeedPosts({ userId: user?.id, page: next, limit: 10 });
+      setClientFeedItems((prev) => [...prev, ...(res.items || [])]);
+      setClientFeedPage(next);
+      setClientFeedHasMore(Boolean(res.hasMore));
+    } finally {
+      setClientFeedLoading(false);
     }
   };
 
@@ -351,11 +413,23 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               </TabsContent>
 
               <TabsContent value='feed' className='space-y-6'>
-                <FeedGrid userId={user?.id} hasMore={feedHasMore} onLoadMore={handleFeedLoadMore} loadingMore={feedLoading} />
+                <FeedGrid
+                  userId={user?.id}
+                  hasMore={clientFeedHasMore}
+                  onLoadMore={handleFeedLoadMore}
+                  loadingMore={clientFeedLoading}
+                  initialItems={clientFeedItems}
+                />
               </TabsContent>
 
               <TabsContent value='stories' className='space-y-6'>
-                <StoriesGrid userId={user?.id} hasMore={storiesHasMore} onLoadMore={handleStoriesLoadMore} loadingMore={storiesLoading} />
+                <StoriesGrid
+                  userId={user?.id}
+                  hasMore={clientStoriesHasMore}
+                  onLoadMore={handleStoriesLoadMore}
+                  loadingMore={clientStoriesLoading}
+                  initialItems={clientStories}
+                />
               </TabsContent>
 
               <TabsContent value='anunturi' className='space-y-6'>

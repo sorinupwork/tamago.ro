@@ -5,8 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
 import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
-import { User as UserType, Message } from '@/lib/types'; // Ensure Message is imported
-import { mockUsers } from '@/lib/mockData';
+import { User as UserType, Message } from '@/lib/types';
 
 export default function ChatTabClient({ users }: { users: UserType[] }) {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
@@ -16,7 +15,6 @@ export default function ChatTabClient({ users }: { users: UserType[] }) {
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: 'Salut! Cum pot să te ajut?', sender: 'other' },
     { id: 2, text: 'Mulțumesc pentru ajutor!', sender: 'me' },
-    // ...existing messages...
   ]);
   const [newMessage, setNewMessage] = useState('');
 

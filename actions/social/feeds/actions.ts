@@ -2,7 +2,7 @@
 
 import { put } from '@vercel/blob';
 import { headers } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
@@ -98,55 +98,59 @@ export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: strin
 }
 
 export async function createFeedAction(formData: FormData): Promise<void> {
-  const data = {
-    text: (formData.get('text') as string) || '',
-    files: (formData.getAll('files') as File[]).filter(Boolean),
-    tags: (formData.getAll('tags') as string[]).filter(Boolean),
-  };
-  const validated = feedSchema.parse(data);
+  try {
+    const data = {
+      text: (formData.get('text') as string) || '',
+      files: (formData.getAll('files') as File[]).filter(Boolean),
+      tags: (formData.getAll('tags') as string[]).filter(Boolean),
+    };
+    const validated = feedSchema.parse(data);
 
-  const headersObj = await headers();
-  const session = await auth.api.getSession({ headers: headersObj });
-  const userId = session?.user?.id ?? undefined;
+    const headersObj = await headers();
+    const session = await auth.api.getSession({ headers: headersObj });
+    const userId = session?.user?.id ?? undefined;
 
-  // Fetch user details to embed
-  let userDetails = null;
-  if (userId) {
-    const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
-    if (user) {
-      userDetails = {
-        id: user._id.toString(),
-        name: user.name || 'Unknown',
-        avatar: user.image || '/avatars/01.jpg',
-        status: user.status || 'Online',
-        category: user.category || 'Prieteni',
-        email: user.email || '',
-        provider: user.provider || 'credentials',
-        createdAt: user.createdAt?.toISOString(),
-        updatedAt: user.updatedAt?.toISOString(),
-        location: user.location || [0, 0],
-      };
+    let userDetails = null;
+    if (userId) {
+      const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
+      if (user) {
+        userDetails = {
+          id: user._id.toString(),
+          name: user.name || 'Unknown',
+          avatar: user.image || '/avatars/01.jpg',
+          status: user.status || 'Online',
+          category: user.category || 'Prieteni',
+          email: user.email || '',
+          provider: user.provider || 'credentials',
+          createdAt: user.createdAt?.toISOString(),
+          updatedAt: user.updatedAt?.toISOString(),
+          location: user.location || [0, 0],
+        };
+      }
     }
+
+    const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
+    const uploaded = await uploadFilesToVercelBlob(files, userId);
+    const doc: PostDocument = {
+      _id: new ObjectId(),
+      type: 'post',
+      text: validated.text || '',
+      files: uploaded,
+      tags: validated.tags || [],
+      userId: userId || undefined,
+      user: userDetails,
+      createdAt: new Date(),
+      reactions: { likes: { total: 0, userIds: [] }, comments: [] },
+    };
+    const result = await db.collection('feeds').insertOne(doc);
+    if (!result.acknowledged) throw new Error('Failed to insert feed');
+
+    revalidatePath('/profile');
+    revalidatePath('/social');
+  } catch (error) {
+    console.error('Error creating feed:', error);
+    throw new Error('Failed to create feed');
   }
-
-  const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
-  const uploaded = await uploadFilesToVercelBlob(files, userId);
-  const doc: PostDocument = {
-    _id: new ObjectId(),
-    type: 'post',
-    text: validated.text || '',
-    files: uploaded,
-    tags: validated.tags || [],
-    userId: userId || undefined,
-    user: userDetails, // Embed user details
-    createdAt: new Date(),
-    reactions: { likes: { total: 0, userIds: [] }, comments: [] },
-  };
-  await db.collection('feeds').insertOne(doc);
-
-  revalidatePath('/profile');
-
-  return;
 }
 
 export async function createPollAction(formData: FormData): Promise<void> {
@@ -160,7 +164,6 @@ export async function createPollAction(formData: FormData): Promise<void> {
   const session = await auth.api.getSession({ headers: headersObj });
   const userId = session?.user?.id ?? undefined;
 
-  // Fetch user details to embed
   let userDetails = null;
   if (userId) {
     const user = await db.collection('user').findOne({ _id: new ObjectId(userId) });
@@ -188,13 +191,14 @@ export async function createPollAction(formData: FormData): Promise<void> {
     votes: validated.options.map(() => 0),
     votedUsers: [],
     userId: userId || undefined,
-    user: userDetails, // Embed user details
+    user: userDetails,
     createdAt: new Date(),
     reactions: { likes: { total: 0, userIds: [] }, comments: [] },
   };
   await db.collection('feeds').insertOne(doc);
 
   revalidatePath('/profile');
+  revalidatePath('/social');
 
   return;
 }
@@ -206,8 +210,8 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
   if (params.userId) filter.userId = params.userId;
   if (params.type) filter.type = params.type;
   const collection = db.collection('feeds');
-  await collection.createIndex({ userId: 1 }); // Add index for efficient userId queries
-  await collection.countDocuments(filter);
+  await collection.createIndex({ userId: 1 });
+  const totalCount = await collection.countDocuments(filter);
   const items = await collection
     .find(filter)
     .sort({ createdAt: params.sortBy || -1 })
@@ -221,7 +225,7 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
       type: it.type,
       userId: it.userId?.toString(),
       createdAt: it.createdAt.toISOString(),
-      user: it.user || null, // Use embedded user
+      user: it.user || null,
       reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
     };
     if (it.type === 'post') {
@@ -237,7 +241,8 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
     }
   });
 
-  return { items: normalized, total: normalized.length, hasMore: false };
+  const hasMore = page * limit < totalCount;
+  return { items: normalized, total: totalCount, hasMore };
 }
 
 export async function getPolls(params: { userId?: string; page?: number; limit?: number } = {}) {
@@ -262,7 +267,13 @@ export async function addLikeAction(itemId: string, itemType: 'feed' | 'story'):
     reactions.likes.userIds.push(userId);
   }
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
+
   revalidatePath('/social');
+  revalidatePath('/profile');
+  try {
+    revalidateTag('feeds', {});
+    revalidateTag('social', {});
+  } catch {}
 }
 
 export async function addCommentAction(itemId: string, text: string, itemType: 'feed' | 'story'): Promise<void> {
@@ -281,6 +292,11 @@ export async function addCommentAction(itemId: string, text: string, itemType: '
   reactions.comments.push({ id, text, userId, createdAt: new Date(), replies: [] });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
   revalidatePath('/social');
+  revalidatePath('/profile');
+  try {
+    revalidateTag('feeds', {});
+    revalidateTag('stories', {});
+  } catch {}
 }
 
 export async function addReplyAction(itemId: string, commentId: string, text: string, itemType: 'feed' | 'story'): Promise<void> {
@@ -299,6 +315,11 @@ export async function addReplyAction(itemId: string, commentId: string, text: st
   comment.replies.push({ id: replyId, text, userId, createdAt: new Date() });
   await collection.updateOne({ _id: new ObjectId(itemId) }, { $set: { reactions } });
   revalidatePath('/social');
+  revalidatePath('/profile');
+  try {
+    revalidateTag('feeds', {});
+    revalidateTag('stories', {});
+  } catch {}
 }
 
 export async function voteOnPollAction(pollId: string, optionIndex: number): Promise<void> {
@@ -317,4 +338,8 @@ export async function voteOnPollAction(pollId: string, optionIndex: number): Pro
   poll.votedUsers.push(userId);
   await collection.updateOne({ _id: new ObjectId(pollId) }, { $set: { votes: poll.votes, votedUsers: poll.votedUsers } });
   revalidatePath('/social');
+  revalidatePath('/profile');
+  try {
+    revalidateTag('feeds', {});
+  } catch {}
 }

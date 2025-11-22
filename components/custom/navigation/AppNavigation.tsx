@@ -98,7 +98,7 @@ export function AppNavigation() {
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
-                <NavigationMenuItem className='hidden md:flex'>
+                <NavigationMenuItem>
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                     <Link href='/social' className='flex flex-row items-center gap-2 cursor-default'>
                       <AtSign className='w-4 h-4' />
@@ -106,7 +106,7 @@ export function AppNavigation() {
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
-                <NavigationMenuItem className=''>
+                <NavigationMenuItem>
                   <FavoritesDrawer onOpenSearch={() => setSearchOpen(true)} />
                 </NavigationMenuItem>
               </NavigationMenuList>

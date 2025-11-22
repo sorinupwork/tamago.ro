@@ -1,17 +1,14 @@
 'use client';
 
-import { BarChart, Plus, X, Loader2 } from 'lucide-react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { BarChart, Plus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, type ChangeEvent } from 'react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AppInput } from '@/components/custom/input/AppInput';
 import { createPollAction } from '@/actions/social/feeds/actions';
-import { pollSchema, PollFormData } from '@/lib/validations';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 
@@ -21,42 +18,25 @@ type Props = {
 };
 
 export default function PollDialog({ open, onOpenChange }: Props) {
-  const [isPending, startTransition] = useTransition();
-  const { data: session } = useSession();
   const router = useRouter();
+  const { data: session } = useSession();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isValid },
-    reset,
-  } = useForm<PollFormData>({
-    resolver: zodResolver(pollSchema),
-    defaultValues: { question: '', options: [{ value: '' }, { value: '' }] },
-  });
+  const [question, setQuestion] = useState('');
+  const [options, setOptions] = useState<string[]>(['', '']);
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'options',
-  });
-
-  const onSubmit = (data: PollFormData) => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.append('question', data.question);
-      data.options.forEach((option) => formData.append('options', option.value));
-      await createPollAction(formData);
-      onOpenChange(false);
-      reset();
-    });
-  };
+  const addOption = () => setOptions((s) => [...s, '']);
+  const removeOption = (i: number) => setOptions((s) => s.filter((_, idx) => idx !== i));
+  const updateOption = (idx: number, value: string) => setOptions((s) => s.map((v, i) => (i === idx ? value : v)));
 
   return (
     <Dialog
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
-        if (!v) reset();
+        if (!v) {
+          setQuestion('');
+          setOptions(['', '']);
+        }
       }}
     >
       <DialogContent className='max-w-md' onInteractOutside={(e) => e.preventDefault()}>
@@ -81,59 +61,46 @@ export default function PollDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='question'
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <Label htmlFor='poll-question'>Întrebare</Label>
-                  <AppInput
-                    id='poll-question'
-                    placeholder='Întreabă ceva...'
-                    value={field.value}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className='mt-1'
-                    error={errors.question ? [{ message: errors.question.message }] : undefined}
-                  />
-                </div>
-              )}
-            />
+          <form action={createPollAction} className='space-y-4'>
+            <div>
+              <Label htmlFor='poll-question'>Întrebare</Label>
+              <input
+                id='poll-question'
+                name='question'
+                placeholder='Întreabă ceva...'
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                className='mt-1 w-full rounded-md p-2 bg-input text-foreground'
+              />
+            </div>
 
             <div>
               <Label>Opțiuni</Label>
               <div className='space-y-2 mt-1'>
-                {fields.map((field, index) => (
-                  <Controller
-                    key={field.id}
-                    name={`options.${index}.value`}
-                    control={control}
-                    render={({ field: inputField }) => (
-                      <div className='flex items-center space-x-2'>
-                        <AppInput
-                          placeholder={`Opțiunea ${index + 1}`}
-                          value={inputField.value}
-                          onChange={(e) => inputField.onChange(e.target.value)}
-                          error={errors.options?.[index]?.value ? [{ message: errors.options[index]?.value?.message }] : undefined}
-                        />
-                        {fields.length > 2 && (
-                          <Button type='button' size='sm' variant='ghost' onClick={() => remove(index)}>
-                            <X className='h-4 w-4' />
-                          </Button>
-                        )}
-                      </div>
+                {options.map((opt, i) => (
+                  <div key={i} className='flex items-center space-x-2'>
+                    <AppInput
+                      placeholder={`Opțiunea ${i + 1}`}
+                      value={opt}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => updateOption(i, e.target.value)}
+                    />
+                    {options.length > 2 && (
+                      <Button type='button' size='sm' variant='ghost' onClick={() => removeOption(i)}>
+                        <X className='h-4 w-4' />
+                      </Button>
                     )}
-                  />
+                    {/* make sure every option is sent as repeated "options" fields */}
+                    <input type='hidden' name='options' value={opt} />
+                  </div>
                 ))}
               </div>
-              <Button type='button' size='sm' variant='outline' onClick={() => append({ value: '' })} className='mt-2'>
-                <Plus className='h-4 w-4 mr-1' />
-                Adaugă Opțiune
+              <Button type='button' size='sm' variant='outline' onClick={addOption} className='mt-2'>
+                <Plus className='h-4 w-4 mr-1' /> Adaugă Opțiune
               </Button>
             </div>
 
-            <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Creează Sondaj'}
+            <Button type='submit' className='w-full'>
+              Creează Sondaj
             </Button>
           </form>
         )}

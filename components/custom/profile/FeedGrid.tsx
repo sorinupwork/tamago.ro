@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox'; // Assuming Checkbox exists, or use AppCheckbox
+import { Checkbox } from '@/components/ui/checkbox';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { getFeedPosts } from '@/actions/social/feeds/actions';
 
 type FeedItem = {
   _id: string;
@@ -25,33 +24,30 @@ type FeedGridProps = {
   hasMore: boolean;
   onLoadMore: () => void;
   loadingMore: boolean;
+  initialItems?: FeedItem[]; // new prop - server provided initial data
 };
 
-export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore }: FeedGridProps) {
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, initialItems = [] }: FeedGridProps) {
+  const [feedItems, setFeedItems] = useState<FeedItem[]>(initialItems);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [showPosts, setShowPosts] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
 
+  // keep in sync with server props (router.refresh updates initialItems)
   useEffect(() => {
-    async function fetchFeed() {
-      setLoading(true);
-      try {
-        const type = showPosts && showPolls ? undefined : showPosts ? 'post' : showPolls ? 'poll' : undefined;
-        const data = await getFeedPosts({ userId, type, sortBy: sortBy === 'createdAt' ? -1 : 1 });
-        setFeedItems(data.items);
-        // Debug: Log fetched feed items
-        console.log('Fetched feed items for user:', userId, data.items);
-      } catch (err) {
-        setError('Failed to load feed');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchFeed();
-  }, [userId, sortBy, showPosts, showPolls]);
+    setFeedItems(initialItems);
+  }, [initialItems]);
+
+  // client-side filtering/sorting of the server-provided data
+  const filtered = useMemo(() => {
+    let list = feedItems.slice();
+    if (!showPosts) list = list.filter((i) => i.type !== 'post');
+    if (!showPolls) list = list.filter((i) => i.type !== 'poll');
+    if (sortBy === 'createdAt') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return list;
+  }, [feedItems, showPosts, showPolls, sortBy]);
 
   if (loading) return <SkeletonLoading variant='feed' />;
   if (error) return <div className='text-center text-red-500'>{error}</div>;
@@ -80,7 +76,7 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore }: F
         </div>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-        {feedItems.map((item) => (
+        {filtered.map((item) => (
           <Card key={item._id} className='overflow-hidden'>
             <CardContent className='p-4'>
               {item.type === 'post' ? (

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { Play, Pause, X, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
 import sanitizeHtml from 'sanitize-html';
-import { Loader2 } from 'lucide-react'; // Add this import for the spinner
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,9 @@ type StoryViewerProps = {
   userId: string;
   initialIndex: number;
   onClose: () => void;
-  setStories?: React.Dispatch<React.SetStateAction<StoryWithUser[]>>;
 };
 
-export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initialIndex, onClose, setStories }) => {
+export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initialIndex, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -39,7 +39,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
 
   const userStories = stories.filter((story) => story.user?.id === userId);
   const currentStory = userStories[currentIndex];
-  const mediaFile = currentStory.files?.[0];
+  const mediaFile = currentStory?.files?.[0];
   const mediaUrl = mediaFile?.url;
   const isVideo = mediaFile?.contentType?.startsWith('video/') || false;
   const duration = isVideo ? videoDuration : 5;
@@ -49,11 +49,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   const [newComment, setNewComment] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
-  const [isCommentLoading, setIsCommentLoading] = useState(false); // Add this state
-
-  const hasUserCommented = currentStory.reactions.comments.some((comment) => comment.userId === session?.user?.id);
+  const [isCommentLoading, setIsCommentLoading] = useState(false);
 
   const isActiveRef = useRef(true);
+  const router = useRouter();
 
   useEffect(() => {
     isActiveRef.current = true;
@@ -87,10 +86,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
       return () => {
         if (videoToPause) {
           videoToPause.removeEventListener('timeupdate', updateProgress);
-          videoToPause.removeEventListener('ended', () => {});
-          videoToPause.removeEventListener('loadedmetadata', () => {});
-          videoToPause.removeEventListener('play', () => {});
-          videoToPause.removeEventListener('pause', () => {});
           videoToPause.pause();
         }
         if (intervalRef.current) {
@@ -216,79 +211,33 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   };
 
   const handleLike = async () => {
-    if (!isLoggedIn || !setStories) return;
+    if (!isLoggedIn) return;
     try {
       await addLikeAction(currentStory._id, 'story');
-      setStories((prev) =>
-        prev.map((s) =>
-          s._id === currentStory._id
-            ? {
-                ...s,
-                reactions: {
-                  ...s.reactions,
-                  likes: {
-                    total: s.reactions.likes.userIds.includes(session?.user?.id || '')
-                      ? s.reactions.likes.total - 1
-                      : s.reactions.likes.total + 1,
-                    userIds: s.reactions.likes.userIds.includes(session?.user?.id || '')
-                      ? s.reactions.likes.userIds.filter((id) => id !== session?.user?.id)
-                      : [...s.reactions.likes.userIds, session?.user?.id || ''],
-                  },
-                },
-              }
-            : s
-        )
-      );
-    } catch (error) {
-      console.error('Error liking:', error);
+      router.refresh();
+    } catch (err) {
+      console.error('Error liking:', err);
     }
   };
 
   const handleAddComment = async () => {
-    if (!isLoggedIn || !newComment.trim() || !setStories) return;
-    setIsCommentLoading(true); // Set loading to true
+    if (!isLoggedIn || !newComment.trim()) return;
+    setIsCommentLoading(true);
     try {
       await addCommentAction(currentStory._id, newComment, 'story');
-      setNewComment('');
-      setStories((prev) =>
-        prev.map((s) =>
-          s._id === currentStory._id
-            ? {
-                ...s,
-                reactions: {
-                  ...s.reactions,
-                  reactions: {
-                    ...s.reactions,
-                    comments: [
-                      ...s.reactions.comments,
-                      {
-                        id: Date.now().toString(),
-                        text: newComment,
-                        userId: session?.user?.id || '',
-                        createdAt: new Date().toISOString(),
-                        replies: [],
-                      },
-                    ],
-                  },
-                },
-              }
-            : s
-        )
-      );
-      // Fetch and set user name immediately for the new comment
+
       const user = await getUserById(session?.user?.id || '');
       setUserNames((prev) => ({ ...prev, [session?.user?.id || '']: user?.name || 'Unknown' }));
       setIsPaused(true);
       setIsPlaying(false);
       if (videoRef.current) videoRef.current.pause();
-      if (!isVideo && intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+
+      router.refresh();
+      setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
     } finally {
-      setIsCommentLoading(false); // Set loading to false
+      setIsCommentLoading(false);
     }
   };
 
@@ -326,7 +275,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
 
   useEffect(() => {
     const fetchUserName = async () => {
-      const comment = currentStory.reactions?.comments?.[0];
+      const comment = currentStory?.reactions?.comments?.[0];
       if (comment && !userNames[comment.userId]) {
         try {
           const user = await getUserById(comment.userId);
@@ -337,7 +286,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
       }
     };
     fetchUserName();
-  }, [currentStory.reactions?.comments, userNames]);
+  }, [currentStory?.reactions?.comments, userNames]);
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -430,11 +379,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
                 <AppInput
                   placeholder='Adaugă un comentariu...'
                   value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewComment(e.target.value)}
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                  className='flex-1'
+                  className='flex-1 text-white'
                   disabled={!isLoggedIn}
                 />
                 <Button onClick={handleAddComment} size='sm' disabled={!isLoggedIn || isCommentLoading}>

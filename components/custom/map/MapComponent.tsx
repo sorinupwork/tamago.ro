@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import UserProfileCard from '@/components/custom/card/UserProfileCard';
 import { useMap, useMapEvents } from 'react-leaflet';
 import { Car, User } from '@/lib/types';
-import { MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
 
@@ -39,7 +38,9 @@ function MapBounds({ users }: { users: User[] }) {
   useEffect(() => {
     if (users.length > 0) {
       const bounds = users.filter((user) => user.location).map((user) => user.location!);
-      map.fitBounds(bounds, { padding: [20, 20] });
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [20, 20] });
+      }
     }
   }, [map, users]);
 
@@ -176,57 +177,26 @@ export default function MapComponent({
             </Marker>
           ) : null
         )}
-        {users.map((user) => {
-          const customIcon = L.icon({
-            iconUrl: user.avatar!,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-            popupAnchor: [0, -40],
-            className: 'rounded-full border-2 border-white',
-          });
-          return (
-            <Marker key={user.id} position={user.location!} icon={customIcon}>
-              <Popup maxWidth={320}>
-                <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
-                  <div className='flex items-start gap-3'>
-                    <Avatar>
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className='flex-1'>
-                      <h4 className='text-sm font-semibold'>{user.name}</h4>
-                      <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
-                      <div className='mt-2 flex flex-wrap gap-2'>
-                        <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>{user.category}</span>
-                        <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full flex items-center gap-1'>
-                          <Star className='w-3 h-3' /> Top
-                        </span>
-                      </div>
-                    </div>
+        {users
+          .filter((user) => user.location)
+          .map((user) => {
+            const customIcon = L.icon({
+              iconUrl: user.avatar!,
+              iconSize: [40, 40],
+              iconAnchor: [20, 40],
+              popupAnchor: [0, -40],
+              className: 'rounded-full border-2 border-white',
+            });
+            return (
+              <Marker key={user.id} position={user.location!} icon={customIcon}>
+                <Popup maxWidth={320}>
+                  <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden'>
+                    <UserProfileCard user={user} contentOnly />
                   </div>
-
-                  <div className='flex items-center justify-between gap-3'>
-                    <div className='flex-1'>
-                      <div className='flex items-center justify-between text-xs mb-1'>
-                        <span className='text-muted-foreground'>Profile</span>
-                        <span className='font-medium'>78%</span>
-                      </div>
-                      <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
-                        <div className='h-2 bg-primary' style={{ width: '78%' }} />
-                      </div>
-                    </div>
-                    <div className='flex flex-col items-end text-xs text-muted-foreground'>
-                      <span className='flex items-center gap-1'>
-                        <MapPin className='w-3 h-3' /> Nearby
-                      </span>
-                      <span>5km</span>
-                    </div>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+                </Popup>
+              </Marker>
+            );
+          })}
       </MapContainer>
       <Button
         onClick={() => setIsDarkMode(!isDarkMode)}

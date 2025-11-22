@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { getStories } from '@/actions/social/stories/actions';
 
 type Story = {
   _id: string;
@@ -22,29 +21,26 @@ type StoriesGridProps = {
   hasMore: boolean;
   onLoadMore: () => void;
   loadingMore: boolean;
+  initialItems?: Story[]; // new prop - server provided items
 };
 
-export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }: StoriesGridProps) {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, initialItems = [] }: StoriesGridProps) {
+  const [stories, setStories] = useState<Story[]>(initialItems);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('createdAt');
 
+  // keep in sync with server props (router.refresh will update initialItems)
   useEffect(() => {
-    async function fetchStories() {
-      setLoading(true);
-      try {
-        const data = await getStories({ userId, sortBy: sortBy === 'createdAt' ? -1 : 1 });
-        setStories(data.items);
-        console.log('Fetched stories for user:', userId, data.items);
-      } catch {
-        setError('Failed to load stories');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStories();
-  }, [userId, sortBy]);
+    setStories(initialItems);
+  }, [initialItems]);
+
+  const sorted = useMemo(() => {
+    const arr = stories.slice();
+    if (sortBy === 'expiresAt') arr.sort((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime());
+    else arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return arr;
+  }, [stories, sortBy]);
 
   if (loading) return <SkeletonLoading variant='feed' />;
   if (error) return <div className='text-center text-red-500'>{error}</div>;
@@ -64,7 +60,7 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore }
         </Select>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-        {stories.map((story) => (
+        {sorted.map((story) => (
           <Card key={story._id} className='overflow-hidden'>
             <CardContent className='p-4'>
               {story.files.length > 0 && (

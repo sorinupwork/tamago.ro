@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
-import { FileText, Smile, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { FileText, Smile } from 'lucide-react';
 import Image from 'next/image';
-import { toast } from 'sonner';
-import { useForm, Controller, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import sanitizeHtml from 'sanitize-html';
 import { useRouter } from 'next/navigation';
 
@@ -15,7 +12,6 @@ import AppTextarea from '@/components/custom/input/AppTextarea';
 import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
 import { AppTagsInput } from '@/components/custom/input/AppTagsInput';
 import { createFeedAction } from '@/actions/social/feeds/actions';
-import { feedSchema, FeedFormData } from '@/lib/validations';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -26,25 +22,12 @@ type Props = {
 };
 
 export default function FeedDialog({ open, onOpenChange }: Props) {
-  const [isPending, startTransition] = useTransition();
   const [uploaderKey, setUploaderKey] = useState(0);
-  const { data: session } = useSession();
+  const [files, setFiles] = useState<File[]>([]);
+  const [text, setText] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const router = useRouter();
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors, isValid },
-  } = useForm<FeedFormData>({
-    resolver: zodResolver(feedSchema),
-    defaultValues: { text: '', files: [], tags: [] },
-  });
-
-  const watchedValues = useWatch({ control });
-  const text = watchedValues.text;
-  const files = useMemo(() => watchedValues.files || [], [watchedValues.files]);
-  const tags = watchedValues.tags || [];
+  const { data: session } = useSession();
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 
@@ -52,23 +35,10 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
     return () => previews.forEach((u) => URL.revokeObjectURL(u));
   }, [previews]);
 
-  const onSubmit = (data: FeedFormData) => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.append('text', data.text || '');
-      data.files?.forEach((file) => formData.append('files', file));
-      data.tags?.forEach((tag) => formData.append('tags', tag));
-      await createFeedAction(formData);
-      onOpenChange(false);
-      toast.success('Feed post created successfully!');
-      reset();
-    });
-  };
-
   const handleRemoveFile = (index: number) => {
     const newFiles = files.filter((_, i) => i !== index);
-    setValue('files', newFiles);
-    setUploaderKey((prev) => prev + 1);
+    setFiles(newFiles);
+    setUploaderKey((p) => p + 1);
   };
 
   const sanitizedText = sanitizeHtml(text || '', { allowedTags: [], allowedAttributes: {} });
@@ -78,7 +48,11 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
-        if (!v) reset();
+        if (!v) {
+          setText('');
+          setFiles([]);
+          setTags([]);
+        }
       }}
     >
       <DialogContent className='max-w-lg' onInteractOutside={(e) => e.preventDefault()}>
@@ -103,47 +77,41 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='text'
-              control={control}
-              render={({ field }) => (
-                <AppTextarea
-                  label='Ce ai pe suflet?'
-                  placeholder='Împărtășește-ți gândurile...'
-                  value={field.value}
-                  onChange={field.onChange}
-                  icon={Smile}
-                  error={errors.text ? [{ message: errors.text.message }] : undefined}
-                />
-              )}
-            />
+          <form action={createFeedAction} className='space-y-4'>
+            <div>
+              <AppTextarea
+                label='Ce ai pe suflet?'
+                placeholder='Împărtășește-ți gândurile...'
+                value={text}
+                onChange={(valueOrEvent: string | ChangeEvent<HTMLTextAreaElement>) => {
+                  const v = typeof valueOrEvent === 'string' ? valueOrEvent : valueOrEvent.target.value;
+                  setText(v);
+                }}
+                icon={Smile}
+              />
+              <input type='hidden' name='text' value={text} />
+            </div>
 
-            <Controller
-              name='tags'
-              control={control}
-              render={({ field }) => (
-                <AppTagsInput label='Tag-uri (pentru căutare)' tags={field.value || []} onTagsChange={field.onChange} />
-              )}
-            />
+            <div>
+              <AppTagsInput label='Tag-uri (pentru căutare)' tags={tags} onTagsChange={(ts: string[]) => setTags(ts)} />
+              {tags.map((t, i) => (
+                <input key={i} type='hidden' name='tags' value={t} />
+              ))}
+            </div>
 
-            <Controller
-              name='files'
-              control={control}
-              render={({ field }) => (
-                <AppMediaUploaderInput
-                  id='feed-media'
-                  name='files'
-                  uploaderKey={uploaderKey}
-                  onFilesChange={(f) => field.onChange(f.slice(0, 5))}
-                  accept='image/*,video/*'
-                  maxFiles={5}
-                  className='mt-1'
-                  showPreview={false}
-                  disabled={files.length >= 5}
-                />
-              )}
-            />
+            <div>
+              <AppMediaUploaderInput
+                id='feed-media'
+                name='files'
+                uploaderKey={uploaderKey}
+                onFilesChange={(f: File[]) => setFiles(f.slice(0, 5))}
+                accept='image/*,video/*'
+                maxFiles={5}
+                className='mt-1'
+                showPreview={false}
+                disabled={files.length >= 5}
+              />
+            </div>
 
             {previews.length > 0 && (
               <div className='space-y-2'>
@@ -171,7 +139,13 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                         }}
                       />
                     )}
-                    <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={() => handleRemoveFile(0)}>
+                    <Button
+                      type='button'
+                      variant='destructive'
+                      size='sm'
+                      className='absolute top-2 right-2'
+                      onClick={() => handleRemoveFile(0)}
+                    >
                       X
                     </Button>
                   </div>
@@ -202,7 +176,13 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                                 }}
                               />
                             )}
-                            <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={() => handleRemoveFile(index)}>
+                            <Button
+                              type='button'
+                              variant='destructive'
+                              size='sm'
+                              className='absolute top-2 right-2'
+                              onClick={() => handleRemoveFile(index)}
+                            >
                               X
                             </Button>
                           </div>
@@ -230,8 +210,8 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Postează pe Feed'}
+            <Button type='submit' className='w-full'>
+              Postează pe Feed
             </Button>
           </form>
         )}

@@ -149,8 +149,8 @@ export type User = {
   provider: 'credentials' | 'google' | 'facebook' | 'instagram';
   avatar?: string;
   emailVerified?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   role?: 'user' | 'admin';
   badges?: string[];
   progress?: { posts: number; friends: number; points: number };

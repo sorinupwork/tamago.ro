@@ -1,11 +1,11 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { MapPin, Filter } from 'lucide-react';
+import { MapPin, Filter, HelpCircle, MessageCircle, User } from 'lucide-react';
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
-import { User } from '@/lib/types';
+import { User as UserType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import MapComponent from '../map/MapComponent';
 import WeatherWidget from '../weather/WeatherWidget';
@@ -19,9 +19,9 @@ type CardData = {
 type MarketplaceContactSectionProps = {
   title: string;
   description: string;
-  cards: CardData[];
-  users?: User[];
-  stories?: User[];
+  cards?: CardData[];
+  users?: UserType[];
+  stories?: UserType[];
   showMap?: boolean;
   gridCols?: string;
   className?: string;
@@ -29,10 +29,28 @@ type MarketplaceContactSectionProps = {
   showWeather?: boolean;
 };
 
+const defaultCards: CardData[] = [
+  {
+    icon: <HelpCircle className='text-blue-500' />,
+    title: 'Întrebări Frecvente',
+    description: 'Găsește răspunsuri la întrebările comune despre tranzacții și contacte.',
+  },
+  {
+    icon: <MessageCircle className='text-green-500' />,
+    title: 'Contactează-ne',
+    description: 'Ai nevoie de ajutor? Trimite-ne un mesaj pentru suport rapid.',
+  },
+  {
+    icon: <User className='text-purple-500' />,
+    title: 'Social',
+    description: 'Urmărește-ne pe @tamago_online pentru noutăți și comunitate.',
+  },
+];
+
 export default function MarketplaceContactSection({
   title,
   description,
-  cards,
+  cards = defaultCards,
   users = [],
   showMap = true,
   gridCols = 'grid-cols-1 md:grid-cols-3',
@@ -50,7 +68,6 @@ export default function MarketplaceContactSection({
       return 0;
     });
 
-  // Helper to get weather tips based on temperature (mock logic, can be enhanced)
   const getWeatherTips = (temp: number) => {
     if (temp < 10) return 'Dress warmly and stay hydrated!';
     if (temp > 25) return 'Stay cool, wear sunscreen!';
@@ -96,10 +113,7 @@ export default function MarketplaceContactSection({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className='text-sm text-muted-foreground'>
-                    {/* Mock tip; in real app, fetch from weather state */}
-                    {getWeatherTips(20)} {/* Default temp; integrate with WeatherWidget state if needed */}
-                  </p>
+                  <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
                 </CardContent>
               </Card>
             </div>

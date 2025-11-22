@@ -1,21 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
-import { Camera, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Camera } from 'lucide-react';
 import Image from 'next/image';
-import { toast } from 'sonner';
-import { useForm, Controller, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import sanitizeHtml from 'sanitize-html';
 import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import AppTextarea from '@/components/custom/input/AppTextarea';
 import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
 import { createStoryAction } from '@/actions/social/stories/actions';
-import { storySchema, StoryFormData } from '@/lib/validations';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 
@@ -25,24 +20,11 @@ type Props = {
 };
 
 export default function StoryDialog({ open, onOpenChange }: Props) {
-  const [isPending, startTransition] = useTransition();
   const [uploaderKey, setUploaderKey] = useState(0);
-  const { data: session } = useSession();
+  const [files, setFiles] = useState<File[]>([]);
+  const [caption, setCaption] = useState('');
   const router = useRouter();
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors, isValid },
-  } = useForm<StoryFormData>({
-    resolver: zodResolver(storySchema),
-    defaultValues: { caption: '', files: [] },
-  });
-
-  const watchedValues = useWatch({ control });
-  const caption = watchedValues.caption;
-  const files = useMemo(() => watchedValues.files || [], [watchedValues.files]);
+  const { data: session } = useSession();
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 
@@ -50,21 +32,9 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
     return () => previews.forEach((u) => URL.revokeObjectURL(u));
   }, [previews]);
 
-  const onSubmit = (data: StoryFormData) => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.append('caption', data.caption || '');
-      data.files?.forEach((file) => formData.append('files', file));
-      await createStoryAction(formData);
-      onOpenChange(false);
-      toast.success('Story posted successfully!');
-      reset();
-    });
-  };
-
   const handleRemoveFile = () => {
-    setValue('files', []);
-    setUploaderKey((prev) => prev + 1);
+    setFiles([]);
+    setUploaderKey((p) => p + 1);
   };
 
   const sanitizedCaption = sanitizeHtml(caption || '', { allowedTags: [], allowedAttributes: {} });
@@ -74,7 +44,11 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
-        if (!v) reset();
+        if (!v) {
+          setCaption('');
+          setFiles([]);
+          setUploaderKey((p) => p + 1);
+        }
       }}
     >
       <DialogContent className='max-w-md' onInteractOutside={(e) => e.preventDefault()}>
@@ -99,24 +73,20 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+          <form action={createStoryAction} className='space-y-4'>
             <div>
               <Label>Încarcă Media</Label>
-              <Controller
+              <AppMediaUploaderInput
                 name='files'
-                control={control}
-                render={({ field }) => (
-                  <AppMediaUploaderInput
-                    name='files'
-                    uploaderKey={uploaderKey}
-                    onFilesChange={(f) => field.onChange(f.slice(0, 1))}
-                    accept='image/*,video/*'
-                    maxFiles={1}
-                    className='mt-1'
-                    showPreview={false}
-                    disabled={files.length > 0}
-                  />
-                )}
+                uploaderKey={uploaderKey}
+                onFilesChange={(f) => {
+                  setFiles(f.slice(0, 1));
+                }}
+                accept='image/*,video/*'
+                maxFiles={1}
+                className='mt-1'
+                showPreview={false}
+                disabled={files.length > 0}
               />
             </div>
 
@@ -157,26 +127,21 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            <Controller
-              name='caption'
-              control={control}
-              render={({ field }) => (
-                <AppTextarea
-                  id='story-caption'
-                  name='caption'
-                  placeholder='Spune ceva...'
-                  rows={2}
-                  value={field.value}
-                  onChange={field.onChange}
-                  className='mt-1'
-                  error={errors.caption ? [{ message: errors.caption.message }] : undefined}
-                />
-              )}
-            />
-            <input type='hidden' name='caption' value={caption} />
+            <div>
+              <Label htmlFor='caption'>Descriere</Label>
+              <textarea
+                id='caption'
+                name='caption'
+                placeholder='Spune ceva...'
+                rows={2}
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                className='mt-1 w-full rounded-md p-2 bg-input text-foreground'
+              />
+            </div>
 
-            <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-              {isPending ? <Loader2 className='w-4 h-4 animate-spin text-white' /> : 'Postează Povestea'}
+            <Button type='submit' className='w-full'>
+              Postează Povestea
             </Button>
           </form>
         )}

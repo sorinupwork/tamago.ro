@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
+import { User } from '@/lib/types';
 
 type MessageDoc = {
   _id: ObjectId;
@@ -57,4 +58,43 @@ export async function getMessages(toUserId: string): Promise<{ id: string; text:
     sender: msg.fromUserId === fromUserId ? 'me' : 'other',
     createdAt: msg.createdAt.toISOString(),
   }));
+}
+
+type DBUserDoc = {
+  _id: ObjectId;
+  name?: string | null;
+  image?: string | null;
+  status?: string | null;
+  category?: string | null;
+  email?: string | null;
+  provider?: string | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  location?: [number, number] | null;
+};
+
+export async function getAllUsers({ excludeCurrent = false } = {}): Promise<{ users: User[]; currentUserId?: string | null }> {
+  const headersObj = await headers();
+  const session = await auth.api.getSession({ headers: headersObj });
+  const currentUserId = session?.user?.id ?? null;
+
+  const collection = db.collection('user');
+  await collection.createIndex({ _id: 1 });
+  const rows = await collection.find<DBUserDoc>({}).toArray();
+
+  const normalized = rows.map((u: DBUserDoc) => ({
+    id: u._id.toString(),
+    name: u.name || 'Unknown',
+    avatar: u.image || '/avatars/01.jpg',
+    status: u.status || 'Offline',
+    category: u.category || 'Prieteni',
+    email: u.email || '',
+    provider: u.provider || 'credentials',
+    createdAt: u.createdAt ?? undefined,
+    updatedAt: u.updatedAt ?? undefined,
+    location: u.location || null,
+  })) as User[];
+
+  const users = excludeCurrent && currentUserId ? normalized.filter((x) => x.id !== currentUserId) : normalized;
+  return { users, currentUserId };
 }
