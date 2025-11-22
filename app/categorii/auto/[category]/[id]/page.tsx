@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone, Mail, MessageCircle, Clock } from 'lucide-react';
+import { Phone, Mail, MessageCircle, Clock, Car as CarIcon } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';
 
@@ -35,6 +35,7 @@ import { Car, RawCarDoc, User } from '@/lib/types';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
+import { Timeline } from '@/components/custom/timeline/Timeline';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -125,6 +126,8 @@ export default function CarDetailPage() {
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
+        lat: typeof doc.location === 'object' && doc.location?.lat ? doc.location.lat : 44.4268, // Default to Bucharest
+        lng: typeof doc.location === 'object' && doc.location?.lng ? doc.location.lng : 26.1025, // Default to Bucharest
       }));
       setAllCars(mappedCars);
       const foundCar = mappedCars.find((c) => c.id === id);
@@ -209,6 +212,22 @@ export default function CarDetailPage() {
     }
     toast.success('Mesaj trimis!');
   };
+
+  // Define timeline items for highlighting car history/events
+  const rentTimelineItems = [
+    { icon: CarIcon, label: 'Achiziționat', value: 'Mașina a fost achiziționată în 2020', year: 2020 },
+    { icon: Clock, label: 'Disponibil pentru Închiriere', value: 'De la 2021 până acum', year: 2021 },
+    { icon: MessageCircle, label: 'Întreținere', value: 'Service regulat efectuat', year: 2022 },
+  ];
+  const buyTimelineItems = [
+    { icon: CarIcon, label: 'Căutat', value: 'Interes pentru cumpărare din 2023', year: 2023 },
+    { icon: Clock, label: 'Ofertă Trimisă', value: 'Ofertă recentă pentru acest model', year: 2024 },
+  ];
+  const sellTimelineItems = [
+    { icon: CarIcon, label: 'Listat pentru Vânzare', value: 'Anunț publicat în 2024', year: 2024 },
+    { icon: Clock, label: 'Întreținere Recentă', value: 'Ultimul service în 2023', year: 2023 },
+    { icon: MessageCircle, label: 'Întrebări Primite', value: 'Multiple întrebări de la cumpărători', year: 2024 },
+  ];
 
   return (
     <div className='container mx-auto max-w-7xl'>
@@ -384,6 +403,15 @@ export default function CarDetailPage() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Descriere</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(car?.description || '') }} />
+            </CardContent>
+          </Card>
+
           {isAuction && (
             <Card>
               <CardHeader>
@@ -418,6 +446,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Disponibil pentru închiriere. Contactează pentru detalii.</p>
+                <Timeline items={rentTimelineItems} />
                 <Button onClick={handleRent}>Cere Închiriere</Button>
               </CardContent>
             </Card>
@@ -430,6 +459,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Interesat de cumpărare? Trimite o ofertă.</p>
+                <Timeline items={buyTimelineItems} />
                 <Button onClick={handleBuy}>Cere Ofertă</Button>
               </CardContent>
             </Card>
@@ -442,10 +472,39 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Întrebări despre vehicul? Contactează vânzătorul.</p>
+                <Timeline items={sellTimelineItems} />
                 <Button onClick={handleSellInquiry}>Întreabă Vânzătorul</Button>
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Caracteristici</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className='list-disc list-inside space-y-1'>
+                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || (
+                  <>
+                    <li>Stare excelentă</li>
+                    <li>Service complet</li>
+                    <li>Garanție inclusă</li>
+                  </>
+                )}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Hartă Locație</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='h-64 w-full'>
+                <MapComponent center={[car.lat || 44.4268, car.lng || 26.1025]} zoom={13} filteredCars={[car]} scrollWheelZoom={false} />
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -501,48 +560,6 @@ export default function CarDetailPage() {
                     </DrawerFooter>
                   </DrawerContent>
                 </Drawer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Descriere</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(car?.description || '') }} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Caracteristici</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className='list-disc list-inside space-y-1'>
-                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || (
-                  <>
-                    <li>Stare excelentă</li>
-                    <li>Service complet</li>
-                    <li>Garanție inclusă</li>
-                  </>
-                )}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Hartă Locație</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='h-64 w-full'>
-                <MapComponent
-                  center={car.lat && car.lng ? [car.lat, car.lng] : [45.9432, 24.9668]}
-                  zoom={13}
-                  filteredCars={car.lat && car.lng ? [car] : []}
-                  scrollWheelZoom={false}
-                />
               </div>
             </CardContent>
           </Card>

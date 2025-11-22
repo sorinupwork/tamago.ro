@@ -52,8 +52,8 @@ export function FavoritesDrawer({
   triggerText = 'Favorite',
   filterOptions = ['all', 'Auto', 'Electronics', 'Home', 'Fashion', 'Sports', 'Books', 'Toys'],
   sortOptions = ['title', 'none'],
-  title = 'Your Favorites',
-  description = 'View and manage your favorite items.',
+  title = 'Favoritele tale',
+  description = 'Vizualizează și gestionează articolele favorite.',
   onOpenSearch,
 }: FavoritesDrawerProps) {
   const { data: session } = useSession();
@@ -145,6 +145,7 @@ export function FavoritesDrawer({
                         variant={filters.includes(option) ? 'default' : 'outline'}
                         size='sm'
                         onClick={() => handleFilterChange(option)}
+                        disabled={!session}
                       >
                         {option === 'all' ? 'All' : option}
                       </Button>
@@ -153,7 +154,7 @@ export function FavoritesDrawer({
                 </ScrollArea>
                 <div className='flex gap-2'>
                   {sortOptions.map((option) => (
-                    <Button key={option} variant={sort === option ? 'secondary' : 'outline'} size='sm' onClick={() => setSort(option)}>
+                    <Button key={option} variant={sort === option ? 'secondary' : 'outline'} size='sm' onClick={() => setSort(option)} disabled={!session}>
                       {option === 'title' ? 'Sort by Title' : 'No Sort'}
                     </Button>
                   ))}

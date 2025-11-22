@@ -108,8 +108,8 @@ export default function AutoPage() {
         driverContact: doc.driverContact || '',
         driverTelephone: doc.driverTelephone || '',
         options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+        lat: typeof doc.location === 'object' && doc.location?.lat ? doc.location.lat : 44.4268, // Default to Bucharest
+        lng: typeof doc.location === 'object' && doc.location?.lng ? doc.location.lng : 26.1025, // Default to Bucharest
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
@@ -379,29 +379,6 @@ export default function AutoPage() {
         <Button variant='default'>Caută</Button>
       </div>
 
-      <div className='mb-4 flex flex-wrap gap-2 min-h-8'>
-        {appliedFilters.length > 0 && (
-          <>
-            {appliedFilters.map((filter) => (
-              <Button
-                key={`${filter.key}-${filter.value}`}
-                variant='secondary'
-                size='sm'
-                onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
-              >
-                {filter.label} ×
-              </Button>
-            ))}
-            <Button variant='outline' size='sm' onClick={resetAllFilters}>
-              Reset All
-            </Button>
-            <Button variant='default' size='sm' onClick={saveSearch}>
-              Save Search
-            </Button>
-          </>
-        )}
-      </div>
-
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4'>
         <div className=' col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
           <AppSlider
@@ -558,6 +535,29 @@ export default function AutoPage() {
             className='flex-1'
           />
         </div>
+      </div>
+
+      <div className='mb-4 flex flex-wrap gap-2 min-h-8'>
+        {appliedFilters.length > 0 && (
+          <>
+            {appliedFilters.map((filter) => (
+              <Button
+                key={`${filter.key}-${filter.value}`}
+                variant='secondary'
+                size='sm'
+                onClick={() => removeFilter(filter.key as keyof typeof filters | 'location', filter.value)}
+              >
+                {filter.label} ×
+              </Button>
+            ))}
+            <Button variant='outline' size='sm' onClick={resetAllFilters}>
+              Reset All
+            </Button>
+            <Button variant='default' size='sm' onClick={saveSearch}>
+              Save Search
+            </Button>
+          </>
+        )}
       </div>
 
       <div

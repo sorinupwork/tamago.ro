@@ -4,21 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useEffect, useState } from 'react';
-import {
-  Calendar,
-  Gauge,
-  Fuel,
-  Settings,
-  MapPin,
-  Car as CarIcon,
-  Palette,
-  Star,
-  Zap,
-  ArrowRight,
-  UserIcon,
-  CheckCircle,
-  UserCog,
-} from 'lucide-react';
+import { ArrowRight, UserIcon, CheckCircle } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +18,8 @@ import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
 import { getUserById } from '@/actions/auth/actions';
 import type { Car } from '@/lib/types';
+import { CarHistoryHighlights } from './CarHistoryHighlights';
+import { CarDetailsAccordion } from './CarDetailsAccordion';
 
 type CarCardProps = {
   car: Car;
@@ -76,41 +64,6 @@ export function CarCard({ car }: CarCardProps) {
     }
   }, [car.userId]);
 
-  const getHighlights = () => {
-    switch (car.category) {
-      case 'auction':
-        return [
-          { icon: Star, value: 'Licitație Activă', label: 'Status' },
-          { icon: Zap, value: `${car.price} ${car.currency}`, label: 'Bid Curent' },
-          { icon: Calendar, value: 'În Desfășurare', label: 'Perioadă' },
-        ];
-      case 'rent':
-        return [
-          { icon: Star, value: 'Disponibil', label: 'Status' },
-          { icon: Zap, value: `${car.price} ${car.currency}/${car.period || 'zi'}`, label: 'Tarif' },
-          { icon: Calendar, value: car.year, label: 'An' },
-        ];
-      case 'buy':
-        return [
-          { icon: Star, value: 'Cerere Activă', label: 'Status' },
-          {
-            icon: Zap,
-            value: car.minPrice && car.maxPrice ? `${car.minPrice} - ${car.maxPrice} ${car.currency}` : `${car.price} ${car.currency}`,
-            label: 'Buget',
-          },
-          { icon: Calendar, value: car.year, label: 'An' },
-        ];
-      default: // sell
-        return [
-          { icon: Star, value: 'Stare Excelentă', label: 'Condiție' },
-          { icon: Gauge, value: `${car.mileage} km`, label: 'Km' },
-          { icon: Zap, value: `${car.horsepower || 'N/A'} CP`, label: 'Putere' },
-        ];
-    }
-  };
-
-  const highlights = getHighlights();
-
   const getButtonText = () => {
     switch (car.category) {
       case 'auction':
@@ -127,28 +80,28 @@ export function CarCard({ car }: CarCardProps) {
   const buttonText = getButtonText();
 
   const sanitizedDescription = useMemo(() => sanitizeHtml(car.description || ''), [car.description]);
-  const categoryLabel = categories.find(cat => cat.key === car.category)?.label || car.category;
+  const categoryLabel = categories.find((cat) => cat.key === car.category)?.label || car.category;
 
   return (
-    <Card className='overflow-hidden hover:shadow-md transition-all duration-300  animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20'>
+    <Card className='overflow-hidden hover:shadow-md transition-all duration-300 animate-in fade-in-0 slide-in-from-bottom-4 border-2 border-transparent hover:border-primary/20 flex flex-col min-h-[500px] pt-0'>
       <Carousel className='w-full'>
         <CarouselContent>
           {car.images.map((img, i) => (
             <CarouselItem key={i}>
-              <div className='aspect-5/1 bg-muted relative rounded-t-md'>
-                <Image fill src={img} alt={car.title} className='object-cover object-center rounded-t-md ' />
+              <div className='aspect-4/1 bg-muted relative rounded-t-md'>
+                <Image fill src={img} alt={car.title} className='object-cover object-center rounded-t-md' />
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className='left-2' />
-        <CarouselNext className='right-2' />
+        <CarouselPrevious className='left-2 h-10 w-10 rounded-full border-2 border-primary shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-black text-black dark:text-white' />
+        <CarouselNext className='right-2 h-10 w-10 rounded-full border-2 border-primary shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-black text-black dark:text-white' />
       </Carousel>
-      <CardHeader className='pb-2'>
+      <CardHeader>
         <div className='flex justify-between items-start'>
           <div className='flex-1'>
-            <CardTitle className='text-lg md:text-xl font-semibold line-clamp-2'>{car.title}</CardTitle>
-            <p className='text-xl md:text-2xl font-bold text-green-600'>
+            <CardTitle className='text-lg md:text-xl font-bold line-clamp-2 mb-2'>{car.title}</CardTitle>
+            <p className='text-xl md:text-2xl font-extrabold text-green-600 mb-2'>
               {car.currency}{' '}
               {car.category === 'buy'
                 ? car.minPrice && car.maxPrice
@@ -158,6 +111,12 @@ export function CarCard({ car }: CarCardProps) {
                   ? `${car.price}/${car.period || 'zi'}`
                   : car.price}
             </p>
+            {car.description && (
+              <div
+                className='text-sm text-muted-foreground bg-muted/50 p-2 rounded-md'
+                dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+              />
+            )}
           </div>
           <div className='flex items-center gap-1 ml-2'>
             <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
@@ -169,93 +128,9 @@ export function CarCard({ car }: CarCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className='pt-0'>
-        <div className='bg-accent/50 p-3 rounded-lg mb-4'>
-          <h4 className='text-sm font-semibold mb-2 flex items-center gap-1'>
-            <Star className='h-4 w-4' />
-            Highlights
-          </h4>
-          <div className='grid grid-cols-3 gap-2 text-xs'>
-            {highlights.map((h, i) => (
-              <div key={i} className='text-center flex flex-col items-center gap-1'>
-                <h.icon className='h-5 w-5 text-primary' />
-                <p className='font-bold'>{h.value}</p>
-                <p className='text-muted-foreground'>{h.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        {car.description && (
-          <div className='text-sm text-muted-foreground mb-4' dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
-        )}
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <Fuel className='h-4 w-4 shrink-0' />
-            <span>Combustibil: {car.fuel}</span>
-          </div>
-          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <Settings className='h-4 w-4 shrink-0' />
-            <span>Transmisie: {car.transmission}</span>
-          </div>
-          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <MapPin className='h-4 w-4 shrink-0' />
-            <span>Locație: {car.location}</span>
-          </div>
-          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-            <CarIcon className='h-4 w-4 shrink-0' />
-            <span>Caroserie: {car.bodyType}</span>
-          </div>
-          <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <Palette className='h-4 w-4 shrink-0' />
-            <span>Culoare: {car.color}</span>
-          </div>
-          <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <UserCog className='h-4 w-4 shrink-0' />
-            <span>Vânzător: {car.sellerType}</span>
-          </div>
-          {car.brand && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <CarIcon className='h-4 w-4 shrink-0' />
-              <span>Brand: {car.brand}</span>
-            </div>
-          )}
-          {car.year && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Calendar className='h-4 w-4 shrink-0' />
-              <span>An: {car.year}</span>
-            </div>
-          )}
-          {car.mileage && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Gauge className='h-4 w-4 shrink-0' />
-              <span>Km: {car.mileage}</span>
-            </div>
-          )}
-          {car.engineCapacity && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Settings className='h-4 w-4 shrink-0' />
-              <span>Capacitate Motor: {car.engineCapacity} cc</span>
-            </div>
-          )}
-          {car.horsepower && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <Zap className='h-4 w-4 shrink-0' />
-              <span>Putere: {car.horsepower} CP</span>
-            </div>
-          )}
-          {car.is4x4 && (
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <CarIcon className='h-4 w-4 shrink-0' />
-              <span>4x4: Da</span>
-            </div>
-          )}
-        </div>
-        {car.features && (
-          <div className='mt-4'>
-            <h5 className='text-sm font-semibold mb-2'>Caracteristici:</h5>
-            <p className='text-sm text-muted-foreground'>{car.features}</p>
-          </div>
-        )}
+      <CardContent className='pt-0 flex-1 flex flex-col'>
+        <CarHistoryHighlights car={car} features={car.features} />
+        <CarDetailsAccordion car={car} />
         {car.options && car.options.length > 0 && (
           <div className='mt-4'>
             <h5 className='text-sm font-semibold mb-2'>Opțiuni:</h5>
@@ -301,7 +176,7 @@ export function CarCard({ car }: CarCardProps) {
             )}
           </div>
         )}
-        <div className='flex justify-between items-center mt-4'>
+        <div className='flex justify-between items-center mt-auto pt-4'>
           <p className='text-xs md:text-sm text-muted-foreground'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
           <Link key={car.id} href={href} className='cursor-default'>
             <Button variant='link' className='w-auto'>

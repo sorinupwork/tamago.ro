@@ -150,13 +150,27 @@ export default function MapComponent({
         {filteredCars.map((car) =>
           car.lat && car.lng ? (
             <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
-              <Popup>
-                <div className='text-center'>
-                  <h3 className='font-semibold'>{car.title}</h3>
-                  <p>
-                    {car.brand} - {car.year}
-                  </p>
-                  <p>${car.price}</p>
+              <Popup maxWidth={320}>
+                <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
+                  <div className='flex items-start gap-3'>
+                    {car.images && car.images[0] && (
+                      <img src={car.images[0]} alt={car.title} className='w-12 h-12 rounded-md object-cover flex-shrink-0' />
+                    )}
+                    <div className='flex-1'>
+                      <h4 className='text-sm font-semibold line-clamp-2'>{car.title}</h4>
+                      <p className='text-sm text-muted-foreground'>
+                        {car.brand} - {car.year}
+                      </p>
+                      <p className='text-sm font-medium text-green-600'>
+                        {car.currency} {car.price}
+                      </p>
+                      <p className='text-xs text-muted-foreground truncate'>{car.location}</p>
+                    </div>
+                  </div>
+                  <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                    <span>{car.mileage} km</span>
+                    <span>{car.fuel}</span>
+                  </div>
                 </div>
               </Popup>
             </Marker>
