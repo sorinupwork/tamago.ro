@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -12,11 +15,16 @@ type StoriesSectionProps = {
   users?: User[];
 };
 
-export const StoriesSection: React.FC<StoriesSectionProps> = async ({ mode, title = 'Stories', users = [] }) => {
-  const storiesData = await getStories({ limit: 50 });
-  const stories = storiesData.items;
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ mode, title = 'Stories', users = [] }) => {
+  const [stories, setStories] = useState<StoryWithUser[]>([]);
 
   const isStoriesMode = mode === 'stories';
+
+  useEffect(() => {
+    if (isStoriesMode) {
+      getStories({ limit: 50 }).then((data) => setStories(data.items));
+    }
+  }, [isStoriesMode]);
 
   const uniqueUsers: StoryWithUser[] = isStoriesMode
     ? stories.reduce((acc: StoryWithUser[], story) => {
@@ -26,7 +34,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = async ({ mode, titl
         }
         return acc;
       }, [])
-    : users.map(user => ({ user } as StoryWithUser));
+    : users.map((user) => ({ user }) as StoryWithUser);
 
   return (
     <>
@@ -42,9 +50,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = async ({ mode, titl
               {uniqueUsers.length > 0 ? (
                 uniqueUsers.map((item, index) => {
                   const user = isStoriesMode ? item.user : item.user;
-                  return (
-                    <StoryItem key={`story-${index}`} user={user} stories={isStoriesMode ? stories : []} />
-                  );
+                  return <StoryItem key={`story-${index}`} user={user} stories={isStoriesMode ? stories : []} />;
                 })
               ) : (
                 <div className='min-h-[120px] flex items-center justify-center w-full'>

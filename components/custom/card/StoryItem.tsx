@@ -13,9 +13,11 @@ type StoryItemProps = {
 export default function StoryItem({ user, stories }: StoryItemProps) {
   const [selectedStory, setSelectedStory] = useState<{ userId: string; index: number } | null>(null);
 
+  const userStories = stories.filter((story) => story.user?.id === user?.id);
+  const hasStories = userStories.length > 0;
+
   const handleClick = () => {
-    const userStories = stories.filter((story) => story.user?.id === user?.id);
-    if (userStories.length > 0) {
+    if (hasStories) {
       setSelectedStory({ userId: user?.id || '', index: 0 });
     }
   };
@@ -23,7 +25,7 @@ export default function StoryItem({ user, stories }: StoryItemProps) {
   return (
     <>
       <div className='flex flex-col items-center gap-2 hover:scale-105 transition-transform shrink-0 cursor-pointer' onClick={handleClick}>
-        <UserProfileCard user={user} interactive={false} size='md' />
+        <UserProfileCard user={user} interactive={!hasStories} size='md' />
         <span className='text-xs'>{user?.name || 'Unknown'}</span>
       </div>
 
