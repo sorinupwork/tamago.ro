@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import sanitizeHtml from 'sanitize-html';
+import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,8 @@ import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploade
 import { AppTagsInput } from '@/components/custom/input/AppTagsInput';
 import { createFeedAction } from '@/actions/social/feeds/actions';
 import { feedSchema, FeedFormData } from '@/lib/validations';
+import { useSession } from '@/lib/auth/auth-client';
+import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 
 type Props = {
   open: boolean;
@@ -24,6 +27,8 @@ type Props = {
 export default function FeedDialog({ open, onOpenChange }: Props) {
   const [isPending, startTransition] = useTransition();
   const [uploaderKey, setUploaderKey] = useState(0);
+  const { data: session } = useSession();
+  const router = useRouter();
   const {
     control,
     handleSubmit,
@@ -82,96 +87,113 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-          <Controller
-            name='text'
-            control={control}
-            render={({ field }) => (
-              <AppTextarea
-                label='Ce ai pe suflet?'
-                placeholder='Împărtășește-ți gândurile...'
-                value={field.value}
-                onChange={field.onChange}
-                icon={Smile}
-                error={errors.text ? [{ message: errors.text.message }] : undefined}
-              />
-            )}
-          />
+        {!session ? (
+          <div className='min-h-[300px] flex items-center justify-center'>
+            <Empty>
+              <EmptyMedia>
+                <FileText className='w-12 h-12 p-2' />
+              </EmptyMedia>
+              <EmptyTitle>Conectează-te pentru a crea postări</EmptyTitle>
+              <EmptyDescription>
+                Trebuie să fii conectat pentru a posta pe feed și a împărtăși gânduri. Conectează-te pentru a începe.
+              </EmptyDescription>
+              <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
+            </Empty>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+            <Controller
+              name='text'
+              control={control}
+              render={({ field }) => (
+                <AppTextarea
+                  label='Ce ai pe suflet?'
+                  placeholder='Împărtășește-ți gândurile...'
+                  value={field.value}
+                  onChange={field.onChange}
+                  icon={Smile}
+                  error={errors.text ? [{ message: errors.text.message }] : undefined}
+                />
+              )}
+            />
 
-          <Controller
-            name='tags'
-            control={control}
-            render={({ field }) => <AppTagsInput label='Tag-uri (pentru căutare)' tags={field.value || []} onTagsChange={field.onChange} />}
-          />
+            <Controller
+              name='tags'
+              control={control}
+              render={({ field }) => (
+                <AppTagsInput label='Tag-uri (pentru căutare)' tags={field.value || []} onTagsChange={field.onChange} />
+              )}
+            />
 
-          <Controller
-            name='files'
-            control={control}
-            render={({ field }) => (
-              <AppMediaUploaderInput
-                id='feed-media'
-                name='files'
-                uploaderKey={uploaderKey}
-                onFilesChange={(f) => field.onChange(f.slice(0, 1))}
-                accept='image/*,video/*'
-                maxFiles={1}
-                className='mt-1'
-                showPreview={false}
-                disabled={files.length > 0}
-              />
-            )}
-          />
+            <Controller
+              name='files'
+              control={control}
+              render={({ field }) => (
+                <AppMediaUploaderInput
+                  id='feed-media'
+                  name='files'
+                  uploaderKey={uploaderKey}
+                  onFilesChange={(f) => field.onChange(f.slice(0, 1))}
+                  accept='image/*,video/*'
+                  maxFiles={1}
+                  className='mt-1'
+                  showPreview={false}
+                  disabled={files.length > 0}
+                />
+              )}
+            />
 
-          {previews.length > 0 && (
-            <div className='space-y-2'>
-              <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
-                {files[0]?.type.startsWith('image/') ? (
-                  <Image
-                    src={previews[0]}
-                    alt='Feed preview'
-                    width={400}
-                    height={256}
-                    className='w-full h-full object-cover animate-spin-slow'
-                    style={{ animationDuration: '10s' }}
-                  />
-                ) : (
-                  <video
-                    src={previews[0]}
-                    className='w-full h-full object-cover'
-                    controls={false}
-                    muted
-                    autoPlay
-                    onLoadedData={(e) => {
-                      const video = e.target as HTMLVideoElement;
-                      setTimeout(() => video.pause(), 5000);
-                    }}
-                  />
+            {previews.length > 0 && (
+              <div className='space-y-2'>
+                <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
+                  {files[0]?.type.startsWith('image/') ? (
+                    <Image
+                      src={previews[0]}
+                      alt='Feed preview'
+                      width={400}
+                      height={256}
+                      className='w-full h-full object-cover animate-spin-slow'
+                      style={{ animationDuration: '10s' }}
+                    />
+                  ) : (
+                    <video
+                      src={previews[0]}
+                      className='w-full h-full object-cover'
+                      controls={false}
+                      muted
+                      autoPlay
+                      onLoadedData={(e) => {
+                        const video = e.target as HTMLVideoElement;
+                        setTimeout(() => video.pause(), 5000);
+                      }}
+                    />
+                  )}
+                  <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={handleRemoveFile}>
+                    X
+                  </Button>
+                </div>
+                {sanitizedText && (
+                  <div className='bg-muted p-3 rounded-lg'>
+                    <p className='text-sm'>{sanitizedText}</p>
+                  </div>
                 )}
-                <Button type='button' variant='destructive' size='sm' className='absolute top-2 right-2' onClick={handleRemoveFile}>
-                  X
-                </Button>
+                {tags.length > 0 && (
+                  <div className='flex flex-wrap gap-2'>
+                    {tags.map((tag, i) => (
+                      <span key={i} className='bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs'>
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              {sanitizedText && (
-                <div className='bg-muted p-3 rounded-lg'>
-                  <p className='text-sm'>{sanitizedText}</p>
-                </div>
-              )}
-              {tags.length > 0 && (
-                <div className='flex flex-wrap gap-2'>
-                  {tags.map((tag, i) => (
-                    <span key={i} className='bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs'>
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
-          <Button type='submit' className='w-full' disabled={!isValid || isPending}>
-            {isPending ? 'Posting...' : 'Postează pe Feed'}
-          </Button>
-        </form>
+            <Button type='submit' className='w-full' disabled={!isValid || isPending}>
+              {isPending ? 'Posting...' : 'Postează pe Feed'}
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
