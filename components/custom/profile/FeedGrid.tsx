@@ -53,8 +53,8 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
   return (
     <div className='w-full space-y-4'>
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
-         <h3 className='text-lg font-semibold'>Your Feed</h3>
-         <div className='flex items-center space-x-4'>
+        <h3 className='text-lg font-semibold'>Your Feed</h3>
+        <div className='flex items-center space-x-4'>
           <div className='flex items-center space-x-2'>
             <Checkbox checked={showPosts} onCheckedChange={(checked) => setShowPosts(checked === true)} />
             <label>Posts</label>
@@ -65,15 +65,16 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className='w-full sm:w-40'>
-               <SelectValue />
-             </SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value='createdAt'>Newest First</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
         {filtered.map((item) => (
           <Card key={item.id} className='overflow-hidden'>
             <CardContent className='p-4'>
@@ -111,6 +112,7 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
           </Card>
         ))}
       </div>
+
       {hasMore && (
         <div className='text-center'>
           <Button onClick={onLoadMore} disabled={loadingMore}>

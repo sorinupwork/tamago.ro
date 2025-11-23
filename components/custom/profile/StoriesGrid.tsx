@@ -58,10 +58,11 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
           </SelectContent>
         </Select>
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
         {sorted.map((story) => (
           <Card key={story.id} className='overflow-hidden'>
-            <CardContent className='p-4'>
+            <CardContent>
               {story.files.length > 0 && (
                 <div className='relative w-full h-48 mb-2'>
                   {story.files[0].contentType?.startsWith('image/') ? (
@@ -77,6 +78,7 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
           </Card>
         ))}
       </div>
+
       {hasMore && (
         <div className='text-center'>
           <Button onClick={onLoadMore} disabled={loadingMore}>

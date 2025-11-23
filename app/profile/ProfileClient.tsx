@@ -1,12 +1,10 @@
 'use client';
-import { getFeedPosts } from '@/actions/social/feeds/actions';
-import { getStories } from '@/actions/social/stories/actions';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Settings, Bell, TrendingUp, Lock, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Accordion } from '@/components/ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
 import EditProfileDrawer from '@/components/custom/drawer/EditProfileDrawer';
@@ -24,8 +22,10 @@ import RewardsCard from '@/components/custom/profile/RewardsCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
 import FeedGrid from '@/components/custom/profile/FeedGrid';
-import { getUserCars } from '@/actions/auto/actions';
 import SecurityCard from '@/components/custom/profile/SecurityCard';
+import { getUserCars } from '@/actions/auto/actions';
+import { getFeedPosts } from '@/actions/social/feeds/actions';
+import { getStories } from '@/actions/social/stories/actions';
 
 type User = {
   id: string;
@@ -192,16 +192,6 @@ export default function ProfileClient({
   const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
   const [clientStoriesHasMore, setClientStoriesHasMore] = useState(initialStoriesHasMore);
 
-  const [settingsOpen, setSettingsOpen] = useState<string[]>(['verified']);
-  const handleSettingsChange = (value: string[] | string | null) => {
-    const arr = Array.isArray(value) ? value : value ? [value] : [];
-    if (!arr.includes('verified')) {
-      setSettingsOpen(['verified', ...arr]);
-    } else {
-      setSettingsOpen(arr);
-    }
-  };
-
   useEffect(() => {
     if (!user?.id) return;
     let mounted = true;
@@ -327,8 +317,8 @@ export default function ProfileClient({
 
   return (
     <div className='min-h-screen flex flex-col lg:flex-row'>
-      <div className='flex flex-row items-start gap-4'>
-        <aside className='hidden lg:block lg:sticky lg:top-14 space-y-4 sm:space-y-6 p-4'>
+      <div className='w-full flex flex-row items-start gap-4'>
+        <aside className='hidden lg:block lg:basis-1/4 lg:flex-none lg:sticky lg:top-14 space-y-4 p-2'>
           <ActivityFeed
             activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
             onLoadMore={() => toast.success('Încarcă mai multe notificări')}
@@ -353,8 +343,8 @@ export default function ProfileClient({
           />
         </aside>
 
-        <div className='flex-1 p-4 space-y-6 sm:space-y-8'>
-          <div className='flex flex-col gap-4'>
+        <div className='flex-1 p-2 space-y-4 lg:basis-3/4'>
+          <div className='flex flex-col gap-2'>
             <HeaderProfile
               user={user}
               userData={userData}
@@ -365,241 +355,192 @@ export default function ProfileClient({
             />
 
             <Tabs defaultValue='overview' className='w-full'>
-              <div className='overflow-x-auto p-2'>
-                <TabsList className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
-                  <TabsTrigger value='overview' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    General
-                  </TabsTrigger>
+              <TabsList className='grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-md gap-2 p-2'>
+                <TabsTrigger value='overview' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  General
+                </TabsTrigger>
 
-                  <TabsTrigger value='feed' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Feed
-                  </TabsTrigger>
+                <TabsTrigger value='feed' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  Feed
+                </TabsTrigger>
 
-                  <TabsTrigger value='stories' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Stories
-                  </TabsTrigger>
+                <TabsTrigger value='stories' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  Stories
+                </TabsTrigger>
 
-                  <TabsTrigger value='anunturi' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Anunțuri
-                  </TabsTrigger>
+                <TabsTrigger value='anunturi' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  Anunțuri
+                </TabsTrigger>
 
-                  <TabsTrigger value='progress' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Progres & Insigne
-                  </TabsTrigger>
-                  <TabsTrigger value='settings' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
-                    Setări
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+                <TabsTrigger value='progress' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  Progres
+                </TabsTrigger>
+                <TabsTrigger value='settings' className='h-14 px-2 py-2 whitespace-nowrap shrink-0 text-xs sm:text-sm'>
+                  Setări
+                </TabsTrigger>
+              </TabsList>
 
-              <TabsContent value='overview' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>General</h3>
-                    <div className='w-full sm:max-w-none' />
-                  </div>
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                    <RewardsCard
-                      freePosts={userData.rewards.freePosts}
-                      premiumAccess={userData.rewards.premiumAccess}
-                      onSellClick={() => router.push('/sell')}
-                    />
-                    <SecurityCard
-                      title='Securitate Cont'
-                      description='Verifică parola și activează autentificarea în doi pași pentru a proteja contul tău.'
-                      status='warning'
-                      icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
-                      buttonText='Gestionează Securitatea'
-                      onButtonClick={() => router.push('/settings/security')}
-                    />
-                    <SecurityCard
-                      title='Confidențialitate'
-                      description='Controlează cine poate vedea profilul tău și informațiile personale.'
-                      status='secure'
-                      icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
-                      buttonText='Setări Confidențialitate'
-                      onButtonClick={() => router.push('/settings/privacy')}
-                    />
-                    <SecurityCard
-                      title='Verificare Cont'
-                      description='Verifică email-ul și conturile sociale pentru a crește încrederea în platformă.'
-                      status={userData.verified.email ? 'secure' : 'danger'}
-                      icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
-                      buttonText='Verifică Acum'
-                      onButtonClick={() => router.push('/settings/verification')}
-                    />
-                  </div>
+              <TabsContent value='overview'>
+                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
+                  <RewardsCard
+                    freePosts={userData.rewards.freePosts}
+                    premiumAccess={userData.rewards.premiumAccess}
+                    onSellClick={() => router.push('/sell')}
+                  />
+                  <SecurityCard
+                    title='Securitate Cont'
+                    description='Verifică parola și activează autentificarea în doi pași pentru a proteja contul tău.'
+                    status='warning'
+                    icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
+                    buttonText='Gestionează Securitatea'
+                    onButtonClick={() => router.push('/settings/security')}
+                  />
+                  <SecurityCard
+                    title='Confidențialitate'
+                    description='Controlează cine poate vedea profilul tău și informațiile personale.'
+                    status='secure'
+                    icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
+                    buttonText='Setări Confidențialitate'
+                    onButtonClick={() => router.push('/settings/privacy')}
+                  />
+                  <SecurityCard
+                    title='Verificare Cont'
+                    description='Verifică email-ul și conturile sociale pentru a crește încrederea în platformă.'
+                    status={userData.verified.email ? 'secure' : 'danger'}
+                    icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
+                    buttonText='Verifică Acum'
+                    onButtonClick={() => router.push('/settings/verification')}
+                  />
                 </div>
               </TabsContent>
 
-              <TabsContent value='feed' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>Feed</h3>
-                    <div className='w-full sm:max-w-none' />
-                  </div>
-                  <div className='w-full'>
-                    <FeedGrid
-                      userId={user?.id}
-                      hasMore={clientFeedHasMore}
-                      onLoadMore={handleFeedLoadMore}
-                      loadingMore={clientFeedLoading}
-                      initialItems={clientFeedItems}
-                    />
-                  </div>
-                </div>
+              <TabsContent value='feed'>
+                <FeedGrid
+                  userId={user?.id}
+                  hasMore={clientFeedHasMore}
+                  onLoadMore={handleFeedLoadMore}
+                  loadingMore={clientFeedLoading}
+                  initialItems={clientFeedItems}
+                />
               </TabsContent>
 
               <TabsContent value='stories' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>Stories</h3>
-                    <div className='w-full sm:max-w-none' />
-                  </div>
-                  <div className='w-full'>
-                    <StoriesGrid
-                      userId={user?.id}
-                      hasMore={clientStoriesHasMore}
-                      onLoadMore={handleStoriesLoadMore}
-                      loadingMore={clientStoriesLoading}
-                      initialItems={clientStories}
-                    />
-                  </div>
+                <StoriesGrid
+                  userId={user?.id}
+                  hasMore={clientStoriesHasMore}
+                  onLoadMore={handleStoriesLoadMore}
+                  loadingMore={clientStoriesLoading}
+                  initialItems={clientStories}
+                />
+              </TabsContent>
+
+              <TabsContent value='anunturi'>
+                <div className='flex flex-col flex-1 gap-4'>
+                  <PostsFilters
+                    searchQuery={searchQuery}
+                    onSearchChange={(value) => setSearchQuery(value)}
+                    categoryFilter={categoryFilter}
+                    onCategoryChange={setCategoryFilter}
+                    statusFilter={statusFilter}
+                    onStatusChange={setStatusFilter}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                  />
+
+                  <PostsGrid
+                    posts={posts ?? []}
+                    onEdit={handleEditPost}
+                    onDelete={handleDeletePost}
+                    onToggle={handleToggleActive}
+                    onView={handleViewPost}
+                    hasMore={hasMore}
+                    onLoadMore={handleLoadMore}
+                    loadingMore={loadingPosts && currentPage > 1}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               </TabsContent>
 
-              <TabsContent value='anunturi' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>Anunțuri Tale</h3>
-                    <div className='w-full sm:max-w-none'>
-                      <PostsFilters
-                        searchQuery={searchQuery}
-                        onSearchChange={(value) => setSearchQuery(value)}
-                        categoryFilter={categoryFilter}
-                        onCategoryChange={setCategoryFilter}
-                        statusFilter={statusFilter}
-                        onStatusChange={setStatusFilter}
-                        sortBy={sortBy}
-                        onSortChange={setSortBy}
-                      />
-                    </div>
-                  </div>
+              <TabsContent value='progress'>
+                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
+                  <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
 
-                  {loadingPosts && currentPage === 1 ? (
-                    <SkeletonLoading variant='profile' />
-                  ) : postsError ? (
-                    <div className='text-center text-red-500'>{postsError}</div>
-                  ) : (
-                    <div className='w-full'>
-                      <PostsGrid
-                        posts={posts ?? []}
-                        onEdit={handleEditPost}
-                        onDelete={handleDeletePost}
-                        onToggle={handleToggleActive}
-                        onView={handleViewPost}
-                        hasMore={hasMore}
-                        onLoadMore={handleLoadMore}
-                        loadingMore={loadingPosts && currentPage > 1}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                      />
-                    </div>
-                  )}
+                  <BadgesCarousel badges={userData.badges} title='Insignele Tale' className='xl:col-span-2' />
                 </div>
               </TabsContent>
 
-              <TabsContent value='progress' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>Progres & Insigne</h3>
-                    <div className='w-full sm:max-w-none' />
-                  </div>
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch'>
-                    <div className='h-full'>
-                      <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
-                    </div>
-                    <div className='h-full'>
-                      <BadgesCarousel badges={userData.badges} title='Insignele Tale' />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
+              <TabsContent value='settings'>
+                <div className='flex flex-col md:flex-row md:flex-wrap items-stretch gap-4'>
+                  <SettingsAccordion
+                    value='verified'
+                    defaultOpen={true}
+                    icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
+                    title='Informații Verificate'
+                    content={
+                      <div>
+                        <div className='flex items-start gap-2'>
+                          <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
+                        </div>
+                        <div className='flex items-start gap-2'>
+                          <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>
+                            Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
+                          </p>
+                        </div>
+                      </div>
+                    }
+                  />
 
-              <TabsContent value='settings' className='space-y-6'>
-                <div className='w-full flex flex-col gap-4'>
-                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
-                    <h3 className='text-lg font-semibold'>Setări Cont</h3>
-                    <div className='w-full sm:max-w-none' />
-                  </div>
-                  <Accordion type='multiple' value={settingsOpen} onValueChange={handleSettingsChange} className='w-full flex flex-col gap-2'>
-                    <SettingsAccordion
-                      value='verified'
-                      icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
-                      title='Informații Verificate'
-                      content={
-                        <>
-                          <div className='flex items-start gap-2'>
-                            <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                            <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
-                          </div>
-                          <div className='flex items-start gap-2'>
-                            <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                            <p className='text-sm text-muted-foreground'>
-                              Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
-                            </p>
-                          </div>
-                        </>
-                      }
-                    />
-                    <SettingsAccordion
-                      value='notifications'
-                      icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
-                      title='Notificări Vânzări & Postări'
-                      content={
-                        <div className='flex items-start gap-2'>
-                          <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>
-                            Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
-                          </p>
-                        </div>
-                      }
-                      buttonText='Editează Notificările'
-                      onButtonClick={() => console.log('Editează notificările')}
-                    />
-                    <SettingsAccordion
-                      value='privacy'
-                      icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
-                      title='Confidențialitate & Vânzări'
-                      content={
-                        <div className='flex items-start gap-2'>
-                          <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>
-                            Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
-                          </p>
-                        </div>
-                      }
-                      buttonText='Gestionează Confidențialitatea'
-                      onButtonClick={() => console.log('Gestionează confidențialitatea')}
-                    />
+                  <SettingsAccordion
+                    value='notifications'
+                    icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
+                    title='Notificări Vânzări & Postări'
+                    content={
+                      <div className='flex items-start gap-2'>
+                        <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
+                        <p className='text-sm text-muted-foreground'>
+                          Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
+                        </p>
+                      </div>
+                    }
+                    buttonText='Editează Notificările'
+                    onButtonClick={() => console.log('Editează notificările')}
+                  />
 
-                    <SettingsAccordion
-                      value='marketplace'
-                      icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
-                      title='Setări Marketplace'
-                      content={
-                        <div className='flex items-start gap-2'>
-                          <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>
-                            Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
-                          </p>
-                        </div>
-                      }
-                      buttonText='Editează Setările Vânzărilor'
-                      onButtonClick={() => console.log('Editează setările marketplace')}
-                    />
-                  </Accordion>
+                  <SettingsAccordion
+                    value='marketplace'
+                    icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
+                    title='Setări Marketplace'
+                    content={
+                      <div className='flex items-start gap-2'>
+                        <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                        <p className='text-sm text-muted-foreground'>
+                          Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
+                        </p>
+                      </div>
+                    }
+                    buttonText='Editează Setările Vânzărilor'
+                    onButtonClick={() => console.log('Editează setările marketplace')}
+                  />
+
+                  <SettingsAccordion
+                    value='privacy'
+                    icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
+                    title='Confidențialitate & Vânzări'
+                    content={
+                      <div className='flex items-start gap-2'>
+                        <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
+                        <p className='text-sm text-muted-foreground'>
+                          Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
+                        </p>
+                      </div>
+                    }
+                    buttonText='Gestionează Confidențialitatea'
+                    onButtonClick={() => console.log('Gestionează confidențialitatea')}
+                  />
                 </div>
               </TabsContent>
             </Tabs>

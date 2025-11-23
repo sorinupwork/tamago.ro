@@ -49,8 +49,6 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
 
   return (
     <Card className='w-full relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6'>
-      <div className='absolute inset-0 bg-linear-to-r from-primary/10 to-secondary/10 rounded-2xl pointer-events-none' />
-
       {avatarHref ? (
         <Link href={avatarHref} className='block rounded-sm overflow-hidden'>
           <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm shrink-0'>
@@ -74,7 +72,7 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
       <div className='flex-1 space-y-2'>
         <div className='flex items-center gap-2'>
           <CardTitle className='text-3xl font-bold'>{user?.name}</CardTitle>
-          <Badge variant='secondary'>Premium</Badge>
+          <Badge variant='secondary'>Verified</Badge>
         </div>
         <CardDescription>
           <p className='text-muted-foreground'>{user?.email}</p>
@@ -90,7 +88,7 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
             </div>
           </div>
         </CardDescription>
-        <CardAction className='flex flex-col sm:flex-row justify-start space-y-2 sm:space-y-0 sm:space-x-6 pt-2'>
+        <CardAction className='flex flex-row justify-start items-center space-x-2'>
           <Button variant='link' className='p-0 h-auto text-sm hover:no-underline'>
             <div className='text-center'>
               <div className='font-bold text-xl'>{userData.postsCount}</div>
