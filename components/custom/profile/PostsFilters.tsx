@@ -38,7 +38,7 @@ export default function PostsFilters({
   ];
 
   return (
-    <Card className='p-4 rounded-xl'>
+    <Card className='w-full p-4 rounded-xl'>
       <div className='flex flex-col sm:flex-row gap-4'>
         <AppInput
           type='text'
@@ -52,21 +52,21 @@ export default function PostsFilters({
           value={categoryFilter}
           onValueChange={(value) => onCategoryChange(value as string)}
           placeholder='Toate Categoriile'
-          className='w-full sm:w-48'
+          className='flex-1'
         />
         <AppSelectInput
           options={statusOptions}
           value={statusFilter}
           onValueChange={(value) => onStatusChange(value as string)}
           placeholder='Toate Statusurile'
-          className='w-full sm:w-48'
+          className='flex-1'
         />
         <AppSelectInput
           options={sortOptions}
           value={sortBy}
           onValueChange={(value) => onSortChange(value as string)}
           placeholder='Sortează după Dată'
-          className='w-full sm:w-48'
+          className='flex-1'
         />
       </div>
     </Card>

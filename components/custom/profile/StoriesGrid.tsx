@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 type Story = {
-  _id: string;
+  id: string;
   caption?: string;
   files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
   createdAt: string;
@@ -21,7 +21,7 @@ type StoriesGridProps = {
   hasMore: boolean;
   onLoadMore: () => void;
   loadingMore: boolean;
-  initialItems?: Story[]; // new prop - server provided items
+  initialItems?: Story[];
 };
 
 export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, initialItems = [] }: StoriesGridProps) {
@@ -30,7 +30,6 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
   const [error] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('createdAt');
 
-  // keep in sync with server props (router.refresh will update initialItems)
   useEffect(() => {
     setStories(initialItems);
   }, [initialItems]);
@@ -46,11 +45,11 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
   if (error) return <div className='text-center text-red-500'>{error}</div>;
 
   return (
-    <div className='space-y-4'>
-      <div className='flex justify-between items-center'>
+    <div className='w-full space-y-4'>
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
         <h3 className='text-lg font-semibold'>Your Stories</h3>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className='w-40'>
+          <SelectTrigger className='w-full sm:w-40'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -61,7 +60,7 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {sorted.map((story) => (
-          <Card key={story._id} className='overflow-hidden'>
+          <Card key={story.id} className='overflow-hidden'>
             <CardContent className='p-4'>
               {story.files.length > 0 && (
                 <div className='relative w-full h-48 mb-2'>

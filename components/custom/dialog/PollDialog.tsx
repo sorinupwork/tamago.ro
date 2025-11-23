@@ -23,10 +23,42 @@ export default function PollDialog({ open, onOpenChange }: Props) {
 
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState<string[]>(['', '']);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
 
   const addOption = () => setOptions((s) => [...s, '']);
   const removeOption = (i: number) => setOptions((s) => s.filter((_, idx) => idx !== i));
-  const updateOption = (idx: number, value: string) => setOptions((s) => s.map((v, i) => (i === idx ? value : v)));
+  const updateOption = (idx: number, value: string) =>
+    setOptions((s) => {
+      const next = s.map((v, i) => (i === idx ? value : v));
+      if (next.filter((o) => o.trim().length > 0).length >= 2) setContentError(null);
+      return next;
+    });
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setContentError(null);
+    if (!question.trim()) return setContentError('Întrebarea este obligatorie');
+    const nonEmptyOptions = options.filter((o) => o.trim().length > 0);
+    if (nonEmptyOptions.length < 2) return setContentError('Trebuie cel puțin 2 opțiuni ne-goale');
+
+    setLoading(true);
+    try {
+      const fd = new FormData(e.currentTarget as HTMLFormElement);
+      await createPollAction(fd);
+      setQuestion('');
+      setOptions(['', '']);
+      onOpenChange(false);
+      router.refresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || 'Eroare la crearea sondajului');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog
@@ -61,21 +93,25 @@ export default function PollDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form action={createPollAction} className='space-y-4'>
+          <form onSubmit={handleSubmit} className='space-y-4'>
             <div>
-              <Label htmlFor='poll-question'>Întrebare</Label>
               <AppInput
+                label='Întrebare'
                 id='poll-question'
                 name='question'
                 placeholder='Întreabă ceva...'
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={(e) => {
+                  setQuestion(e.target.value);
+                  if (e.target.value.trim().length > 0) setContentError(null);
+                }}
               />
+              <p className='text-sm text-destructive mt-1 min-h-4'>{contentError ?? ''}</p>
             </div>
 
             <div>
               <Label>Opțiuni</Label>
-              <div className='space-y-2 mt-1'>
+              <div className='space-y-2 mt-2'>
                 {options.map((opt, i) => (
                   <div key={i} className='flex items-center space-x-2'>
                     <AppInput
@@ -97,9 +133,11 @@ export default function PollDialog({ open, onOpenChange }: Props) {
               </Button>
             </div>
 
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={loading}>
               Creează Sondaj
             </Button>
+            {error ? <p className='text-sm text-destructive mt-1'>{error}</p> : <p className='text-sm mt-1 min-h-4' />}
+            {loading && <p className='text-sm text-muted-foreground mt-1'>Se creează sondajul…</p>}
           </form>
         )}
       </DialogContent>

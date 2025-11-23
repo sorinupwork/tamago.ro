@@ -51,28 +51,27 @@ type Session = {
 };
 
 type FeedItemLocal = {
-  _id: string;
+  id: string;
   type: 'post' | 'poll';
   text?: string;
   question?: string;
   options?: string[];
   files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string; // changed to required string
+  createdAt: string;
   tags?: string[];
-  // ...other optional fields used by UI...
 };
 
 type StoryLocal = {
-  _id: string;
+  id: string;
   caption?: string;
   files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string; // changed to required string
-  expiresAt: string; // changed to required string
+  createdAt: string;
+  expiresAt: string;
 };
 
 type ProfileClientProps = {
   session: Session;
-  initialFeedItems?: FeedItemLocal[]; // new SSR props
+  initialFeedItems?: FeedItemLocal[];
   initialFeedHasMore?: boolean;
   initialStoriesItems?: StoryLocal[];
   initialStoriesHasMore?: boolean;
@@ -88,7 +87,6 @@ export default function ProfileClient({
   const user = session.user;
   const router = useRouter();
 
-  // Mock data for demo; replace with DB fetch later
   const userData = {
     badges: [
       'Prima Conectare',
@@ -153,25 +151,46 @@ export default function ProfileClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalPosts, setTotalPosts] = useState(0);
+  const POSTS_PER_PAGE = 10;
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
-  // keep client-side copies to support load-more via server actions without full refresh
+  const handlePageChange = async (page: number) => {
+    if (!user?.id || page === currentPage) return;
+    setLoadingPosts(true);
+    setPostsError(null);
+    try {
+      const params = {
+        userId: user.id,
+        ...(categoryFilter !== 'all' && { category: categoryFilter }),
+        ...(statusFilter !== 'all' && { status: statusFilter }),
+        sortBy,
+        ...(searchQuery && { search: searchQuery }),
+        page,
+        limit: POSTS_PER_PAGE,
+      };
+      const data = await getUserCars(params);
+      setPosts(data.posts);
+      setHasMore(data.hasMore);
+      setTotalPosts(data.total);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error(err);
+      setPostsError('Nu s-au putut încărca postările.');
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
   const [clientFeedItems, setClientFeedItems] = useState<FeedItemLocal[]>(initialFeedItems);
   const [clientFeedPage, setClientFeedPage] = useState(1);
   const [clientFeedLoading, setClientFeedLoading] = useState(false);
   const [clientFeedHasMore, setClientFeedHasMore] = useState(initialFeedHasMore);
 
-  const [storiesLoading, setStoriesLoading] = useState(false);
-  const [storiesHasMore, setStoriesHasMore] = useState(initialStoriesHasMore);
-  const [storiesCurrentPage, setStoriesCurrentPage] = useState(1);
-
   const [clientStories, setClientStories] = useState<StoryLocal[]>(initialStoriesItems);
   const [clientStoriesPage, setClientStoriesPage] = useState(1);
   const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
   const [clientStoriesHasMore, setClientStoriesHasMore] = useState(initialStoriesHasMore);
-
-  const [feedLoading, setFeedLoading] = useState(false);
-  const [feedHasMore, setFeedHasMore] = useState(initialFeedHasMore);
-  const [feedCurrentPage, setFeedCurrentPage] = useState(1);
 
   const [settingsOpen, setSettingsOpen] = useState<string[]>(['verified']);
   const handleSettingsChange = (value: string[] | string | null) => {
@@ -250,17 +269,12 @@ export default function ProfileClient({
     }
   };
 
-  // keep in sync if server props change (router.refresh after create actions / revalidate)
-  useEffect(() => setClientFeedItems(initialFeedItems), [initialFeedItems]);
-  useEffect(() => setClientStories(initialStoriesItems), [initialStoriesItems]);
-
   const handleStoriesLoadMore = async () => {
     if (!clientStoriesHasMore || clientStoriesLoading) return;
     setClientStoriesLoading(true);
     try {
       const next = clientStoriesPage + 1;
       const res = await getStories({ userId: user?.id, page: next, limit: 10 });
-      setClientStories((prev) => [...prev, ...(res.items || [])]);
       setClientStoriesPage(next);
       setClientStoriesHasMore(Boolean(res.hasMore));
     } finally {
@@ -274,7 +288,6 @@ export default function ProfileClient({
     try {
       const next = clientFeedPage + 1;
       const res = await getFeedPosts({ userId: user?.id, page: next, limit: 10 });
-      setClientFeedItems((prev) => [...prev, ...(res.items || [])]);
       setClientFeedPage(next);
       setClientFeedHasMore(Boolean(res.hasMore));
     } finally {
@@ -340,12 +353,13 @@ export default function ProfileClient({
           />
         </aside>
 
-        <div className='container mx-auto p-4 space-y-6 sm:space-y-8'>
+        <div className='flex-1 p-4 space-y-6 sm:space-y-8'>
           <div className='flex flex-col gap-4'>
             <HeaderProfile
               user={user}
               userData={userData}
               imagePreview={imagePreview}
+              avatarHref={user?.id ? `/profile/${user.id}` : undefined}
               shareProfile={shareProfile}
               setIsEditing={setIsEditing}
             />
@@ -379,164 +393,214 @@ export default function ProfileClient({
               </div>
 
               <TabsContent value='overview' className='space-y-6'>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                  <RewardsCard
-                    freePosts={userData.rewards.freePosts}
-                    premiumAccess={userData.rewards.premiumAccess}
-                    onSellClick={() => router.push('/sell')}
-                  />
-                  <SecurityCard
-                    title='Securitate Cont'
-                    description='Verifică parola și activează autentificarea în doi pași pentru a proteja contul tău.'
-                    status='warning'
-                    icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
-                    buttonText='Gestionează Securitatea'
-                    onButtonClick={() => router.push('/settings/security')}
-                  />
-                  <SecurityCard
-                    title='Confidențialitate'
-                    description='Controlează cine poate vedea profilul tău și informațiile personale.'
-                    status='secure'
-                    icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
-                    buttonText='Setări Confidențialitate'
-                    onButtonClick={() => router.push('/settings/privacy')}
-                  />
-                  <SecurityCard
-                    title='Verificare Cont'
-                    description='Verifică email-ul și conturile sociale pentru a crește încrederea în platformă.'
-                    status={userData.verified.email ? 'secure' : 'danger'}
-                    icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
-                    buttonText='Verifică Acum'
-                    onButtonClick={() => router.push('/settings/verification')}
-                  />
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>General</h3>
+                    <div className='w-full sm:max-w-none' />
+                  </div>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                    <RewardsCard
+                      freePosts={userData.rewards.freePosts}
+                      premiumAccess={userData.rewards.premiumAccess}
+                      onSellClick={() => router.push('/sell')}
+                    />
+                    <SecurityCard
+                      title='Securitate Cont'
+                      description='Verifică parola și activează autentificarea în doi pași pentru a proteja contul tău.'
+                      status='warning'
+                      icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
+                      buttonText='Gestionează Securitatea'
+                      onButtonClick={() => router.push('/settings/security')}
+                    />
+                    <SecurityCard
+                      title='Confidențialitate'
+                      description='Controlează cine poate vedea profilul tău și informațiile personale.'
+                      status='secure'
+                      icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
+                      buttonText='Setări Confidențialitate'
+                      onButtonClick={() => router.push('/settings/privacy')}
+                    />
+                    <SecurityCard
+                      title='Verificare Cont'
+                      description='Verifică email-ul și conturile sociale pentru a crește încrederea în platformă.'
+                      status={userData.verified.email ? 'secure' : 'danger'}
+                      icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
+                      buttonText='Verifică Acum'
+                      onButtonClick={() => router.push('/settings/verification')}
+                    />
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value='feed' className='space-y-6'>
-                <FeedGrid
-                  userId={user?.id}
-                  hasMore={clientFeedHasMore}
-                  onLoadMore={handleFeedLoadMore}
-                  loadingMore={clientFeedLoading}
-                  initialItems={clientFeedItems}
-                />
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>Feed</h3>
+                    <div className='w-full sm:max-w-none' />
+                  </div>
+                  <div className='w-full'>
+                    <FeedGrid
+                      userId={user?.id}
+                      hasMore={clientFeedHasMore}
+                      onLoadMore={handleFeedLoadMore}
+                      loadingMore={clientFeedLoading}
+                      initialItems={clientFeedItems}
+                    />
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value='stories' className='space-y-6'>
-                <StoriesGrid
-                  userId={user?.id}
-                  hasMore={clientStoriesHasMore}
-                  onLoadMore={handleStoriesLoadMore}
-                  loadingMore={clientStoriesLoading}
-                  initialItems={clientStories}
-                />
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>Stories</h3>
+                    <div className='w-full sm:max-w-none' />
+                  </div>
+                  <div className='w-full'>
+                    <StoriesGrid
+                      userId={user?.id}
+                      hasMore={clientStoriesHasMore}
+                      onLoadMore={handleStoriesLoadMore}
+                      loadingMore={clientStoriesLoading}
+                      initialItems={clientStories}
+                    />
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value='anunturi' className='space-y-6'>
-                <PostsFilters
-                  searchQuery={searchQuery}
-                  onSearchChange={(value) => setSearchQuery(value)}
-                  categoryFilter={categoryFilter}
-                  onCategoryChange={setCategoryFilter}
-                  statusFilter={statusFilter}
-                  onStatusChange={setStatusFilter}
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                />
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>Anunțuri Tale</h3>
+                    <div className='w-full sm:max-w-none'>
+                      <PostsFilters
+                        searchQuery={searchQuery}
+                        onSearchChange={(value) => setSearchQuery(value)}
+                        categoryFilter={categoryFilter}
+                        onCategoryChange={setCategoryFilter}
+                        statusFilter={statusFilter}
+                        onStatusChange={setStatusFilter}
+                        sortBy={sortBy}
+                        onSortChange={setSortBy}
+                      />
+                    </div>
+                  </div>
 
-                {loadingPosts && currentPage === 1 ? (
-                  <SkeletonLoading variant='profile' />
-                ) : postsError ? (
-                  <div className='text-center text-red-500'>{postsError}</div>
-                ) : (
-                  <PostsGrid
-                    posts={posts ?? []}
-                    onEdit={handleEditPost}
-                    onDelete={handleDeletePost}
-                    onToggle={handleToggleActive}
-                    onView={handleViewPost}
-                    hasMore={hasMore}
-                    onLoadMore={handleLoadMore}
-                    loadingMore={loadingPosts && currentPage > 1}
-                  />
-                )}
+                  {loadingPosts && currentPage === 1 ? (
+                    <SkeletonLoading variant='profile' />
+                  ) : postsError ? (
+                    <div className='text-center text-red-500'>{postsError}</div>
+                  ) : (
+                    <div className='w-full'>
+                      <PostsGrid
+                        posts={posts ?? []}
+                        onEdit={handleEditPost}
+                        onDelete={handleDeletePost}
+                        onToggle={handleToggleActive}
+                        onView={handleViewPost}
+                        hasMore={hasMore}
+                        onLoadMore={handleLoadMore}
+                        loadingMore={loadingPosts && currentPage > 1}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                      />
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value='progress' className='space-y-6'>
-                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-                  <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
-                  <BadgesCarousel badges={userData.badges} title='Insignele Tale' />
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>Progres & Insigne</h3>
+                    <div className='w-full sm:max-w-none' />
+                  </div>
+                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch'>
+                    <div className='h-full'>
+                      <ProgressBars posts={userData.progress.posts} friends={userData.progress.friends} points={userData.progress.points} />
+                    </div>
+                    <div className='h-full'>
+                      <BadgesCarousel badges={userData.badges} title='Insignele Tale' />
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value='settings' className='space-y-6'>
-                <Accordion type='multiple' value={settingsOpen} onValueChange={handleSettingsChange} className='w-full flex flex-col gap-2'>
-                  <SettingsAccordion
-                    value='verified'
-                    icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
-                    title='Informații Verificate'
-                    content={
-                      <>
+                <div className='w-full flex flex-col gap-4'>
+                  <div className='flex flex-col sm:flex-row justify-between items-center gap-4 w-full'>
+                    <h3 className='text-lg font-semibold'>Setări Cont</h3>
+                    <div className='w-full sm:max-w-none' />
+                  </div>
+                  <Accordion type='multiple' value={settingsOpen} onValueChange={handleSettingsChange} className='w-full flex flex-col gap-2'>
+                    <SettingsAccordion
+                      value='verified'
+                      icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
+                      title='Informații Verificate'
+                      content={
+                        <>
+                          <div className='flex items-start gap-2'>
+                            <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                            <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
+                          </div>
+                          <div className='flex items-start gap-2'>
+                            <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                            <p className='text-sm text-muted-foreground'>
+                              Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
+                            </p>
+                          </div>
+                        </>
+                      }
+                    />
+                    <SettingsAccordion
+                      value='notifications'
+                      icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
+                      title='Notificări Vânzări & Postări'
+                      content={
                         <div className='flex items-start gap-2'>
-                          <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
-                        </div>
-                        <div className='flex items-start gap-2'>
-                          <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                          <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
                           <p className='text-sm text-muted-foreground'>
-                            Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
+                            Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
                           </p>
                         </div>
-                      </>
-                    }
-                  />
-                  <SettingsAccordion
-                    value='notifications'
-                    icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Notificări Vânzări & Postări'
-                    content={
-                      <div className='flex items-start gap-2'>
-                        <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
-                        </p>
-                      </div>
-                    }
-                    buttonText='Editează Notificările'
-                    onButtonClick={() => console.log('Editează notificările')}
-                  />
-                  <SettingsAccordion
-                    value='privacy'
-                    icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Confidențialitate & Vânzări'
-                    content={
-                      <div className='flex items-start gap-2'>
-                        <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
-                        </p>
-                      </div>
-                    }
-                    buttonText='Gestionează Confidențialitatea'
-                    onButtonClick={() => console.log('Gestionează confidențialitatea')}
-                  />
+                      }
+                      buttonText='Editează Notificările'
+                      onButtonClick={() => console.log('Editează notificările')}
+                    />
+                    <SettingsAccordion
+                      value='privacy'
+                      icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
+                      title='Confidențialitate & Vânzări'
+                      content={
+                        <div className='flex items-start gap-2'>
+                          <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>
+                            Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
+                          </p>
+                        </div>
+                      }
+                      buttonText='Gestionează Confidențialitatea'
+                      onButtonClick={() => console.log('Gestionează confidențialitatea')}
+                    />
 
-                  <SettingsAccordion
-                    value='marketplace'
-                    icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
-                    title='Setări Marketplace'
-                    content={
-                      <div className='flex items-start gap-2'>
-                        <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
-                        </p>
-                      </div>
-                    }
-                    buttonText='Editează Setările Vânzărilor'
-                    onButtonClick={() => console.log('Editează setările marketplace')}
-                  />
-                </Accordion>
+                    <SettingsAccordion
+                      value='marketplace'
+                      icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
+                      title='Setări Marketplace'
+                      content={
+                        <div className='flex items-start gap-2'>
+                          <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>
+                            Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
+                          </p>
+                        </div>
+                      }
+                      buttonText='Editează Setările Vânzărilor'
+                      onButtonClick={() => console.log('Editează setările marketplace')}
+                    />
+                  </Accordion>
+                </div>
               </TabsContent>
             </Tabs>
           </div>

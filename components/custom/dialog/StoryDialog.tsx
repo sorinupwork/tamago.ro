@@ -24,6 +24,9 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
   const [uploaderKey, setUploaderKey] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [captionError, setCaptionError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -39,6 +42,30 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
   };
 
   const sanitizedCaption = sanitizeHtml(caption || '', { allowedTags: [], allowedAttributes: {} });
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    if (caption.trim().length === 0 && files.length === 0) {
+      setCaptionError('Trebuie să adaugi o descriere sau cel puțin un fișier');
+      return setError('Trebuie să adaugi o descriere sau cel puțin un fișier');
+    }
+    setLoading(true);
+    try {
+      const fd = new FormData(e.currentTarget as HTMLFormElement);
+      await createStoryAction(fd);
+      setCaption('');
+      setFiles([]);
+      setUploaderKey((p) => p + 1);
+      onOpenChange(false);
+      router.refresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || 'Eroare la postarea poveștii');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog
@@ -74,7 +101,7 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form action={createStoryAction} className='space-y-4'>
+          <form onSubmit={handleSubmit} className='space-y-4'>
             <div>
               <Label>Încarcă Media</Label>
               <AppMediaUploaderInput
@@ -134,13 +161,23 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
                 label='Descriere'
                 placeholder='Spune ceva...'
                 value={caption}
-                onChange={setCaption}
+                onChange={(v: string) => {
+                  setCaption(v);
+                  if (v.trim().length > 0 || files.length > 0) {
+                    setCaptionError(null);
+                    setError(null);
+                  } else {
+                    setCaptionError('Trebuie să adaugi o descriere sau cel puțin un fișier');
+                  }
+                }}
               />
+              {captionError && <p className='text-sm text-destructive mt-1'>{captionError}</p>}
             </div>
 
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={loading}>
               Postează Povestea
             </Button>
+            {loading && <p className='text-sm text-muted-foreground mt-1'>Se postează povestea…</p>}
           </form>
         )}
       </DialogContent>

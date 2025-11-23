@@ -99,7 +99,6 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
       <CardContent>
         {item.type === 'post' ? (
           <>
-            <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.text || '') }} />
             {item.files &&
               item.files.length > 0 &&
               (item.files.length === 1 ? (
@@ -110,7 +109,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
                 <Carousel opts={{ loop: true, align: 'start' }} className='w-full mt-2'>
                   <CarouselContent className='-ml-4'>
                     {item.files.map((file, idx) => (
-                      <CarouselItem key={idx} className='pl-4 md:basis-1/2 lg:basis-1/3'>
+                      <CarouselItem key={idx} className='pl-4 md:basis-1/2 lg:basis-1/2'>
                         <div className='relative w-full h-96 rounded'>
                           <Image src={file.url} alt={`Post ${idx + 1}`} fill className='object-cover rounded' />
                         </div>
@@ -130,6 +129,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
                 ))}
               </div>
             )}
+            <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.text || '') }} className='mt-2' />
           </>
         ) : (
           <>

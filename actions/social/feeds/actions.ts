@@ -81,7 +81,6 @@ type PollDocument = {
   };
 };
 
-// Ensure fluent-ffmpeg uses ffmpeg-static binary
 ffmpeg.setFfmpegPath(ffmpegStatic as string);
 
 export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: string, postId?: string, generateVideoPreview = false) {
@@ -93,56 +92,93 @@ export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: strin
     if (type.startsWith('video/')) return `feed_videos`;
     return `feed_documents`;
   };
+
+  function hasSizeProp(obj: unknown): obj is { size: number } {
+    return typeof obj === 'object' && obj !== null && 'size' in obj && typeof (obj as { size?: unknown }).size === 'number';
+  }
+
+  function getSizeFromBody(body: unknown): number | undefined {
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(body)) return (body as Buffer).length;
+    if (body instanceof ArrayBuffer) return body.byteLength;
+    if (ArrayBuffer.isView(body)) return (body as ArrayBufferView).byteLength;
+    if (hasSizeProp(body)) return body.size;
+    return undefined;
+  }
+
+  type PutOptions = NonNullable<Parameters<typeof put>[2]>;
+  type PutResult = Awaited<ReturnType<typeof put>>;
+
   for (const file of files) {
     const buffer = Buffer.from(await (file as File).arrayBuffer());
     const filename = `${Date.now()}-${(file as File).name ?? 'file'}`;
     const subfolder = getSubfolder(file);
     const postSegment = postId ? `post_${postId}/` : '';
     const key = `user/${userId ?? 'anonymous'}/${postSegment}${subfolder}/${filename}`;
-    const blob = await put(key, buffer, { access: 'public' });
 
-    const fileObj: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string } = {
-      url: blob.url,
-      key,
-      filename,
-      contentType: (file as File).type || undefined,
-      size: buffer.length,
+    const size = getSizeFromBody(buffer);
+
+    const putOptions: PutOptions = {
+      access: 'public',
+      ...(file.type ? { contentType: file.type } : {}),
+      ...(typeof size === 'number' ? { contentLength: size } : {}),
     };
 
-    // If requested and it's a video, create a thumbnail and upload it
     try {
-      const type = (file as File).type || '';
-      if (generateVideoPreview && type.startsWith('video/')) {
-        const tmpInput = path.join(os.tmpdir(), `upload-${Date.now()}-${filename}`);
-        const tmpThumb = `${tmpInput}-thumb.png`;
-        await fs.writeFile(tmpInput, buffer);
-        await new Promise<void>((resolve, reject) => {
-          ffmpeg(tmpInput)
-            .screenshots({
-              timestamps: ['50%'],
-              filename: path.basename(tmpThumb),
-              folder: path.dirname(tmpThumb),
-              size: '640x?',
-            })
-            .on('end', () => resolve())
-            .on('error', (err) => reject(err));
-        });
-        const thumbBuffer = await fs.readFile(tmpThumb);
-        const thumbName = `thumb-${filename.replace(/\.[^/.]+$/, '')}.png`;
-        const thumbKey = `user/${userId ?? 'anonymous'}/${postSegment}${subfolder}/${thumbName}`;
-        const thumbBlob = await put(thumbKey, thumbBuffer, { access: 'public' });
-        fileObj.thumbnailUrl = thumbBlob.url;
+      const blob: PutResult = await put(key, buffer, putOptions);
 
-        // cleanup tmp files
-        await fs.unlink(tmpInput).catch(() => {});
-        await fs.unlink(tmpThumb).catch(() => {});
+      const fileObj: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string } = {
+        url: blob.url,
+        key,
+        filename,
+        contentType: (file as File).type || undefined,
+        size: buffer.length,
+      };
+
+      try {
+        const type = (file as File).type || '';
+        if (generateVideoPreview && type.startsWith('video/')) {
+          const tmpInput = path.join(os.tmpdir(), `upload-${Date.now()}-${filename}`);
+          const tmpThumb = `${tmpInput}-thumb.png`;
+          await fs.writeFile(tmpInput, buffer);
+          await new Promise<void>((resolve, reject) => {
+            ffmpeg(tmpInput)
+              .screenshots({
+                timestamps: ['50%'],
+                filename: path.basename(tmpThumb),
+                folder: path.dirname(tmpThumb),
+                size: '640x?',
+              })
+              .on('end', () => resolve())
+              .on('error', (err) => reject(err));
+          });
+          const thumbBuffer = await fs.readFile(tmpThumb);
+          const thumbName = `thumb-${filename.replace(/\.[^/.]+$/, '')}.png`;
+          const thumbKey = `user/${userId ?? 'anonymous'}/${postSegment}${subfolder}/${thumbName}`;
+          const thumbOptions: PutOptions = {
+            access: 'public',
+            ...(typeof thumbBuffer.length === 'number' ? { contentLength: thumbBuffer.length } : {}),
+            contentType: 'image/png',
+          };
+          const thumbBlob: PutResult = await put(thumbKey, thumbBuffer, thumbOptions);
+          fileObj.thumbnailUrl = thumbBlob.url;
+
+          await fs.unlink(tmpInput).catch(() => {});
+          await fs.unlink(tmpThumb).catch(() => {});
+        }
+      } catch (err) {
+        console.error('Error generating thumbnail:', err);
       }
-    } catch (err) {
-      // don't fail the entire upload if thumbnail generation fails
-      console.error('Error generating thumbnail:', err);
-    }
 
-    uploaded.push(fileObj);
+      uploaded.push(fileObj);
+    } catch (err) {
+      console.error('Error uploading file to Vercel Blob', {
+        key,
+        filename,
+        size,
+        error: err,
+      });
+      throw err;
+    }
   }
   return uploaded;
 }

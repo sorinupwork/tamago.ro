@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 type FeedItem = {
-  _id: string;
+  id: string;
   type: 'post' | 'poll';
   text?: string;
   question?: string;
@@ -24,7 +24,7 @@ type FeedGridProps = {
   hasMore: boolean;
   onLoadMore: () => void;
   loadingMore: boolean;
-  initialItems?: FeedItem[]; // new prop - server provided initial data
+  initialItems?: FeedItem[];
 };
 
 export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, initialItems = [] }: FeedGridProps) {
@@ -35,12 +35,10 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
   const [showPosts, setShowPosts] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
 
-  // keep in sync with server props (router.refresh updates initialItems)
   useEffect(() => {
     setFeedItems(initialItems);
   }, [initialItems]);
 
-  // client-side filtering/sorting of the server-provided data
   const filtered = useMemo(() => {
     let list = feedItems.slice();
     if (!showPosts) list = list.filter((i) => i.type !== 'post');
@@ -53,10 +51,10 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
   if (error) return <div className='text-center text-red-500'>{error}</div>;
 
   return (
-    <div className='space-y-4'>
-      <div className='flex justify-between items-center'>
-        <h3 className='text-lg font-semibold'>Your Feed</h3>
-        <div className='flex items-center space-x-4'>
+    <div className='w-full space-y-4'>
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
+         <h3 className='text-lg font-semibold'>Your Feed</h3>
+         <div className='flex items-center space-x-4'>
           <div className='flex items-center space-x-2'>
             <Checkbox checked={showPosts} onCheckedChange={(checked) => setShowPosts(checked === true)} />
             <label>Posts</label>
@@ -66,9 +64,9 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
             <label>Polls</label>
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className='w-40'>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className='w-full sm:w-40'>
+               <SelectValue />
+             </SelectTrigger>
             <SelectContent>
               <SelectItem value='createdAt'>Newest First</SelectItem>
             </SelectContent>
@@ -77,7 +75,7 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {filtered.map((item) => (
-          <Card key={item._id} className='overflow-hidden'>
+          <Card key={item.id} className='overflow-hidden'>
             <CardContent className='p-4'>
               {item.type === 'post' ? (
                 <>
@@ -91,13 +89,20 @@ export default function FeedGrid({ userId, hasMore, onLoadMore, loadingMore, ini
                     </div>
                   )}
                   {item.text && <p className='text-sm'>{item.text}</p>}
-                  {item.tags && item.tags.map(tag => <span key={tag} className='text-xs bg-blue-100 px-1 rounded'>#{tag}</span>)}
+                  {item.tags &&
+                    item.tags.map((tag) => (
+                      <span key={tag} className='text-xs bg-blue-100 px-1 rounded'>
+                        #{tag}
+                      </span>
+                    ))}
                 </>
               ) : (
                 <>
                   <p className='font-semibold'>{item.question}</p>
                   <ul className='text-sm'>
-                    {item.options?.map((opt, i) => <li key={i}>- {opt}</li>)}
+                    {item.options?.map((opt, i) => (
+                      <li key={i}>- {opt}</li>
+                    ))}
                   </ul>
                 </>
               )}

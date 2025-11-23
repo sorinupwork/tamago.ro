@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Share2, Edit, LogOut, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -31,9 +32,10 @@ type HeaderProfileProps = {
   imagePreview: string | null;
   shareProfile: () => void;
   setIsEditing: (editing: boolean) => void;
+  avatarHref?: string;
 };
 
-export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing }: HeaderProfileProps) {
+export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing, avatarHref }: HeaderProfileProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -46,13 +48,28 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
   };
 
   return (
-    <Card className='relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6'>
+    <Card className='w-full relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6'>
       <div className='absolute inset-0 bg-linear-to-r from-primary/10 to-secondary/10 rounded-2xl pointer-events-none' />
 
-      <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm shrink-0'>
-        <AvatarImage src={imagePreview || user?.image || '/placeholder.svg'} />
-        <AvatarFallback className='text-2xl font-bold'>{(user?.name || 'U').charAt(0)}</AvatarFallback>
-      </Avatar>
+      {avatarHref ? (
+        <Link href={avatarHref} className='block rounded-sm overflow-hidden'>
+          <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm shrink-0'>
+            {imagePreview ? (
+              <AvatarImage src={imagePreview} alt={user?.name ?? 'Avatar'} className='h-full w-full object-cover rounded-sm' />
+            ) : (
+              <AvatarFallback className='text-2xl font-bold'>{(user?.name || 'U').charAt(0)}</AvatarFallback>
+            )}
+          </Avatar>
+        </Link>
+      ) : (
+        <Avatar className='h-24 w-24 md:h-32 md:w-32 ring-4 ring-white shadow-2xl rounded-sm shrink-0'>
+          {imagePreview ? (
+            <AvatarImage src={imagePreview} alt={user?.name ?? 'Avatar'} className='h-full w-full object-cover rounded-sm' />
+          ) : (
+            <AvatarFallback className='text-2xl font-bold'>{(user?.name || 'U').charAt(0)}</AvatarFallback>
+          )}
+        </Avatar>
+      )}
 
       <div className='flex-1 space-y-2'>
         <div className='flex items-center gap-2'>
@@ -61,7 +78,7 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
         </div>
         <CardDescription>
           <p className='text-muted-foreground'>{user?.email}</p>
-          <p className='text-sm max-w-md'>{userData.bio}</p>
+          <p className='text-sm max-w-full'>{userData.bio}</p>
           <div className='flex items-center gap-4 mt-2 text-xs text-muted-foreground'>
             <div className='flex items-center gap-1'>
               <Calendar className='h-3 w-3' />

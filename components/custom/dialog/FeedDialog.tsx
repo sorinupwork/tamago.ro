@@ -26,6 +26,9 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [text, setText] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -42,6 +45,31 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
   };
 
   const sanitizedText = sanitizeHtml(text || '', { allowedTags: [], allowedAttributes: {} });
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setContentError(null);
+    if (text.trim().length === 0 && files.length === 0) {
+      return setContentError('Trebuie să adaugi text sau să încarci cel puțin un fișier');
+    }
+    setLoading(true);
+    try {
+      const fd = new FormData(e.currentTarget as HTMLFormElement);
+      await createFeedAction(fd);
+      setText('');
+      setFiles([]);
+      setTags([]);
+      setUploaderKey((p) => p + 1);
+      onOpenChange(false);
+      router.refresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || 'Eroare la postare');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog
@@ -77,7 +105,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
             </Empty>
           </div>
         ) : (
-          <form action={createFeedAction} className='space-y-4'>
+          <form onSubmit={handleSubmit} className='space-y-4'>
             <div>
               <AppTextarea
                 label='Ce ai pe suflet?'
@@ -86,10 +114,12 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                 onChange={(valueOrEvent: string | ChangeEvent<HTMLTextAreaElement>) => {
                   const v = typeof valueOrEvent === 'string' ? valueOrEvent : valueOrEvent.target.value;
                   setText(v);
+                  if (v.trim().length > 0) setContentError(null);
                 }}
                 icon={Smile}
               />
               <input type='hidden' name='text' value={text} />
+              <p className='text-sm text-destructive mt-1 min-h-4'>{contentError ?? ''}</p>
             </div>
 
             <div>
@@ -114,7 +144,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
             </div>
 
             {previews.length > 0 && (
-              <div className='space-y-2'>
+              <div>
                 {previews.length === 1 ? (
                   <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
                     {files[0]?.type.startsWith('image/') ? (
@@ -151,10 +181,10 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                   </div>
                 ) : (
                   <Carousel opts={{ loop: true, align: 'start' }} className='w-full'>
-                    <CarouselContent className='-ml-4'>
+                    <CarouselContent className='-ml-2'>
                       {previews.map((preview, index) => (
-                        <CarouselItem key={index} className='pl-4 md:basis-1/2 lg:basis-1/3'>
-                          <div className='relative w-full h-64 rounded-lg overflow-hidden border'>
+                        <CarouselItem key={index} className='pl-2 md:basis-1/2 '>
+                          <div className='relative w-full h-64 rounded-t-lg overflow-hidden border'>
                             {files[index]?.type.startsWith('image/') ? (
                               <Image
                                 src={preview}
@@ -193,26 +223,28 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                     <CarouselNext />
                   </Carousel>
                 )}
-                {sanitizedText && (
-                  <div className='bg-muted p-3 rounded-lg'>
-                    <p className='text-sm'>{sanitizedText}</p>
-                  </div>
-                )}
-                {tags.length > 0 && (
-                  <div className='flex flex-wrap gap-2'>
-                    {tags.map((tag, i) => (
-                      <span key={i} className='bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs'>
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+
+                <div className='bg-muted rounded-b-lg p-2 flex flex-col gap-1'>
+                  {tags.length > 0 && (
+                    <div className='flex flex-wrap gap-2'>
+                      {tags.map((tag, i) => (
+                        <span key={i} className='bg-secondary/10 text-secondary px-2 py-1 rounded text-xs'>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {sanitizedText && <p className='text-sm'>{sanitizedText}</p>}
+                </div>
               </div>
             )}
 
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={loading}>
               Postează pe Feed
             </Button>
+            {error ? <p className='text-sm text-destructive mt-1'>{error}</p> : <p className='text-sm mt-1 min-h-4' />}
+            {loading && <p className='text-sm text-muted-foreground mt-1'>Se postează…</p>}
           </form>
         )}
       </DialogContent>
