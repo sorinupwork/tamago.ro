@@ -15,11 +15,14 @@ type Props = {
   contentOnly?: boolean;
   size?: 'sm' | 'md' | 'lg';
   showName?: boolean;
+  storyPreview?: string;
 };
 
 function UserProfileContent({ user }: { user?: User | null }) {
   if (!user) return null;
-  const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+  // use stable, deterministic date format (YYYY-MM-DD) to avoid SSR/client locale mismatch
+  const joined = user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'N/A';
+
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex items-start gap-3'>
@@ -70,6 +73,7 @@ export default function UserProfileCard({
   contentOnly = false,
   size = 'md',
   showName = false,
+  storyPreview,
 }: Props) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -80,6 +84,40 @@ export default function UserProfileCard({
     return (
       <div className={className}>
         <UserProfileContent user={user} />
+      </div>
+    );
+  }
+
+  const sizeClass = size === 'sm' ? 'w-16 h-16' : size === 'lg' ? 'w-24 h-24' : 'w-20 h-20';
+  const avatarSize = size === 'sm' ? 'w-6 h-6' : size === 'lg' ? 'w-10 h-10' : 'w-8 h-8';
+
+  if (storyPreview) {
+    const cardEl = (
+      // keep the same DOM + classes across server & client (fallback + stable overlay)
+      <div className={`relative ${sizeClass} rounded-lg overflow-hidden bg-gray-200 cursor-default ${className}`}>
+        {/* use a plain img for external thumbnails/fallbacks to avoid Next/Image domain/hydration issues */}
+        <img
+          src={storyPreview || user?.avatar || '/avatars/default.jpg'}
+          alt='Story preview'
+          className='absolute inset-0 w-full h-full object-cover'
+        />
+
+        {/* stable overlay: include gradient and fallback solid overlay to avoid mismatches */}
+        <div className='absolute inset-0 bg-linear-to-t from-black/50 to-transparent bg-black bg-opacity-20 opacity-20' />
+
+        <div className={`absolute top-2 left-2 ${avatarSize} rounded-full border-2 border-white overflow-hidden`}>
+          <Avatar className='w-full h-full'>
+            <AvatarImage src={user?.avatar || '/avatars/default.jpg'} />
+            <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className='flex flex-col items-center gap-1'>
+        {cardEl}
+        {showName && <span className='text-xs font-semibold'>{user?.name || 'Unknown'}</span>}
       </div>
     );
   }
@@ -98,11 +136,11 @@ export default function UserProfileCard({
         className={`cursor-${interactive ? 'pointer' : 'default'}`}
       >
         <Avatar className={size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-16 h-16' : 'w-12 h-12'}>
-          <AvatarImage src={user.avatar || '/avatars/default.jpg'} />
-          <AvatarFallback>{user.name?.[0] || '?'}</AvatarFallback>
+          <AvatarImage src={user?.avatar || '/avatars/default.jpg'} />
+          <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
         </Avatar>
       </div>
-      {showName && <span className='font-semibold text-sm'>{user.name || 'Unknown'}</span>}
+      {showName && <span className='font-semibold text-sm'>{user?.name || 'Unknown'}</span>}
     </div>
   );
 

@@ -4,6 +4,11 @@ import { put } from '@vercel/blob';
 import { headers } from 'next/headers';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { ObjectId } from 'mongodb';
+import ffmpegStatic from 'ffmpeg-static';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
 
 import { db } from '@/lib/mongo';
 import { auth } from '@/lib/auth/auth';
@@ -76,9 +81,12 @@ type PollDocument = {
   };
 };
 
-export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: string, postId?: string) {
+// Ensure fluent-ffmpeg uses ffmpeg-static binary
+ffmpeg.setFfmpegPath(ffmpegStatic as string);
+
+export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: string, postId?: string, generateVideoPreview = false) {
   if (!files || files.length === 0) return [];
-  const uploaded: { url: string; key: string; filename: string; contentType?: string; size: number }[] = [];
+  const uploaded: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string }[] = [];
   const getSubfolder = (file: FileLike) => {
     const type = (file as File).type || '';
     if (type.startsWith('image/')) return `feed_images`;
@@ -92,7 +100,49 @@ export async function uploadFilesToVercelBlob(files?: FileLike[], userId?: strin
     const postSegment = postId ? `post_${postId}/` : '';
     const key = `user/${userId ?? 'anonymous'}/${postSegment}${subfolder}/${filename}`;
     const blob = await put(key, buffer, { access: 'public' });
-    uploaded.push({ url: blob.url, key, filename, contentType: (file as File).type || undefined, size: buffer.length });
+
+    const fileObj: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string } = {
+      url: blob.url,
+      key,
+      filename,
+      contentType: (file as File).type || undefined,
+      size: buffer.length,
+    };
+
+    // If requested and it's a video, create a thumbnail and upload it
+    try {
+      const type = (file as File).type || '';
+      if (generateVideoPreview && type.startsWith('video/')) {
+        const tmpInput = path.join(os.tmpdir(), `upload-${Date.now()}-${filename}`);
+        const tmpThumb = `${tmpInput}-thumb.png`;
+        await fs.writeFile(tmpInput, buffer);
+        await new Promise<void>((resolve, reject) => {
+          ffmpeg(tmpInput)
+            .screenshots({
+              timestamps: ['50%'],
+              filename: path.basename(tmpThumb),
+              folder: path.dirname(tmpThumb),
+              size: '640x?',
+            })
+            .on('end', () => resolve())
+            .on('error', (err) => reject(err));
+        });
+        const thumbBuffer = await fs.readFile(tmpThumb);
+        const thumbName = `thumb-${filename.replace(/\.[^/.]+$/, '')}.png`;
+        const thumbKey = `user/${userId ?? 'anonymous'}/${postSegment}${subfolder}/${thumbName}`;
+        const thumbBlob = await put(thumbKey, thumbBuffer, { access: 'public' });
+        fileObj.thumbnailUrl = thumbBlob.url;
+
+        // cleanup tmp files
+        await fs.unlink(tmpInput).catch(() => {});
+        await fs.unlink(tmpThumb).catch(() => {});
+      }
+    } catch (err) {
+      // don't fail the entire upload if thumbnail generation fails
+      console.error('Error generating thumbnail:', err);
+    }
+
+    uploaded.push(fileObj);
   }
   return uploaded;
 }
@@ -203,12 +253,14 @@ export async function createPollAction(formData: FormData): Promise<void> {
   return;
 }
 
-export async function getFeedPosts(params: { userId?: string; page?: number; limit?: number; type?: string; sortBy?: 1 | -1 } = {}) {
+export async function getFeedPosts(
+  params: { userId?: string; page?: number; limit?: number; type?: string; sortBy?: 1 | -1; tags?: string[] } = {}
+) {
   const page = Math.max(1, params.page || 1);
   const limit = Math.max(1, params.limit || 20);
   const filter: Record<string, unknown> = {};
   if (params.userId) filter.userId = params.userId;
-  if (params.type) filter.type = params.type;
+  if (params.type && params.type !== 'both') filter.type = params.type;
   const collection = db.collection('feeds');
   await collection.createIndex({ userId: 1 });
   const totalCount = await collection.countDocuments(filter);
@@ -219,14 +271,15 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
     .limit(limit)
     .toArray();
 
-  const normalized = items.map((it) => {
+  let normalized = items.map((it) => {
     const base = {
-      _id: it._id.toString(),
+      id: it._id.toString(),
       type: it.type,
       userId: it.userId?.toString(),
       createdAt: it.createdAt.toISOString(),
       user: it.user || null,
       reactions: it.reactions || { likes: { total: 0, userIds: [] }, comments: [] },
+      tags: it.tags || [],
     };
     if (it.type === 'post') {
       return { ...base, text: it.text, tags: it.tags, files: it.files };
@@ -240,6 +293,10 @@ export async function getFeedPosts(params: { userId?: string; page?: number; lim
       };
     }
   });
+
+  if (params.tags && params.tags.length > 0) {
+    normalized = normalized.filter((item) => item.tags && item.tags.some((tag: string) => params.tags!.includes(tag)));
+  }
 
   const hasMore = page * limit < totalCount;
   return { items: normalized, total: totalCount, hasMore };

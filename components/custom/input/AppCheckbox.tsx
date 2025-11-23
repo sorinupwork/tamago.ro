@@ -20,6 +20,7 @@ type AppCheckboxProps = {
   value?: boolean | string[];
   onChange?: (value: boolean | string[]) => void;
   lift?: boolean;
+  orientation?: 'vertical' | 'horizontal';
 };
 
 export const AppCheckbox: React.FC<AppCheckboxProps> = ({
@@ -33,17 +34,18 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
   value,
   lift = false,
   onChange,
+  orientation = 'vertical',
 }) => {
   if (multiple) {
     const selected = (value as string[]) || [];
     return (
       <Field className={className}>
         {label && (
-          <FieldLabel lift={lift} htmlFor={htmlFor} required={required}>
+          <FieldLabel lift={lift} required={required}>
             {label}
           </FieldLabel>
         )}
-        <div className='space-y-2'>
+        <div className={orientation === 'horizontal' ? 'flex gap-2' : 'space-y-2'}>
           {options.map((option) => (
             <div key={option.value} className='flex items-center space-x-2'>
               <Checkbox
@@ -56,7 +58,6 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
               />
               <FieldLabel
                 lift={lift}
-                htmlFor={option.value}
                 className='font-normal cursor-default'
                 onClick={() => {
                   const newSelected = selected.includes(option.value)
@@ -80,13 +81,7 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
     <Field orientation='horizontal' className={className}>
       <Checkbox id={htmlFor} checked={checked} onCheckedChange={(checked) => onChange?.(checked as boolean)} />
       {label && (
-        <FieldLabel
-          lift={lift}
-          htmlFor={htmlFor}
-          className='font-normal cursor-default'
-          required={required}
-          onClick={() => onChange?.(!checked)}
-        >
+        <FieldLabel className='font-normal cursor-default' onClick={() => onChange?.(!checked)}>
           {label}
         </FieldLabel>
       )}

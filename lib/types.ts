@@ -107,10 +107,10 @@ export type Reaction = {
 };
 
 export type FeedItem = {
-  _id: string;
+  id: string;
   type: 'post' | 'poll';
   text?: string;
-  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  files?: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string }[];
   tags?: string[];
   question?: string;
   options?: string[];
@@ -123,9 +123,9 @@ export type FeedItem = {
 };
 
 export type StoryWithUser = {
-  _id: string;
+  id: string;
   caption: string;
-  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
+  files: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string }[];
   createdAt: string;
   expiresAt: string;
   userId?: string;

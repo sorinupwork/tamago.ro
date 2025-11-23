@@ -41,7 +41,8 @@ export async function createStoryAction(formData: FormData): Promise<void> {
 
     const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
 
-    const uploaded = await uploadFilesToVercelBlob(files, userId);
+    // request upload + generate thumbnails for video files
+    const uploaded = await uploadFilesToVercelBlob(files, userId, undefined, true);
     const doc = {
       caption: validated.caption,
       files: uploaded,
@@ -78,7 +79,7 @@ export async function getStories(params: { userId?: string; page?: number; limit
     .limit(limit)
     .toArray();
   const normalized = items.map((it) => ({
-    _id: it._id.toString(),
+    id: it._id.toString(),
     caption: it.caption,
     files: it.files,
     createdAt: it.createdAt.toISOString(),

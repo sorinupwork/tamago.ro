@@ -29,7 +29,7 @@ import { MediaPreview } from '@/components/custom/media/MediaPreview';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapComponent from '@/components/custom/map/MapComponent';
 import { CarCard } from '@/components/custom/auto/CarCard';
-import { StoriesSection } from '@/components/custom/section/StoriesSection';
+import AuctionBidders from '@/components/custom/section/AuctionBidders';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import { Car, RawCarDoc, User } from '@/lib/types';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
@@ -434,7 +434,7 @@ export default function CarDetailPage() {
                     Licitează
                   </Button>
                 </div>
-                <StoriesSection users={biddersForStories} mode='users' title='Participanți Licitație' />
+                <AuctionBidders users={biddersForStories} title='Participanți Licitație' />
               </CardContent>
             </Card>
           )}

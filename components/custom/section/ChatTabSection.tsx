@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
+
 import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
 import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
 import { User as UserType, Message } from '@/lib/types';
 
-export default function ChatTabClient({ users }: { users: UserType[] }) {
+export default function ChatTabSection({ users }: { users: UserType[] }) {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('name');

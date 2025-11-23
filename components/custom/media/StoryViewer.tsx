@@ -16,6 +16,8 @@ import { AppInput } from '../input/AppInput';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { getUserById } from '@/actions/auth/actions';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Link from 'next/link';
 
 type StoryViewerProps = {
   stories: StoryWithUser[];
@@ -25,6 +27,7 @@ type StoryViewerProps = {
 };
 
 export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initialIndex, onClose }) => {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -52,7 +55,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   const [isCommentLoading, setIsCommentLoading] = useState(false);
 
   const isActiveRef = useRef(true);
-  const router = useRouter();
 
   useEffect(() => {
     isActiveRef.current = true;
@@ -213,7 +215,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
   const handleLike = async () => {
     if (!isLoggedIn) return;
     try {
-      await addLikeAction(currentStory._id, 'story');
+      await addLikeAction(currentStory.id, 'story');
       router.refresh();
     } catch (err) {
       console.error('Error liking:', err);
@@ -224,7 +226,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
     if (!isLoggedIn || !newComment.trim()) return;
     setIsCommentLoading(true);
     try {
-      await addCommentAction(currentStory._id, newComment, 'story');
+      await addCommentAction(currentStory.id, newComment, 'story');
 
       const user = await getUserById(session?.user?.id || '');
       setUserNames((prev) => ({ ...prev, [session?.user?.id || '']: user?.name || 'Unknown' }));
@@ -348,11 +350,37 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
           <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10' />
 
           <div className='absolute top-16 left-4 right-4 z-20'>
-            <div className='text-white bg-black bg-opacity-50 rounded-lg p-2 max-w-xs'>
-              <h2 className='text-sm font-bold truncate'>{currentStory.user?.name || 'Unknown'}</h2>
-              <p className='text-xs opacity-80 truncate'>
-                {sanitizeHtml(currentStory.caption || 'No caption', { allowedTags: [], allowedAttributes: {} })}
-              </p>
+            <div className='flex items-center gap-3 text-white bg-black bg-opacity-50 rounded-lg p-2 max-w-xs'>
+              <Link
+                href={`/profile/${currentStory.user?.id ?? ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className='w-9 h-9 rounded-full overflow-hidden border-2 border-white cursor-default shrink-0'
+              >
+                <Avatar className='w-full h-full'>
+                  <AvatarImage src={currentStory.user?.avatar || '/avatars/default.jpg'} />
+                  <AvatarFallback>{currentStory.user?.name?.[0] || '?'}</AvatarFallback>
+                </Avatar>
+              </Link>
+              <div className='min-w-0'>
+                <h2 className='text-sm font-bold truncate'>
+                  <Link
+                    href={`/profile/${currentStory.user?.id ?? ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClose();
+                    }}
+                    className='hover:underline'
+                  >
+                    {currentStory.user?.name || 'Unknown'}
+                  </Link>
+                </h2>
+                <p className='text-xs opacity-80 truncate'>
+                  {sanitizeHtml(currentStory.caption || 'No caption', { allowedTags: [], allowedAttributes: {} })}
+                </p>
+              </div>
             </div>
           </div>
         </div>

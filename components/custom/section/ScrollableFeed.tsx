@@ -1,12 +1,13 @@
 'use client';
 
 import { useRef } from 'react';
+import { MessageSquare } from 'lucide-react';
+
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../empty/Empty';
 import FeedPostCard from '@/components/custom/card/FeedPostCard';
 import ScrollToTopButton from '@/components/custom/button/ScrollToTopButton';
 import LoadMoreForm from '../button/LoadMoreForm';
-import { MessageSquare } from 'lucide-react';
 import { FeedItem } from '@/lib/types';
 
 type ActionState = { success?: boolean; error?: string } | null;
@@ -27,7 +28,7 @@ export default function ScrollableFeed({ feedItems, sessionUserId, isLoggedIn, a
         {feedItems.length > 0 ? (
           <>
             {feedItems.map((item) => (
-              <FeedPostCard key={item._id} item={item} sessionUserId={sessionUserId} isLoggedIn={isLoggedIn} />
+              <FeedPostCard key={item.id} item={item} sessionUserId={sessionUserId} isLoggedIn={isLoggedIn} />
             ))}
             <div className='flex justify-center mt-4'>
               <LoadMoreForm action={action} />

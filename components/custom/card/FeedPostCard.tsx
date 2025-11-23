@@ -37,7 +37,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
   const handleLike = async () => {
     if (!isLoggedIn) return;
     try {
-      await addLikeAction(item._id, 'feed');
+      await addLikeAction(item.id, 'feed');
     } catch (error) {
       console.error('Error liking:', error);
     }
@@ -46,7 +46,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
   const handleVote = async (optionIndex: number) => {
     if (!isLoggedIn) return;
     try {
-      await voteOnPollAction(item._id, optionIndex);
+      await voteOnPollAction(item.id, optionIndex);
     } catch (error) {
       console.error('Error voting:', error);
     }
@@ -55,7 +55,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
   const handleAddComment = async () => {
     if (!isLoggedIn || !newComment.trim()) return;
     try {
-      await addCommentAction(item._id, newComment, 'feed');
+      await addCommentAction(item.id, newComment, 'feed');
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -65,7 +65,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
   const handleAddReply = async (commentId: string) => {
     if (!isLoggedIn || !newReply[commentId]?.trim()) return;
     try {
-      await addReplyAction(item._id, commentId, newReply[commentId], 'feed');
+      await addReplyAction(item.id, commentId, newReply[commentId], 'feed');
       setNewReply((prev) => ({ ...prev, [commentId]: '' }));
       setReplyingTo(null);
     } catch (error) {
@@ -206,7 +206,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
                   <Button
                     variant='ghost'
                     size='sm'
-                    onClick={() => setReplyingTo(replyingTo?.commentId === comment.id ? null : { itemId: item._id, commentId: comment.id })}
+                    onClick={() => setReplyingTo(replyingTo?.commentId === comment.id ? null : { itemId: item.id, commentId: comment.id })}
                   >
                     Reply
                   </Button>
