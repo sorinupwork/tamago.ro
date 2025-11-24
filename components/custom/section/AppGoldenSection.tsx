@@ -34,7 +34,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
   const renderCard = (post: Post | undefined, index: number, className: string) => {
     if (!post) return null;
     return (
-      <div className={`relative ${className}`}>
+      <div
+        className={`relative ring-4 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg ${className}`}
+      >
         {post.verified && (
           <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
             <BadgeCheckIcon className='w-4 h-4 mr-1' />
@@ -75,36 +77,12 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <h2 className='text-2xl font-bold text-center sm:text-end text-secondary'>{title}</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-4 py-4'>
-          {renderCard(
-            displayedPosts[5],
-            5,
-            'sm:row-start-1 sm:row-end-3 col-span-full ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
-          {renderCard(
-            displayedPosts[4],
-            4,
-            'sm:row-start-3 sm:row-end-6 ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
-          {renderCard(
-            displayedPosts[0],
-            0,
-            'sm:row-start-3 sm:row-end-5 ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
-          {renderCard(
-            displayedPosts[1],
-            1,
-            'relative ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
-          {renderCard(
-            displayedPosts[2],
-            2,
-            'relative ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
-          {renderCard(
-            displayedPosts[3],
-            3,
-            'col-span-full sm:col-start-2 ring-2 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg'
-          )}
+          {renderCard(displayedPosts[5], 5, 'sm:row-start-1 sm:row-end-3 col-span-full ')}
+          {renderCard(displayedPosts[4], 4, 'sm:row-start-3 sm:row-end-6 ')}
+          {renderCard(displayedPosts[0], 0, 'sm:row-start-3 sm:row-end-5 ')}
+          {renderCard(displayedPosts[1], 1, 'relative ')}
+          {renderCard(displayedPosts[2], 2, 'relative ')}
+          {renderCard(displayedPosts[3], 3, 'col-span-full sm:col-start-2 ')}
         </div>
       </div>
     </section>
