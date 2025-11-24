@@ -19,10 +19,12 @@ export type RawCarDoc = {
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
+  images?: string[];
   carType?: string;
   color?: string;
   engineCapacity?: string;
   horsePower?: string;
+  horsepower?: number;
   status?: string;
   description?: string;
   features?: string | string[];
@@ -30,19 +32,23 @@ export type RawCarDoc = {
   startDate?: string;
   endDate?: string;
   currency?: string;
-  traction?: string; // 'integrala' | 'fata' | 'spate'
+  traction?: string;
   withDriver?: boolean;
   driverName?: string;
   driverContact?: string;
   driverTelephone?: string;
+  contactPhone?: string;
+  contactEmail?: string;
   options?: string[];
   minPrice?: string;
   maxPrice?: string;
+  dateAdded?: string;
+  sellerType?: string;
   urlCategory?: string;
   carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
   views?: number;
   userId?: string;
-  history?: CarHistoryItem[]; // list of history items
+  history?: CarHistoryItem[];
 };
 
 export type Car = {

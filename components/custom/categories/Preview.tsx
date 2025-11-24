@@ -45,8 +45,8 @@ type PreviewProps = {
   carType?: string;
   horsePower?: string;
   transmission?: string;
-  traction?: string; // 'integrala' | 'fata' | 'spate'
-  history?: CarHistoryItem[]; // typed correctly, no any
+  traction?: string;
+  history?: CarHistoryItem[];
 };
 
 export function Preview({
@@ -135,11 +135,11 @@ export function Preview({
               {uploadedFiles.map((file, index) => (
                 <CarouselItem key={index}>
                   {file.includes('.mp4') || file.includes('.avi') ? (
-                    <video controls className='w-full h-32 object-cover rounded'>
+                    <video controls className='w-full h-64Z object-cover rounded'>
                       <source src={file} />
                     </video>
                   ) : (
-                    <Image src={file} alt={`Media ${index + 1}`} width={300} height={200} className='w-full h-32 object-cover rounded' />
+                    <Image src={file} alt={`Media ${index + 1}`} width={300} height={200} className='w-full h-64 object-cover rounded' />
                   )}
                 </CarouselItem>
               ))}
@@ -149,8 +149,8 @@ export function Preview({
           </Carousel>
         )}
 
-        <div
-          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word min-w-0'
+        <p
+          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word min-w-0 text-sm text-muted-foreground'
           style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
           dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }}
         />
@@ -190,7 +190,8 @@ export function Preview({
             <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
           </div>
           <div className='text-sm'>
-            <strong>Tracțiune:</strong> {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}
+            <strong>Tracțiune:</strong>{' '}
+            {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}
           </div>
 
           <div className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
@@ -219,11 +220,6 @@ export function Preview({
           </div>
         </div>
 
-        <div
-          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word break-all min-w-0'
-          style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: `<strong>Caracteristici:</strong> ${features || 'Nespecificate'}` }}
-        />
         {options && options.length > 0 && (
           <div className='text-sm'>
             <strong>Opțiuni Adiționale:</strong>
@@ -245,7 +241,6 @@ export function Preview({
           </div>
         )}
 
-        {/* show history highlights when provided */}
         {history && history.length > 0 && <CarHistoryHighlights items={history} features={features ? features.split(',') : []} />}
 
         <p className='text-xs text-muted-foreground'>Adăugat: {new Date().toLocaleDateString('ro-RO')}</p>

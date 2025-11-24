@@ -61,7 +61,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
       carType: undefined,
       horsePower: '',
       transmission: undefined,
-      traction: 'integrala',
+      traction: undefined,
       features: '',
       uploadedFiles: [],
     },

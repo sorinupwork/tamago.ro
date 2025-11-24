@@ -11,6 +11,30 @@ export function getFilteredCars(
   locationFilter: LocationFilter
 ): Car[] {
   let filtered = cars.slice();
+  const parsePrice = (val?: string) => {
+    if (!val) return 0;
+    const s = String(val).trim();
+    const hasComma = s.indexOf(',') !== -1;
+    const hasDot = s.indexOf('.') !== -1;
+    try {
+      if (hasComma && hasDot) {
+        return parseFloat(s.replace(/\./g, '').replace(/,/g, '.')) || 0;
+      }
+      if (hasDot && !hasComma) {
+        const parts = s.split('.');
+        if (parts.length > 1 && parts[1].length === 3) {
+          return parseFloat(s.replace(/\./g, '')) || 0;
+        }
+        return parseFloat(s) || 0;
+      }
+      if (hasComma && !hasDot) {
+        return parseFloat(s.replace(/,/g, '.')) || 0;
+      }
+      return parseFloat(s) || 0;
+    } catch (e) {
+      return 0;
+    }
+  };
   filtered = filtered.filter(
     (car) => (car.engineCapacity || 0) >= filters.engineCapacityRange[0] && (car.engineCapacity || 0) <= filters.engineCapacityRange[1]
   );
@@ -18,10 +42,10 @@ export function getFilteredCars(
     (car) => (car.horsepower || 0) >= filters.horsepowerRange[0] && (car.horsepower || 0) <= filters.horsepowerRange[1]
   );
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
-  filtered = filtered.filter(
-    (car) =>
-      parseFloat(car.price.replace(/\./g, '')) >= filters.priceRange[0] && parseFloat(car.price.replace(/\./g, '')) <= filters.priceRange[1]
-  );
+  filtered = filtered.filter((car) => {
+    const priceNum = parsePrice(car.price);
+    return priceNum >= filters.priceRange[0] && priceNum <= filters.priceRange[1];
+  });
   filtered = filtered.filter((car) => car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1]);
   filtered = filtered.filter((car) => car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1]);
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));

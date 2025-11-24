@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone, Mail, MessageCircle, Clock, Car as CarIcon } from 'lucide-react';
+import { Phone, Mail, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';
 
@@ -32,6 +33,7 @@ import { CarCard } from '@/components/custom/auto/CarCard';
 import AuctionBidders from '@/components/custom/section/AuctionBidders';
 import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import { Car, RawCarDoc, User } from '@/lib/types';
+import { geocodeAddress } from '@/lib/services';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
@@ -50,6 +52,8 @@ export default function CarDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const [imageSrcs, setImageSrcs] = useState<string[]>([]);
+  const [mapPosition, setMapPosition] = useState<[number, number] | null>(null);
+  const geocodedFor = useRef<string | null>(null);
 
   const [bidAmount, setBidAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -105,19 +109,23 @@ export default function CarDetailPage() {
         fuel: doc.fuel || 'Petrol',
         transmission: doc.transmission || 'Manual',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-        images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
-        dateAdded: new Date().toISOString(),
-        sellerType: 'private',
-        contactPhone: '123456789',
-        contactEmail: 'email@example.com',
+        images:
+          doc.images && doc.images.length > 0
+            ? doc.images
+            : doc.uploadedFiles && doc.uploadedFiles.length > 0
+              ? doc.uploadedFiles
+              : ['/placeholder.svg'],
+        dateAdded: doc.dateAdded || new Date().toISOString(),
+        sellerType: (doc.sellerType as 'private' | 'firm') || 'private',
+        contactPhone: doc.contactPhone || doc.driverTelephone || '123456789',
+        contactEmail: doc.contactEmail || 'email@example.com',
         bodyType: doc.carType || 'Sedan',
         color: doc.color || 'Alb',
-        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
-        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
+        engineCapacity: doc.engineCapacity ? parseFloat(String(doc.engineCapacity)) : undefined,
+        horsepower: doc.horsepower ? parseInt(String(doc.horsepower)) : doc.horsePower ? parseInt(String(doc.horsePower)) : undefined,
         status: doc.status || 'used',
         description: doc.description,
         features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
-        is4x4: doc.is4x4 || false,
         withDriver: doc.withDriver || false,
         driverName: doc.driverName || '',
         driverContact: doc.driverContact || '',
@@ -128,6 +136,8 @@ export default function CarDetailPage() {
         userId: doc.userId ? doc.userId.toString() : '',
         lat: typeof doc.location === 'object' && doc.location?.lat ? doc.location.lat : 44.4268, // Default to Bucharest
         lng: typeof doc.location === 'object' && doc.location?.lng ? doc.location.lng : 26.1025, // Default to Bucharest
+        traction: doc.traction || undefined,
+        history: doc.history || [],
       }));
       setAllCars(mappedCars);
       const foundCar = mappedCars.find((c) => c.id === id);
@@ -137,6 +147,56 @@ export default function CarDetailPage() {
     };
     fetchCars();
   }, [category, id]);
+
+  // When a car is loaded, if its `location` is a string, geocode it
+  useEffect(() => {
+    if (!car) return;
+
+    const locString = car.location;
+    if (!locString) return;
+
+    // Avoid re-geocoding the same location string repeatedly
+    if (geocodedFor.current === locString) return;
+
+    const runGeocode = async () => {
+      try {
+        // If the location looks like coordinates already, try to parse "lat, lon"
+        if (typeof locString === 'string' && /[-+]?\d{1,3}\.\d+\s*,\s*[-+]?\d{1,3}\.\d+/.test(locString)) {
+          const parts = locString.split(',').map((s) => s.trim());
+          const lat = parseFloat(parts[0]);
+          const lon = parseFloat(parts[1]);
+          if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+            geocodedFor.current = locString;
+            // Only update if different to avoid triggering another render loop
+            if (!car.lat || !car.lng || Math.abs((car.lat || 0) - lat) > 1e-6 || Math.abs((car.lng || 0) - lon) > 1e-6) {
+              setMapPosition([lat, lon]);
+              setCar((prev) => (prev ? { ...prev, lat, lng: lon } : prev));
+            }
+            return;
+          }
+        }
+
+        // Use Nominatim geocoding
+        const results = await geocodeAddress(locString);
+        if (results && results.length > 0) {
+          const r = results[0];
+          const lat = parseFloat(r.lat);
+          const lon = parseFloat(r.lon);
+          if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+            geocodedFor.current = locString;
+            if (!car.lat || !car.lng || Math.abs((car.lat || 0) - lat) > 1e-6 || Math.abs((car.lng || 0) - lon) > 1e-6) {
+              setMapPosition([lat, lon]);
+              setCar((prev) => (prev ? { ...prev, lat, lng: lon, location: r.display_name || prev.location } : prev));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Geocoding error for car location:', err);
+      }
+    };
+
+    runGeocode();
+  }, [car]);
 
   const handleNext = () => {
     if (api && !api.canScrollNext() && isMobile) {
@@ -169,7 +229,7 @@ export default function CarDetailPage() {
   const isSell = car.category === 'sell';
   const isBuy = car.category === 'buy';
 
-  const similarCars = allCars.filter((c) => c.category === car.category && c.id !== car.id).slice(0, 3);
+  const similarCars = allCars.filter((c) => c.category === car.category && c.id !== car.id);
 
   const biddersForStories: User[] = bidHistory.map((bid, index) => ({
     id: (index + 1).toString(),
@@ -228,6 +288,22 @@ export default function CarDetailPage() {
     { icon: Clock, label: 'Întreținere Recentă', value: 'Ultimul service în 2023', year: 2023 },
     { icon: MessageCircle, label: 'Întrebări Primite', value: 'Multiple întrebări de la cumpărători', year: 2024 },
   ];
+
+  const sellTimeline =
+    car?.history && car.history.length > 0
+      ? car.history.map((h) => {
+          const iconName = h.icon || 'Car';
+          const IconComp = ((LucideIcons as unknown as Record<string, unknown>)[iconName] || CarIcon) as LucideIcon;
+          return {
+            icon: IconComp,
+            label: h.title,
+            value: h.description || '',
+            year: h.year,
+          };
+        })
+      : sellTimelineItems;
+
+  console.log('page/id', car);
 
   return (
     <div className='container mx-auto max-w-7xl'>
@@ -354,16 +430,14 @@ export default function CarDetailPage() {
                   <strong>Tip Caroserie:</strong> {car.bodyType}
                 </p>
                 <p>
+                  <strong>Tracțiune:</strong> {car.traction || 'N/A'}
+                </p>
+                <p>
                   <strong>Culoare:</strong> {car.color}
                 </p>
                 <p>
                   <strong>Tip Vânzător:</strong> {car.sellerType}
                 </p>
-                {car.is4x4 !== undefined && (
-                  <p>
-                    <strong>4x4:</strong> {car.is4x4 ? 'Da' : 'Nu'}
-                  </p>
-                )}
                 {isRent && car.startDate && (
                   <p>
                     <strong>Data Început:</strong> {car.startDate}
@@ -474,7 +548,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Întrebări despre vehicul? Contactează vânzătorul.</p>
-                <Timeline items={sellTimelineItems} />
+                <Timeline items={sellTimeline} />
                 <Button onClick={handleSellInquiry}>Întreabă Vânzătorul</Button>
               </CardContent>
             </Card>
@@ -502,8 +576,14 @@ export default function CarDetailPage() {
               <CardTitle>Hartă Locație</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='h-64 w-full'>
-                <MapComponent center={[car.lat || 44.4268, car.lng || 26.1025]} zoom={13} filteredCars={[car]} scrollWheelZoom={false} />
+                <div className='h-64 w-full'>
+                <MapComponent
+                  center={mapPosition ?? [car.lat || 44.4268, car.lng || 26.1025]}
+                  mapPosition={mapPosition ?? undefined}
+                  zoom={13}
+                  filteredCars={[car]}
+                  scrollWheelZoom={false}
+                />
               </div>
             </CardContent>
           </Card>
