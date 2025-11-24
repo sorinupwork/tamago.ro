@@ -16,7 +16,6 @@ export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
     ...(car.mileage ? [{ icon: Gauge, label: 'Km', value: car.mileage }] : []),
     ...(car.engineCapacity ? [{ icon: Settings, label: 'Capacitate Motor', value: `${car.engineCapacity} cc` }] : []),
     ...(car.horsepower ? [{ icon: Zap, label: 'Putere', value: `${car.horsepower} CP` }] : []),
-    ...(car.is4x4 ? [{ icon: CarIcon, label: '4x4', value: 'Da' }] : []),
     { icon: Settings, label: 'Transmisie', value: car.transmission },
   ];
 
