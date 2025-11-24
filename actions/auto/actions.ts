@@ -6,10 +6,10 @@ import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Car, Post, RawCarDoc } from '@/lib/types';
+import { Car, Post, RawCarDoc, CarHistoryItem } from '@/lib/types';
 import { auth } from '@/lib/auth/auth';
 
-export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFiles: string[]; options?: string[] }) {
+export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -24,7 +24,7 @@ export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFile
   }
 }
 
-export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[] }) {
+export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -39,7 +39,7 @@ export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles:
   }
 }
 
-export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFiles: string[]; options?: string[] }) {
+export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -54,7 +54,7 @@ export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFile
   }
 }
 
-export async function submitAuctionAutoForm(data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[] }) {
+export async function submitAuctionAutoForm(data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -167,7 +167,7 @@ export async function getGoldenSectionPosts() {
         status: carDoc.status || 'used',
         description: carDoc.description,
         features: carDoc.features ? (typeof carDoc.features === 'string' ? carDoc.features.split(',') : carDoc.features) : [],
-        is4x4: carDoc.is4x4 || false,
+        traction: carDoc.traction || '',
         withDriver: carDoc.withDriver || false,
         driverName: carDoc.driverName || '',
         driverContact: carDoc.driverContact || '',
@@ -294,7 +294,7 @@ export async function getUserCars({
         status: carDoc.status || 'active',
         description: carDoc.description,
         features: carDoc.features ? (typeof carDoc.features === 'string' ? carDoc.features.split(',') : carDoc.features) : [],
-        is4x4: carDoc.is4x4 || false,
+        traction: carDoc.traction || '',
         withDriver: carDoc.withDriver || false,
         driverName: carDoc.driverName || '',
         driverContact: carDoc.driverContact || '',

@@ -92,7 +92,6 @@ export function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
           onPointerDown={(e) => e.preventDefault()}
           onTouchStart={(e) => e.preventDefault()}
           onTouchMove={(e) => e.preventDefault()}
-          onWheel={(e) => e.preventDefault()}
         >
           {car.images.map((img, i) => (
             <CarouselItem key={i}>
@@ -181,7 +180,7 @@ export function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
       <CardDescription>
         {car.description && (
           <div
-            className='text-sm text-muted-foreground bg-muted/50 p-2 line-clamp-3 leading-[1.2] overflow-hidden'
+            className='text-sm text-muted-foreground bg-muted/50 p-2 line-clamp-3 leading-[1.2] overflow-hidden px-4'
             style={{ minHeight: 'calc(3 * 1.2em)' }}
             dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
           />
@@ -189,7 +188,7 @@ export function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
       </CardDescription>
 
       <CardContent className='pt-0 flex-1 flex flex-col'>
-        <CarHistoryHighlights car={car} features={car.features} />
+        <CarHistoryHighlights car={car} features={car.features} items={car.history} />
 
         <CarDetailsAccordion car={car} />
 

@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Fuel, Settings, MapPin, Car as CarIcon, Palette, UserCog, Calendar, Gauge, Zap } from 'lucide-react';
+import { Fuel, Settings, MapPin, Car as CarIcon, Palette, UserCog, Calendar, Gauge, Zap, CarFront } from 'lucide-react';
 import type { Car } from '@/lib/types';
 
 type CarDetailsAccordionProps = {
@@ -8,9 +8,6 @@ type CarDetailsAccordionProps = {
 
 export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
   const details = [
-    { icon: Fuel, label: 'Combustibil', value: car.fuel },
-    { icon: Settings, label: 'Transmisie', value: car.transmission },
-    { icon: MapPin, label: 'Locație', value: car.location },
     { icon: CarIcon, label: 'Caroserie', value: car.bodyType },
     { icon: Palette, label: 'Culoare', value: car.color },
     { icon: UserCog, label: 'Vânzător', value: car.sellerType },
@@ -20,12 +17,13 @@ export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
     ...(car.engineCapacity ? [{ icon: Settings, label: 'Capacitate Motor', value: `${car.engineCapacity} cc` }] : []),
     ...(car.horsepower ? [{ icon: Zap, label: 'Putere', value: `${car.horsepower} CP` }] : []),
     ...(car.is4x4 ? [{ icon: CarIcon, label: '4x4', value: 'Da' }] : []),
+    { icon: Settings, label: 'Transmisie', value: car.transmission },
   ];
 
   const previewDetails = [
-    { icon: Fuel, label: 'Combustibil', value: car.fuel },
-    { icon: Settings, label: 'Transmisie', value: car.transmission },
     { icon: MapPin, label: 'Locație', value: car.location },
+    { icon: CarFront, label: 'Status', value: car.status },
+    { icon: Fuel, label: 'Combustibil', value: car.fuel },
   ];
 
   const leftDetails = details.slice(0, Math.ceil(details.length / 2));

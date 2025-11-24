@@ -34,12 +34,10 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
 
   const isSyncing = useRef(false);
 
-  const autoplayA = useRef<number | null>(null);
-  const autoplayB = useRef<number | null>(null);
+  const unifiedAutoplay = useRef<number | null>(null);
+
   const [playing, setPlaying] = useState(true);
 
-  const lastAutoA = useRef<number | null>(null);
-  const lastAutoB = useRef<number | null>(null);
   const prevARef = useRef<number | null>(null);
   const prevBRef = useRef<number | null>(null);
 
@@ -144,48 +142,49 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   }, [apiB, onSelectB]);
 
   useEffect(() => {
-    if (!apiA) return;
-    if (autoplayA.current) {
-      clearInterval(autoplayA.current);
-      autoplayA.current = null;
+    if (unifiedAutoplay.current) {
+      clearInterval(unifiedAutoplay.current);
+      unifiedAutoplay.current = null;
     }
-    if (playing) {
-      autoplayA.current = window.setInterval(() => {
-        if (!isSyncing.current) {
-          lastAutoA.current = Date.now();
-          apiA.scrollNext();
-        }
-      }, 4500);
-    }
-    return () => {
-      if (autoplayA.current) {
-        clearInterval(autoplayA.current);
-        autoplayA.current = null;
-      }
-    };
-  }, [apiA, playing]);
 
-  useEffect(() => {
-    if (!apiB) return;
-    if (autoplayB.current) {
-      clearInterval(autoplayB.current);
-      autoplayB.current = null;
-    }
-    if (playing) {
-      autoplayB.current = window.setInterval(() => {
-        if (!isSyncing.current) {
-          lastAutoB.current = Date.now();
+    if (!playing) return;
+
+    const intervalMs = 4500;
+
+    if (apiA && apiB) {
+      const tick = () => {
+        if (isSyncing.current) return;
+        isSyncing.current = true;
+        try {
+          apiA.scrollNext();
+          apiB.scrollPrev();
+        } finally {
+          setTimeout(() => (isSyncing.current = false), 150);
+        }
+      };
+
+      tick();
+      unifiedAutoplay.current = window.setInterval(tick, intervalMs);
+    } else if (apiA || apiB) {
+      const tick = () => {
+        if (isSyncing.current) return;
+        if (apiA) {
+          apiA.scrollNext();
+        } else if (apiB) {
           apiB.scrollPrev();
         }
-      }, 4500);
+      };
+      tick();
+      unifiedAutoplay.current = window.setInterval(tick, intervalMs);
     }
+
     return () => {
-      if (autoplayB.current) {
-        clearInterval(autoplayB.current);
-        autoplayB.current = null;
+      if (unifiedAutoplay.current) {
+        clearInterval(unifiedAutoplay.current);
+        unifiedAutoplay.current = null;
       }
     };
-  }, [apiB, playing]);
+  }, [apiA, apiB, playing]);
 
   const RenderRow = ({
     items,
@@ -217,6 +216,8 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
             <CarouselContent className='gap-6' containerClassName='overflow-visible'>
               {items.map((sub, i) => {
                 const origIndex = offset + i;
+                const length = items.length || 1;
+                const normalized = (((currentIndex - offset) % length) + length) % length;
                 const navigate = () => navigateTo(category, sub.title ? sub.title.toLowerCase().replace(' ', '-') : undefined);
                 return (
                   <CarouselItem
@@ -225,14 +226,14 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
                   >
                     <CarouselCard
                       origIndex={origIndex}
-                      isActive={currentIndex === i}
+                      isActive={normalized === i}
                       categoryColors={categoryColors}
                       category={category}
                       sub={sub}
                       onClick={navigate}
                     />
 
-                    <LuckyNumber number={origIndex + 1} isActive={currentIndex === i} category={category} />
+                    <LuckyNumber number={origIndex + 1} isActive={normalized === i} category={category} />
                   </CarouselItem>
                 );
               })}
@@ -251,7 +252,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         currentIndex: currentA,
         offset: 0,
         apiKeyPrefix: 'a',
-        opts: { align: 'center', loop: true, startIndex: 1 },
+        opts: { align: 'center', loop: true, startIndex: 0 },
       })}
 
       {RenderRow({
@@ -260,7 +261,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         currentIndex: currentB,
         offset: 0,
         apiKeyPrefix: 'b',
-        opts: { align: 'center', loop: true, startIndex: 6 },
+        opts: { align: 'center', loop: true, startIndex: 7 },
       })}
     </div>
   );

@@ -29,16 +29,14 @@ export const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupPr
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCheckedChange = (optionValue: string, checked: boolean) => {
-    const newSelected = checked
-      ? [...value, optionValue]
-      : value.filter((v) => v !== optionValue);
+    const newSelected = checked ? [...value, optionValue] : value.filter((v) => v !== optionValue);
     onChange(newSelected);
   };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className={className}>
       <CollapsibleTrigger asChild>
-        <Button variant='ghost' className='flex items-center justify-between w-full p-2'>
+        <Button variant='ghost' className='flex items-center justify-between w-full p-2 bg-accent/50 dark:bg-accent'>
           <span className='font-medium'>{label}</span>
           <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </Button>

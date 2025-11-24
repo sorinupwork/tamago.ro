@@ -17,7 +17,7 @@ type AppMediaUploaderInputProps = {
   maxFiles?: number;
   showPreview?: boolean;
   disabled?: boolean;
-  layout?: 'row' | 'col'; // new: layout for avatar (row) vs cover (col)
+  layout?: 'row' | 'col';
 };
 
 export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
@@ -36,10 +36,8 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
   disabled,
   layout = 'row',
 }) => {
-  // choose wrapper classes based on layout
   const wrapperClass = layout === 'col' ? 'flex flex-col items-start gap-2 w-full' : 'flex items-center gap-2';
 
-  // if layout is col (cover) restrict to single file preview
   const effectiveMaxFiles = layout === 'col' ? 1 : maxFiles;
 
   return (

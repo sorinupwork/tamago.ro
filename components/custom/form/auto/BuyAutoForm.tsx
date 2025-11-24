@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
-import { MapPin } from 'lucide-react';
+import { MapPin, PlusCircle, Trash } from 'lucide-react';
 import { toast } from 'sonner';
+import type { CarHistoryItem } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
 import { Progress } from '@/components/ui/progress';
-import AppTextarea from '../../input/AppTextarea';
+import { AppTextarea } from '../../input/AppTextarea';
 import { AppLocationInput } from '../../input/AppLocationInput';
 import LoadingIndicator from '../../loading/LoadingIndicator';
 import { auto, AutoBuyFormData } from '@/lib/validations';
@@ -19,9 +20,9 @@ import { submitBuyAutoForm } from '@/actions/auto/actions';
 import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
 import { AppInput } from '../../input/AppInput';
 import { AppSelectInput } from '../../input/AppSelectInput';
-import { AppCheckbox } from '../../input/AppCheckbox';
 import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
 import { AppSlider } from '../../input/AppSlider';
+import { brandOptions, colorOptions, carTypeOptions, transmissionOptions, availableOptions, iconOptions, tractionOptions } from '@/lib/mockData';
 
 export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -30,6 +31,10 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [history, setHistory] = useState<CarHistoryItem[]>([]);
+  const [histTitle, setHistTitle] = useState('');
+  const [histDesc, setHistDesc] = useState('');
+  const [histIcon, setHistIcon] = useState<string>('Wrench');
   const form = useForm<AutoBuyFormData>({
     resolver: zodResolver(auto.buySchema) as Resolver<AutoBuyFormData>,
     defaultValues: {
@@ -53,12 +58,11 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       carType: undefined,
       horsePower: '',
       transmission: undefined,
-      is4x4: false,
+      traction: 'integrala',
       uploadedFiles: [],
     },
   });
 
-  const availableOptions = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
   const watchedValues = useWatch({ control: form.control });
 
   const handleFilesChange = (newFiles: File[]) => {
@@ -93,76 +97,6 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     parseFloat(form.watch('maxYear') || new Date().getFullYear().toString()),
   ];
 
-  const brandOptions = [
-    { value: 'BMW', label: 'BMW' },
-    { value: 'Audi', label: 'Audi' },
-    { value: 'Mercedes', label: 'Mercedes' },
-    { value: 'Volkswagen', label: 'Volkswagen' },
-    { value: 'Toyota', label: 'Toyota' },
-    { value: 'Honda', label: 'Honda' },
-    { value: 'Ford', label: 'Ford' },
-    { value: 'Chevrolet', label: 'Chevrolet' },
-    { value: 'Nissan', label: 'Nissan' },
-    { value: 'Hyundai', label: 'Hyundai' },
-    { value: 'Kia', label: 'Kia' },
-    { value: 'Renault', label: 'Renault' },
-    { value: 'Peugeot', label: 'Peugeot' },
-    { value: 'Citroen', label: 'Citroen' },
-    { value: 'Fiat', label: 'Fiat' },
-    { value: 'Opel', label: 'Opel' },
-    { value: 'Skoda', label: 'Skoda' },
-    { value: 'Seat', label: 'Seat' },
-    { value: 'Volvo', label: 'Volvo' },
-    { value: 'Mazda', label: 'Mazda' },
-    { value: 'Mitsubishi', label: 'Mitsubishi' },
-    { value: 'Suzuki', label: 'Suzuki' },
-    { value: 'Lexus', label: 'Lexus' },
-    { value: 'Infiniti', label: 'Infiniti' },
-    { value: 'Jaguar', label: 'Jaguar' },
-    { value: 'Land Rover', label: 'Land Rover' },
-    { value: 'Porsche', label: 'Porsche' },
-    { value: 'Ferrari', label: 'Ferrari' },
-    { value: 'Lamborghini', label: 'Lamborghini' },
-    { value: 'Bentley', label: 'Bentley' },
-    { value: 'Rolls-Royce', label: 'Rolls-Royce' },
-    { value: 'Aston Martin', label: 'Aston Martin' },
-    { value: 'McLaren', label: 'McLaren' },
-    { value: 'Bugatti', label: 'Bugatti' },
-    { value: 'Alfa Romeo', label: 'Alfa Romeo' },
-    { value: 'Maserati', label: 'Maserati' },
-    { value: 'Lancia', label: 'Lancia' },
-    { value: 'Saab', label: 'Saab' },
-    { value: 'Smart', label: 'Smart' },
-    { value: 'Mini', label: 'Mini' },
-    { value: 'Dacia', label: 'Dacia' },
-    { value: 'Lada', label: 'Lada' },
-    { value: 'Trabant', label: 'Trabant' },
-    { value: 'Moskvich', label: 'Moskvich' },
-    { value: 'ZAZ', label: 'ZAZ' },
-    { value: 'UAZ', label: 'UAZ' },
-    { value: 'GAZ', label: 'GAZ' },
-    { value: 'ZIL', label: 'ZIL' },
-    { value: 'Volga', label: 'Volga' },
-    { value: 'Zhiguli', label: 'Zhiguli' },
-    { value: 'Alta', label: 'Alta' },
-  ];
-
-  const colorOptions = [
-    { value: 'Alb', label: 'Alb' },
-    { value: 'Negru', label: 'Negru' },
-    { value: 'Gri', label: 'Gri' },
-    { value: 'Albastru', label: 'Albastru' },
-    { value: 'Rosu', label: 'Rosu' },
-    { value: 'Verde', label: 'Verde' },
-    { value: 'Galben', label: 'Galben' },
-    { value: 'Portocaliu', label: 'Portocaliu' },
-    { value: 'Violet', label: 'Violet' },
-    { value: 'Maro', label: 'Maro' },
-    { value: 'Argintiu', label: 'Argintiu' },
-    { value: 'Auriu', label: 'Auriu' },
-    { value: 'Alta', label: 'Alta' },
-  ];
-
   const handleEngineCapacityRangeChange = (value: number[]) => {
     form.setValue('minEngineCapacity', value[0].toString(), { shouldValidate: true });
     form.setValue('maxEngineCapacity', value[1].toString(), { shouldValidate: true });
@@ -190,6 +124,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       maxYear: watchedValues.maxYear || '',
       features: watchedValues.features || '',
       options,
+      history,
       brand: watchedValues.brand || '',
       color: watchedValues.color || '',
       minEngineCapacity: watchedValues.minEngineCapacity || '',
@@ -197,7 +132,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       carType: watchedValues.carType || '',
       horsePower: watchedValues.horsePower || '',
       transmission: watchedValues.transmission || '',
-      is4x4: watchedValues.is4x4 || false,
+      traction: watchedValues.traction || '',
     });
   }, [
     watchedValues.title,
@@ -219,9 +154,10 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
     watchedValues.carType,
     watchedValues.horsePower,
     watchedValues.transmission,
-    watchedValues.is4x4,
+    watchedValues.traction,
     uploadedFiles,
     options,
+    history,
     onPreviewUpdate,
     form,
   ]);
@@ -263,7 +199,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
         urls = await uploadPromise;
       }
 
-      const result = await submitBuyAutoForm({ ...data, uploadedFiles: urls, options });
+      const result = await submitBuyAutoForm({ ...data, uploadedFiles: urls, options, history });
 
       if (result.success) {
         toast.success('Formular trimis cu succes!');
@@ -272,6 +208,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
         setOptions([]);
         setFiles([]);
         setUploaderKey((k) => k + 1);
+        setHistory([]);
       } else {
         toast.error('Eroare la trimiterea formularului.');
       }
@@ -430,15 +367,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             />
             <AppSelectInput
               options={[
-                { value: 'SUV', label: 'SUV' },
-                { value: 'Coupe', label: 'Coupe' },
-                { value: 'Sedan', label: 'Sedan' },
-                { value: 'Hatchback', label: 'Hatchback' },
-                { value: 'Convertible', label: 'Convertible' },
-                { value: 'Wagon', label: 'Wagon' },
-                { value: 'Pickup', label: 'Pickup' },
-                { value: 'Van', label: 'Van' },
-                { value: 'Other', label: 'Altul' },
+                /* use centralized carTypeOptions */
+                ...carTypeOptions
               ]}
               value={form.watch('carType')}
               onValueChange={(v) =>
@@ -479,9 +409,8 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             />
             <AppSelectInput
               options={[
-                { value: 'Manual', label: 'Manuală' },
-                { value: 'Automatic', label: 'Automată' },
-                { value: 'Semi-Automatic', label: 'Semi-automată' },
+                /* use centralized transmissionOptions */
+                ...transmissionOptions
               ]}
               value={form.watch('transmission')}
               onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}
@@ -490,14 +419,15 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
               label='Transmisie'
               error={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined}
             />
-            <AppCheckbox
-              label='4x4'
-              value={form.watch('is4x4')}
-              onChange={(checked) => form.setValue('is4x4', checked as boolean)}
-              error={form.formState.errors.is4x4 ? [form.formState.errors.is4x4] : undefined}
-              className='max-w-full'
-              lift={false}
-            />
+            <AppSelectInput
+               label='Tractiune'
+               options={tractionOptions}
+               value={form.watch('traction')}
+               onValueChange={(v) => form.setValue('traction', v as 'integrala' | 'fata' | 'spate')}
+               placeholder='Selectați tracțiunea'
+               className='max-w-full'
+               error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
+             />
           </div>
 
           <AppTextarea
@@ -508,6 +438,38 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
             className='min-w-0 w-full wrap-break-word'
           />
+
+          {/* History editor (similar to Sell form) */}
+          <div className='mt-2'>
+            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină (opțional)</h4>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
+              <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
+              <AppSelectInput options={iconOptions} value={histIcon} onValueChange={(v) => setHistIcon(v as string)} placeholder='Selectați icon' label='Iconă' />
+              <AppInput value={histDesc} onChange={(e) => setHistDesc(e.target.value)} label='Scurtă descriere' placeholder='Ex: Revizie la 60.000 km' />
+              <div className='col-span-1 md:col-span-3 flex gap-2'>
+                <button
+                  type='button'
+                  className='btn inline-flex items-center gap-2 px-3 py-1 rounded bg-primary text-white'
+                  onClick={() => {
+                    if (!histTitle) return;
+                    setHistory((h) => [...h, { title: histTitle, description: histDesc, icon: histIcon }]);
+                    setHistTitle('');
+                    setHistDesc('');
+                  }}
+                >
+                  <PlusCircle className='w-4 h-4' /> Adaugă
+                </button>
+                <div className='flex flex-wrap gap-2'>
+                  {history.map((h, i) => (
+                    <div key={i} className='flex items-center gap-2 rounded border px-2 py-1'>
+                      <span className='text-sm font-medium'>{h.title}</span>
+                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}><Trash className='w-3 h-3' /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
 
           <AppCollapsibleCheckboxGroup
             label='Opțiuni Adiționale'

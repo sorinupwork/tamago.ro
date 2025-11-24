@@ -1,5 +1,13 @@
 import { ObjectId } from 'mongodb';
 
+export type CarHistoryItem = {
+  id?: string;
+  title: string;
+  description?: string;
+  icon?: string; // string key for icon mapping e.g. 'Wrench' 'FileText' 'Droplet' 'Calendar'
+  year?: number;
+};
+
 export type RawCarDoc = {
   _id: ObjectId | string;
   title?: string;
@@ -22,7 +30,7 @@ export type RawCarDoc = {
   startDate?: string;
   endDate?: string;
   currency?: string;
-  is4x4?: boolean;
+  traction?: string; // 'integrala' | 'fata' | 'spate'
   withDriver?: boolean;
   driverName?: string;
   driverContact?: string;
@@ -34,6 +42,7 @@ export type RawCarDoc = {
   carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
   views?: number;
   userId?: string;
+  history?: CarHistoryItem[]; // list of history items
 };
 
 export type Car = {
@@ -63,7 +72,7 @@ export type Car = {
   status?: string;
   description?: string;
   features?: string[];
-  is4x4?: boolean;
+  traction?: string; // 'integrala' | 'fata' | 'spate'
   withDriver?: boolean;
   driverName?: string;
   driverContact?: string;
@@ -74,6 +83,7 @@ export type Car = {
   minPrice?: string;
   maxPrice?: string;
   userId?: string;
+  history?: CarHistoryItem[];
 };
 
 export type Post = {

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import AppTextarea from '@/components/custom/input/AppTextarea';
+import {AppTextarea} from '@/components/custom/input/AppTextarea';
 import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
 import { AppTagsInput } from '@/components/custom/input/AppTagsInput';
 import { createFeedAction } from '@/actions/social/feeds/actions';

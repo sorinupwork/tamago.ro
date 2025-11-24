@@ -53,7 +53,8 @@ export type PreviewData = {
   carType?: string;
   horsePower?: string;
   transmission?: string;
-  is4x4?: boolean;
+  traction?: string;
+  history?: { title: string; description?: string; icon?: string }[];
 };
 
 type CategoriesClientProps = {
@@ -102,6 +103,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     maxYear: '',
     features: '',
     options: [],
+    traction: 'integrala',
   }));
 
   const onPreviewUpdate = useCallback((data: PreviewData) => {
@@ -164,7 +166,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
               <Card className='overflow-hidden max-w-full animate-in fade-in-0 slide-in-from-bottom-4 shadow-md w-full'>
                 <CardHeader className='shrink-0'>
                   <CardTitle className='text-2xl font-bold text-center'>
-                    Formular pentru {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
+                    Formular {categories.find((c) => c.key === selectedCategory)?.label} -{' '}
                     {subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title}
                   </CardTitle>
                 </CardHeader>

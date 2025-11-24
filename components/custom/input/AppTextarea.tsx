@@ -32,7 +32,7 @@ type Props = {
   rows?: number;
 };
 
-export default function AppTextarea({
+export function AppTextarea({
   value = '',
   onChange,
   placeholder,

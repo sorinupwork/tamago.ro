@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
+import { CarHistoryHighlights } from '@/components/custom/auto/CarHistoryHighlights';
+import type { CarHistoryItem } from '@/lib/types';
 
 type PreviewProps = {
   title: string;
@@ -43,7 +45,8 @@ type PreviewProps = {
   carType?: string;
   horsePower?: string;
   transmission?: string;
-  is4x4?: boolean;
+  traction?: string; // 'integrala' | 'fata' | 'spate'
+  history?: CarHistoryItem[]; // typed correctly, no any
 };
 
 export function Preview({
@@ -82,20 +85,21 @@ export function Preview({
   carType,
   horsePower,
   transmission,
-  is4x4,
+  traction,
+  history,
 }: PreviewProps) {
   return (
     <Card className='shadow-md w-full'>
-      <CardHeader>
-        <CardTitle className='text-xl font-bold'>Previzualizare Postare</CardTitle>
+      <CardHeader className='flex items-center justify-between grow'>
+        <CardTitle className='text-xl font-bold'>Previzualizare Anunț</CardTitle>
+        <Badge variant={category === 'auction' ? 'destructive' : 'secondary'} className='self-start'>
+          {category === 'sell' ? 'Ofertă' : category === 'buy' ? 'Cerere' : category === 'rent' ? 'Închiriere' : 'Licitație'}
+        </Badge>
       </CardHeader>
 
       <CardContent className='space-y-4 overflow-auto' style={{ maxHeight: 'calc(100vh - 56px)' }}>
         <div className='flex flex-col md:flex-row gap-2'>
           <h3 className='min-w-0 text-lg font-semibold break-all overflow-wrap-break-word'>{title || 'Titlu Postare'}</h3>
-          <Badge variant={category === 'auction' ? 'destructive' : 'secondary'} className='self-start'>
-            {category === 'sell' ? 'Ofertă' : category === 'buy' ? 'Cerere' : category === 'rent' ? 'Închiriere' : 'Licitație'}
-          </Badge>
         </div>
         <p className='text-2xl font-bold text-primary break-all overflow-wrap-break-word max-w-full'>
           {category === 'buy'
@@ -115,6 +119,7 @@ export function Preview({
                 : `${price} ${currency || ''}`}
         </p>
         <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
+        {category === 'sell' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
         {category === 'rent' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
         {category === 'rent' && startDate && endDate && (
           <p className='text-sm text-muted-foreground'>
@@ -185,7 +190,7 @@ export function Preview({
             <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
           </div>
           <div className='text-sm'>
-            <strong>4x4:</strong> {is4x4 ? 'Da' : 'Nu'}
+            <strong>Tracțiune:</strong> {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}
           </div>
 
           <div className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
@@ -239,6 +244,9 @@ export function Preview({
             <p>Telefon: {driverTelephone || 'Nespecificat'}</p>
           </div>
         )}
+
+        {/* show history highlights when provided */}
+        {history && history.length > 0 && <CarHistoryHighlights items={history} features={features ? features.split(',') : []} />}
 
         <p className='text-xs text-muted-foreground'>Adăugat: {new Date().toLocaleDateString('ro-RO')}</p>
       </CardContent>

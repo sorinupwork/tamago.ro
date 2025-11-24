@@ -1,64 +1,104 @@
-import { User } from './types';
+export const availableOptions: string[] = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
 
-export const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'User One',
-    email: 'user1@example.com',
-    provider: 'credentials',
-    avatar: '/avatars/01.jpg',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Online',
-    category: 'Prieteni',
-    location: [44.4268, 26.1025] as [number, number],
-  }, // Bucharest
-  {
-    id: '2',
-    name: 'User Two',
-    email: 'user2@example.com',
-    provider: 'credentials',
-    avatar: '/avatars/02.jpg',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Away',
-    category: 'Recenți',
-    location: [45.9432, 24.9668] as [number, number],
-  }, // Sibiu
-  {
-    id: '3',
-    name: 'User Three',
-    email: 'user3@example.com',
-    provider: 'credentials',
-    avatar: '/avatars/03.jpg',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Offline',
-    category: 'Prieteni',
-    location: [47.1585, 27.6014] as [number, number],
-  }, // Iași
-  {
-    id: '4',
-    name: 'User Four',
-    email: 'user4@example.com',
-    provider: 'credentials',
-    avatar: '/avatars/04.jpg',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Online',
-    category: 'Recenți',
-    location: [46.7712, 23.6236] as [number, number],
-  }, // Cluj
-  {
-    id: '5',
-    name: 'User Five',
-    email: 'user5@example.com',
-    provider: 'credentials',
-    avatar: '/avatars/05.jpg',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Away',
-    category: 'Prieteni',
-    location: [44.1812, 28.6348] as [number, number],
-  }, // Constanța
+export const brandOptions = [
+  { value: 'BMW', label: 'BMW' },
+  { value: 'Audi', label: 'Audi' },
+  { value: 'Mercedes', label: 'Mercedes' },
+  { value: 'Volkswagen', label: 'Volkswagen' },
+  { value: 'Toyota', label: 'Toyota' },
+  { value: 'Honda', label: 'Honda' },
+  { value: 'Ford', label: 'Ford' },
+  { value: 'Chevrolet', label: 'Chevrolet' },
+  { value: 'Nissan', label: 'Nissan' },
+  { value: 'Hyundai', label: 'Hyundai' },
+  { value: 'Kia', label: 'Kia' },
+  { value: 'Renault', label: 'Renault' },
+  { value: 'Peugeot', label: 'Peugeot' },
+  { value: 'Citroen', label: 'Citroen' },
+  { value: 'Fiat', label: 'Fiat' },
+  { value: 'Opel', label: 'Opel' },
+  { value: 'Skoda', label: 'Skoda' },
+  { value: 'Seat', label: 'Seat' },
+  { value: 'Volvo', label: 'Volvo' },
+  { value: 'Mazda', label: 'Mazda' },
+  { value: 'Mitsubishi', label: 'Mitsubishi' },
+  { value: 'Suzuki', label: 'Suzuki' },
+  { value: 'Lexus', label: 'Lexus' },
+  { value: 'Infiniti', label: 'Infiniti' },
+  { value: 'Jaguar', label: 'Jaguar' },
+  { value: 'Land Rover', label: 'Land Rover' },
+  { value: 'Porsche', label: 'Porsche' },
+  { value: 'Ferrari', label: 'Ferrari' },
+  { value: 'Lamborghini', label: 'Lamborghini' },
+  { value: 'Bentley', label: 'Bentley' },
+  { value: 'Rolls-Royce', label: 'Rolls-Royce' },
+  { value: 'Aston Martin', label: 'Aston Martin' },
+  { value: 'McLaren', label: 'McLaren' },
+  { value: 'Bugatti', label: 'Bugatti' },
+  { value: 'Alfa Romeo', label: 'Alfa Romeo' },
+  { value: 'Maserati', label: 'Maserati' },
+  { value: 'Lancia', label: 'Lancia' },
+  { value: 'Saab', label: 'Saab' },
+  { value: 'Smart', label: 'Smart' },
+  { value: 'Mini', label: 'Mini' },
+  { value: 'Dacia', label: 'Dacia' },
+  { value: 'Lada', label: 'Lada' },
+  { value: 'Trabant', label: 'Trabant' },
+  { value: 'Moskvich', label: 'Moskvich' },
+  { value: 'ZAZ', label: 'ZAZ' },
+  { value: 'UAZ', label: 'UAZ' },
+  { value: 'GAZ', label: 'GAZ' },
+  { value: 'ZIL', label: 'ZIL' },
+  { value: 'Volga', label: 'Volga' },
+  { value: 'Zhiguli', label: 'Zhiguli' },
+  { value: 'Alta', label: 'Alta' },
+];
+
+export const colorOptions = [
+  { value: 'Alb', label: 'Alb' },
+  { value: 'Negru', label: 'Negru' },
+  { value: 'Gri', label: 'Gri' },
+  { value: 'Albastru', label: 'Albastru' },
+  { value: 'Rosu', label: 'Rosu' },
+  { value: 'Verde', label: 'Verde' },
+  { value: 'Galben', label: 'Galben' },
+  { value: 'Portocaliu', label: 'Portocaliu' },
+  { value: 'Violet', label: 'Violet' },
+  { value: 'Maro', label: 'Maro' },
+  { value: 'Argintiu', label: 'Argintiu' },
+  { value: 'Auriu', label: 'Auriu' },
+  { value: 'Alta', label: 'Alta' },
+];
+
+export const carTypeOptions = [
+  { value: 'SUV', label: 'SUV' },
+  { value: 'Coupe', label: 'Coupe' },
+  { value: 'Sedan', label: 'Sedan' },
+  { value: 'Hatchback', label: 'Hatchback' },
+  { value: 'Convertible', label: 'Convertible' },
+  { value: 'Wagon', label: 'Wagon' },
+  { value: 'Pickup', label: 'Pickup' },
+  { value: 'Van', label: 'Van' },
+  { value: 'Other', label: 'Altul' },
+];
+
+export const transmissionOptions = [
+  { value: 'Manual', label: 'Manuală' },
+  { value: 'Automatic', label: 'Automată' },
+  { value: 'Semi-Automatic', label: 'Semi-automată' },
+];
+
+export const iconOptions = [
+  { value: 'Wrench', label: '🔧 Revizie' },
+  { value: 'FileText', label: '📄 RAR' },
+  { value: 'Droplet', label: '💧 Schimb Ulei' },
+  { value: 'Calendar', label: '📅 Eveniment' },
+  { value: 'Other', label: '⭐ Altul' },
+];
+
+// Add traction options
+export const tractionOptions = [
+  { value: 'integrala', label: 'Integrala (4x4)' },
+  { value: 'fata', label: 'Față' },
+  { value: 'spate', label: 'Spate' },
 ];

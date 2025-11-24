@@ -68,7 +68,7 @@ export function MediaUploader({
   };
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-4 grow'>
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-default transition-colors ${

@@ -13,7 +13,7 @@ import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploade
 import { createStoryAction } from '@/actions/social/stories/actions';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
-import AppTextarea from '@/components/custom/input/AppTextarea';
+import {AppTextarea} from '@/components/custom/input/AppTextarea';
 
 type Props = {
   open: boolean;

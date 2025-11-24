@@ -8,7 +8,7 @@ export const auto = {
     currency: z.enum(['EUR', 'USD', 'RON'], { message: 'Moneda trebuie să fie EUR, USD sau RON' }),
     location: z.string().min(1, 'Locația este obligatorie'),
     features: z.string().optional(),
-    status: z.string().optional(),
+    status: z.string().min(1, 'Statusul este obligatoriu'),
     fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
     mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
     year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
@@ -20,9 +20,18 @@ export const auto = {
     }),
     horsePower: z.string().regex(/^\d+$/, { message: 'Puterea trebuie să fie un număr întreg' }),
     transmission: z.enum(['Manual', 'Automatic', 'Semi-Automatic'], { message: 'Transmisia este obligatorie' }),
-    is4x4: z.boolean(),
+    traction: z.enum(['integrala', 'fata', 'spate'], { message: 'Tracțiunea este obligatorie' }),
     uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
+    history: z
+      .array(
+        z.object({
+          title: z.string().min(1, 'Titlul istoric este obligatoriu'),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        })
+      )
+      .optional(),
   }),
   buySchema: z.object({
     title: z.string().min(1, 'Titlul este obligatoriu'),
@@ -44,7 +53,7 @@ export const auto = {
     }),
     features: z.string().optional(),
     status: z.string().min(1, 'Statusul este obligatoriu'),
-    fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
+    fuel: z.string().min(1, 'Combustibilul este obligatorie'),
     minMileage: z
       .string()
       .min(1, 'Kilometrajul minim este obligatoriu')
@@ -64,9 +73,18 @@ export const auto = {
     }),
     horsePower: z.string().regex(/^\d+$/, { message: 'Puterea trebuie să fie un număr întreg' }),
     transmission: z.enum(['Manual', 'Automatic', 'Semi-Automatic'], { message: 'Transmisia este obligatorie' }),
-    is4x4: z.boolean(),
+    traction: z.enum(['integrala', 'fata', 'spate'], { message: 'Tracțiunea este obligatorie' }),
     uploadedFiles: z.array(z.string()).optional(),
     options: z.array(z.string()).optional(),
+    history: z
+      .array(
+        z.object({
+          title: z.string().min(1, 'Titlul istoric este obligatoriu'),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        })
+      )
+      .optional(),
   }),
   rentSchema: z
     .object({
@@ -86,7 +104,7 @@ export const auto = {
       type: z.string().optional(),
       features: z.string().optional(),
       status: z.string().min(1, 'Statusul este obligatoriu'),
-      fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
+      fuel: z.string().min(1, 'Combustibilul este obligatorie'),
       mileage: z.string().min(1, 'Kilometrajul este obligatoriu').regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
       year: z.string().min(1, 'Anul este obligatoriu').regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
       brand: z.string().min(1, 'Marca este obligatorie'),
@@ -97,13 +115,22 @@ export const auto = {
       }),
       horsePower: z.string().regex(/^\d+$/, { message: 'Puterea trebuie să fie un număr întreg' }),
       transmission: z.enum(['Manual', 'Automatic', 'Semi-Automatic'], { message: 'Transmisia este obligatorie' }),
-      is4x4: z.boolean(),
+      traction: z.enum(['integrala', 'fata', 'spate'], { message: 'Tracțiunea este obligatorie' }),
       withDriver: z.boolean().optional(),
       driverName: z.string().optional(),
       driverContact: z.string().optional(),
       driverTelephone: z.string().optional(),
       uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
       options: z.array(z.string()).optional(),
+      history: z
+        .array(
+          z.object({
+            title: z.string().min(1, 'Titlul istoric este obligatoriu'),
+            description: z.string().optional(),
+            icon: z.string().optional(),
+          })
+        )
+        .optional(),
     })
     .refine((data) => new Date(data.startDate) < new Date(data.endDate), {
       message: 'Data de sfârșit trebuie să fie după data de început',
@@ -130,7 +157,7 @@ export const auto = {
     endDate: z.string().min(1, 'Data de sfârșit a licitației este obligatorie'),
     features: z.string().optional(),
     status: z.string().min(1, 'Statusul este obligatoriu'),
-    fuel: z.string().min(1, 'Combustibilul este obligatoriu'),
+    fuel: z.string().min(1, 'Combustibilul este obligatorie'),
     mileage: z.string().regex(/^\d+([.,]\d+)?$/, { message: 'Kilometrajul trebuie să fie un număr' }),
     year: z.string().regex(/^\d+$/, { message: 'Anul trebuie să fie un număr întreg' }),
     brand: z.string().min(1, 'Marca este obligatorie'),
@@ -141,9 +168,18 @@ export const auto = {
     }),
     horsePower: z.string().regex(/^\d+$/, { message: 'Puterea trebuie să fie un număr întreg' }),
     transmission: z.enum(['Manual', 'Automatic', 'Semi-Automatic'], { message: 'Transmisia este obligatorie' }),
-    is4x4: z.boolean(),
+    traction: z.enum(['integrala', 'fata', 'spate'], { message: 'Tracțiunea este obligatorie' }),
     uploadedFiles: z.array(z.string()).min(1, 'Fișierele sunt necesare.'),
     options: z.array(z.string()).optional(),
+    history: z
+      .array(
+        z.object({
+          title: z.string().min(1, 'Titlul istoric este obligatoriu'),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        })
+      )
+      .optional(),
   }),
 };
 

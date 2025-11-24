@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
 import { AppTagsInput } from '@/components/custom/input/AppTagsInput';
-import AppTextarea from '@/components/custom/input/AppTextarea';
+import {AppTextarea} from '@/components/custom/input/AppTextarea';
 import { updateProfile } from '@/actions/auth/actions';
 import LoadingIndicator from '../loading/LoadingIndicator';
 
