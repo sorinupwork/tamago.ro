@@ -1,13 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-export type CarHistoryItem = {
-  id?: string;
-  title: string;
-  description?: string;
-  icon?: string; // string key for icon mapping e.g. 'Wrench' 'FileText' 'Droplet' 'Calendar'
-  year?: number;
-};
-
 export type RawCarDoc = {
   _id: ObjectId | string;
   title?: string;
@@ -19,12 +11,14 @@ export type RawCarDoc = {
   transmission?: string;
   location?: string | { lat: number; lng: number; address: string; fullAddress: string };
   uploadedFiles?: string[];
+
   images?: string[];
   carType?: string;
   color?: string;
   engineCapacity?: string;
   horsePower?: string;
   horsepower?: number;
+
   status?: string;
   description?: string;
   features?: string | string[];
@@ -44,52 +38,62 @@ export type RawCarDoc = {
   maxPrice?: string;
   dateAdded?: string;
   sellerType?: string;
-  urlCategory?: string;
   carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
-  views?: number;
   userId?: string;
   history?: CarHistoryItem[];
+
+  urlCategory?: string;
+  views?: number;
 };
 
 export type Car = {
   id: string;
   title: string;
   price: string;
-  currency?: string;
-  period?: string;
-  startDate?: string;
-  endDate?: string;
   year: number;
   brand: string;
-  category: 'sell' | 'buy' | 'rent' | 'auction';
   mileage: number;
   fuel: string;
   transmission: string;
   location: string;
   images: string[];
-  dateAdded: string;
-  sellerType: 'private' | 'firm';
-  contactPhone: string;
-  contactEmail: string;
-  bodyType: string;
   color: string;
+  bodyType: string;
   engineCapacity?: number;
   horsepower?: number;
   status?: string;
   description?: string;
   features?: string[];
-  traction?: string; // 'integrala' | 'fata' | 'spate'
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  currency?: string;
+  traction?: string;
   withDriver?: boolean;
   driverName?: string;
   driverContact?: string;
   driverTelephone?: string;
+  contactPhone: string;
+  contactEmail: string;
   options?: string[];
-  lat?: number;
-  lng?: number;
   minPrice?: string;
   maxPrice?: string;
+  dateAdded: string;
+  sellerType: 'private' | 'firm';
+  category: 'sell' | 'buy' | 'rent' | 'auction';
   userId?: string;
   history?: CarHistoryItem[];
+
+  lat?: number;
+  lng?: number;
+};
+
+export type CarHistoryItem = {
+  id?: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  year?: number;
 };
 
 export type Post = {
@@ -163,21 +167,23 @@ export type User = {
   email: string;
   bio?: string | null;
   password?: string;
-  provider?: 'credentials' | 'google' | 'facebook' | 'instagram'; // made optional
+  provider?: 'credentials' | 'google' | 'facebook' | 'instagram';
   avatar?: string;
   image?: string | null;
+
   coverImage?: string | null;
-  emailVerified?: boolean | Date | string | null; // accept boolean from session or Date/string from DB
+  emailVerified?: boolean | Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   role?: 'user' | 'admin';
   badges?: string[];
-  platforms?: string[]; // added platforms
+  platforms?: string[];
   progress?: { posts: number; friends: number; points: number };
   rewards?: { freePosts: number; premiumAccess: boolean };
   status?: string;
   category?: string;
   location?: [number, number];
+
   videoUrl?: string;
 };
 

@@ -31,7 +31,7 @@ type AppComboboxProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export const AppCombobox: React.FC<AppComboboxProps> = ({
+const AppCombobox: React.FC<AppComboboxProps> = ({
   options,
   value,
   onValueChange,
@@ -124,3 +124,5 @@ export const AppCombobox: React.FC<AppComboboxProps> = ({
     </TooltipProvider>
   );
 };
+
+export default AppCombobox;

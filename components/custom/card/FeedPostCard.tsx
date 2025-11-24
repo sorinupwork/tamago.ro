@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
 import sanitizeHtml from 'sanitize-html';
 import { MessageSquare, ThumbsUp, Share, MoreVertical } from 'lucide-react';
+import { toast } from 'sonner';
 import type { ChangeEvent } from 'react';
 
-import { FeedItem } from '@/lib/types';
-import UserProfileCard from './UserProfileCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -15,9 +14,10 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { AppInput } from '@/components/custom/input/AppInput';
-import { toast } from 'sonner';
+import UserProfileCard from './UserProfileCard';
+import AppInput from '@/components/custom/input/AppInput';
 import { addLikeAction, addCommentAction, addReplyAction, voteOnPollAction } from '@/actions/social/feeds/actions';
+import { FeedItem } from '@/lib/types';
 
 type Props = {
   item: FeedItem;

@@ -1,5 +1,5 @@
 import PostCard from './PostCard';
-import { AppPagination } from '@/components/custom/pagination/AppPagination';
+import AppPagination from '@/components/custom/pagination/AppPagination';
 
 type Post = {
   id: string;

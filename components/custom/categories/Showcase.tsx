@@ -3,12 +3,12 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
+import AppSeparator from '../separator/AppSeparator';
+import AppInvertedCarousel from '../carousel/AppInvertedCarousel';
 import { categories } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
-import AppSeparator from '../separator/AppSeparator';
-import { AppInvertedCarousel } from '../carousel/AppInvertedCarousel';
 
-export function Showcase({ category }: { category: string }) {
+export default function Showcase({ category }: { category: string }) {
   const router = useRouter();
 
   const heroImages: Record<string, string> = {

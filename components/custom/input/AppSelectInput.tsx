@@ -24,7 +24,7 @@ type AppSelectInputProps = {
   lift?: boolean;
 };
 
-export const AppSelectInput: React.FC<AppSelectInputProps> = ({
+const AppSelectInput: React.FC<AppSelectInputProps> = ({
   options,
   value,
   onValueChange,
@@ -99,3 +99,5 @@ export const AppSelectInput: React.FC<AppSelectInputProps> = ({
     </Field>
   );
 };
+
+export default AppSelectInput;

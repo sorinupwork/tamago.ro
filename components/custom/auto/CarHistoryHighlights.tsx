@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { Calendar, Wrench, FileText, Droplet, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Timeline } from '@/components/custom/timeline/Timeline';
+import Timeline from '@/components/custom/timeline/Timeline';
 import type { Car, CarHistoryItem } from '@/lib/types';
 
 type CarHistoryHighlightsProps = {
@@ -17,7 +17,7 @@ const ICON_MAP: { [key: string]: LucideIcon } = {
   Calendar,
 };
 
-export function CarHistoryHighlights({ car, features, items }: CarHistoryHighlightsProps) {
+export default function CarHistoryHighlights({ car, features, items }: CarHistoryHighlightsProps) {
   console.log('car', car);
 
   const historyItems =

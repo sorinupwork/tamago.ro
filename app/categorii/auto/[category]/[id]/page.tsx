@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Phone, Mail, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';
 
-import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,18 +24,19 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
-import { MediaPreview } from '@/components/custom/media/MediaPreview';
-import { useIsMobile } from '@/hooks/use-mobile';
+import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
+import MediaPreview from '@/components/custom/media/MediaPreview';
 import MapComponent from '@/components/custom/map/MapComponent';
-import { CarCard } from '@/components/custom/auto/CarCard';
+import CarCard from '@/components/custom/auto/CarCard';
 import AuctionBidders from '@/components/custom/section/AuctionBidders';
-import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
-import { Car, RawCarDoc, User } from '@/lib/types';
-import { geocodeAddress } from '@/lib/services';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
-import { Timeline } from '@/components/custom/timeline/Timeline';
+import Timeline from '@/components/custom/timeline/Timeline';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
+import { geocodeAddress } from '@/lib/services';
+import type { Car, RawCarDoc, User } from '@/lib/types';
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -62,14 +61,14 @@ export default function CarDetailPage() {
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Mock bid history for auctions (keeping as is)
+  // Mock bid history for auctions
   const bidHistory = [
     { bidder: 'Ion Popescu', amount: 15000, time: '2 ore în urmă' },
     { bidder: 'Maria Ionescu', amount: 15500, time: '1 oră în urmă' },
     { bidder: 'Vasile Georgescu', amount: 16000, time: '30 min în urmă' },
   ];
 
-  // Mock auction end time (24 hours from now)
+  // Mock auction end time (24 hours)
   const [auctionEndTime] = useState(() => new Date(Date.now() + 24 * 60 * 60 * 1000));
 
   useEffect(() => {
@@ -148,26 +147,22 @@ export default function CarDetailPage() {
     fetchCars();
   }, [category, id]);
 
-  // When a car is loaded, if its `location` is a string, geocode it
   useEffect(() => {
     if (!car) return;
 
     const locString = car.location;
     if (!locString) return;
 
-    // Avoid re-geocoding the same location string repeatedly
     if (geocodedFor.current === locString) return;
 
     const runGeocode = async () => {
       try {
-        // If the location looks like coordinates already, try to parse "lat, lon"
         if (typeof locString === 'string' && /[-+]?\d{1,3}\.\d+\s*,\s*[-+]?\d{1,3}\.\d+/.test(locString)) {
           const parts = locString.split(',').map((s) => s.trim());
           const lat = parseFloat(parts[0]);
           const lon = parseFloat(parts[1]);
           if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
             geocodedFor.current = locString;
-            // Only update if different to avoid triggering another render loop
             if (!car.lat || !car.lng || Math.abs((car.lat || 0) - lat) > 1e-6 || Math.abs((car.lng || 0) - lon) > 1e-6) {
               setMapPosition([lat, lon]);
               setCar((prev) => (prev ? { ...prev, lat, lng: lon } : prev));
@@ -176,7 +171,6 @@ export default function CarDetailPage() {
           }
         }
 
-        // Use Nominatim geocoding
         const results = await geocodeAddress(locString);
         if (results && results.length > 0) {
           const r = results[0];
@@ -273,23 +267,13 @@ export default function CarDetailPage() {
     toast.success('Mesaj trimis!');
   };
 
-  // Define timeline items for highlighting car history/events
-  const rentTimelineItems = [
-    { icon: CarIcon, label: 'Achiziționat', value: 'Mașina a fost achiziționată în 2020', year: 2020 },
-    { icon: Clock, label: 'Disponibil pentru Închiriere', value: 'De la 2021 până acum', year: 2021 },
-    { icon: MessageCircle, label: 'Întreținere', value: 'Service regulat efectuat', year: 2022 },
-  ];
-  const buyTimelineItems = [
-    { icon: CarIcon, label: 'Căutat', value: 'Interes pentru cumpărare din 2023', year: 2023 },
-    { icon: Clock, label: 'Ofertă Trimisă', value: 'Ofertă recentă pentru acest model', year: 2024 },
-  ];
-  const sellTimelineItems = [
+  const carTimelineItems = [
     { icon: CarIcon, label: 'Listat pentru Vânzare', value: 'Anunț publicat în 2024', year: 2024 },
     { icon: Clock, label: 'Întreținere Recentă', value: 'Ultimul service în 2023', year: 2023 },
     { icon: MessageCircle, label: 'Întrebări Primite', value: 'Multiple întrebări de la cumpărători', year: 2024 },
   ];
 
-  const sellTimeline =
+  const carTimeline =
     car?.history && car.history.length > 0
       ? car.history.map((h) => {
           const iconName = h.icon || 'Car';
@@ -301,9 +285,7 @@ export default function CarDetailPage() {
             year: h.year,
           };
         })
-      : sellTimelineItems;
-
-  console.log('page/id', car);
+      : carTimelineItems;
 
   return (
     <div className='container mx-auto max-w-7xl'>
@@ -384,14 +366,14 @@ export default function CarDetailPage() {
                 </div>
               </div>
 
-              <p className='text-4xl font-bold text-green-600'>
+              <p className='text-4xl font-bold text-primary'>
                 {car.currency}{' '}
                 {isBuy
                   ? car.minPrice && car.maxPrice
                     ? `${car.minPrice} - ${car.maxPrice}`
                     : car.price
                   : isRent
-                    ? `${car.price}/${car.period || 'zi'}`
+                    ? `${car.price}/${car.period || ''}`
                     : car.price}
               </p>
               {isAuction && (
@@ -406,6 +388,7 @@ export default function CarDetailPage() {
               )}
               {isRent && <p className='text-sm text-muted-foreground'>Tarif pe {car.period || 'zi'}</p>}
             </CardHeader>
+
             <CardContent>
               <div className='grid grid-cols-2 gap-4 text-sm'>
                 <p>
@@ -423,7 +406,7 @@ export default function CarDetailPage() {
                 <p>
                   <strong>Transmisie:</strong> {car.transmission}
                 </p>
-                <p>
+                <p className='truncate'>
                   <strong>Locație:</strong> {car.location}
                 </p>
                 <p>
@@ -522,7 +505,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Disponibil pentru închiriere. Contactează pentru detalii.</p>
-                <Timeline items={rentTimelineItems} />
+                <Timeline items={carTimeline} />
                 <Button onClick={handleRent}>Cere Închiriere</Button>
               </CardContent>
             </Card>
@@ -535,7 +518,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Interesat de cumpărare? Trimite o ofertă.</p>
-                <Timeline items={buyTimelineItems} />
+                <Timeline items={carTimeline} />
                 <Button onClick={handleBuy}>Cere Ofertă</Button>
               </CardContent>
             </Card>
@@ -548,7 +531,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <p>Întrebări despre vehicul? Contactează vânzătorul.</p>
-                <Timeline items={sellTimeline} />
+                <Timeline items={carTimeline} />
                 <Button onClick={handleSellInquiry}>Întreabă Vânzătorul</Button>
               </CardContent>
             </Card>
@@ -560,13 +543,7 @@ export default function CarDetailPage() {
             </CardHeader>
             <CardContent>
               <ul className='list-disc list-inside space-y-1'>
-                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || (
-                  <>
-                    <li>Stare excelentă</li>
-                    <li>Service complet</li>
-                    <li>Garanție inclusă</li>
-                  </>
-                )}
+                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || '<li>Nu sunt disponibile caracteristici.</li>}'}
               </ul>
             </CardContent>
           </Card>
@@ -576,7 +553,7 @@ export default function CarDetailPage() {
               <CardTitle>Hartă Locație</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className='h-64 w-full'>
+              <div className='h-64 w-full'>
                 <MapComponent
                   center={mapPosition ?? [car.lat || 44.4268, car.lng || 26.1025]}
                   mapPosition={mapPosition ?? undefined}
@@ -618,12 +595,12 @@ export default function CarDetailPage() {
                   <DrawerTrigger asChild>
                     <Button variant='secondary'>
                       <MessageCircle className='mr-2 h-4 w-4' />
-                      Chat
+                      Mesaj
                     </Button>
                   </DrawerTrigger>
                   <DrawerContent>
                     <DrawerHeader>
-                      <DrawerTitle>Chat cu Vânzătorul</DrawerTitle>
+                      <DrawerTitle>Trimite mesaj Vânzătorului</DrawerTitle>
                       <DrawerDescription>Trimite un mesaj direct vânzătorului pentru întrebări despre {car.title}.</DrawerDescription>
                     </DrawerHeader>
                     <div className='p-4'>

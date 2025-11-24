@@ -1,11 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { Send, Smile, X, ChevronDown } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AppInput } from '@/components/custom/input/AppInput';
-import { Message, User } from '@/lib/types';
-import ChatMessage from './ChatMessage';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import AppInput from '@/components/custom/input/AppInput';
+import ChatMessage from './ChatMessage';
+import { Message, User } from '@/lib/types';
 
 type AppChatBoxProps = {
   selectedUserName: string;
@@ -16,14 +17,7 @@ type AppChatBoxProps = {
   setSelectedUser: (user: User | null) => void;
 };
 
-export const AppChatBox: React.FC<AppChatBoxProps> = ({
-  selectedUserName,
-  messages,
-  newMessage,
-  setNewMessage,
-  sendMessage,
-  setSelectedUser,
-}) => {
+const AppChatBox: React.FC<AppChatBoxProps> = ({ selectedUserName, messages, newMessage, setNewMessage, sendMessage, setSelectedUser }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -85,3 +79,5 @@ export const AppChatBox: React.FC<AppChatBoxProps> = ({
     </Card>
   );
 };
+
+export default AppChatBox;

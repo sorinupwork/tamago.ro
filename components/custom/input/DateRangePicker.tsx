@@ -3,14 +3,14 @@
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { UseFormReturn } from 'react-hook-form';
 import { AutoRentFormData } from '@/lib/validations';
-import { AppInput } from './AppInput';
+import AppInput from './AppInput';
 
-interface DateRangePickerProps {
+type DateRangePickerProps = {
   form: UseFormReturn<AutoRentFormData>;
   required?: boolean;
-}
+};
 
-export function DateRangePicker({ form, required }: DateRangePickerProps) {
+export default function DateRangePicker({ form, required }: DateRangePickerProps) {
   return (
     <Field className='min-w-0 w-full'>
       <FieldLabel required={required}>Perioada Închirierii</FieldLabel>

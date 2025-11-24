@@ -20,7 +20,7 @@ type AppMediaUploaderInputProps = {
   layout?: 'row' | 'col';
 };
 
-export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
+const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
   label,
   error,
   required,
@@ -64,3 +64,5 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
     </Field>
   );
 };
+
+export default AppMediaUploaderInput;

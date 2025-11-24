@@ -18,12 +18,12 @@ import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
 import { getUserById } from '@/actions/auth/actions';
 import type { Car } from '@/lib/types';
-import { CarHistoryHighlights } from './CarHistoryHighlights';
+import CarHistoryHighlights from './CarHistoryHighlights';
 import { CarDetailsAccordion } from './CarDetailsAccordion';
 
 type CarCardProps = {
   car: Car;
-  cardsPerPage?: number; // new optional prop
+  cardsPerPage?: number;
 };
 
 type User = {
@@ -33,7 +33,7 @@ type User = {
   emailVerified?: boolean;
 };
 
-export function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
+export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
 

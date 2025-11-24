@@ -9,9 +9,9 @@ import { Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import ForgotPasswordForm from './ForgotPasswordForm';
-import { AppInput } from '@/components/custom/input/AppInput';
-import { loginSchema, type LoginFormData } from '@/lib/validations';
+import AppInput from '@/components/custom/input/AppInput';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
+import { loginSchema, type LoginFormData } from '@/lib/validations';
 import { signIn } from '@/lib/auth/auth-client';
 
 export default function LoginForm() {

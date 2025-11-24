@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { useState, useMemo, useEffect } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { AppPagination } from '@/components/custom/pagination/AppPagination';
+import AppPagination from '@/components/custom/pagination/AppPagination';
 
 type Story = {
   id: string;
@@ -80,7 +80,6 @@ export default function StoriesGrid({ userId, currentPage, totalPages, onPageCha
         ))}
       </div>
 
-      {/* pagination */}
       {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
         <div className='mt-4 flex justify-center'>
           <AppPagination currentPage={currentPage || 1} totalPages={totalPages || 1} onPageChange={onPageChange} />

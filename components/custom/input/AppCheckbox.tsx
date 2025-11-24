@@ -23,7 +23,7 @@ type AppCheckboxProps = {
   orientation?: 'vertical' | 'horizontal';
 };
 
-export const AppCheckbox: React.FC<AppCheckboxProps> = ({
+const AppCheckbox: React.FC<AppCheckboxProps> = ({
   label,
   error,
   required,
@@ -89,3 +89,5 @@ export const AppCheckbox: React.FC<AppCheckboxProps> = ({
     </Field>
   );
 };
+
+export default AppCheckbox;

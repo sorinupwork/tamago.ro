@@ -1,6 +1,6 @@
-import { AppInput } from '@/components/custom/input/AppInput';
-import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
 import { Card } from '@/components/ui/card';
+import AppInput from '@/components/custom/input/AppInput';
+import AppSelectInput from '@/components/custom/input/AppSelectInput';
 
 type PostsFiltersProps = {
   searchQuery: string;

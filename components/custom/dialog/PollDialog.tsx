@@ -7,7 +7,7 @@ import { useState, type ChangeEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { AppInput } from '@/components/custom/input/AppInput';
+import AppInput from '@/components/custom/input/AppInput';
 import { createPollAction } from '@/actions/social/feeds/actions';
 import { useSession } from '@/lib/auth/auth-client';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';

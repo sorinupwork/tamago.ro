@@ -5,46 +5,39 @@ import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Showcase } from './Showcase';
-import { Preview } from './Preview';
-import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
-import { SellAutoForm } from '@/components/custom/form/auto/SellAutoForm';
-import { BuyAutoForm } from '@/components/custom/form/auto/BuyAutoForm';
-import { RentAutoForm } from '@/components/custom/form/auto/RentAutoForm';
-import { AuctionAutoForm } from '@/components/custom/form/auto/AuctionAutoForm';
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/custom/empty/Empty';
+import Showcase from './Showcase';
+import Preview from './Preview';
+import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
+import SellAutoForm from '@/components/custom/form/auto/SellAutoForm';
+import BuyAutoForm from '@/components/custom/form/auto/BuyAutoForm';
+import RentAutoForm from '@/components/custom/form/auto/RentAutoForm';
+import AuctionAutoForm from '@/components/custom/form/auto/AuctionAutoForm';
 import { categories } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 
 export type PreviewData = {
+  category: string;
   title: string;
-  description: string;
   price?: string;
   minPrice?: string;
   maxPrice?: string;
-  currency?: string;
   period?: string;
   startingBid?: string;
-  location: string;
-  category: string;
-  uploadedFiles: string[];
   duration?: string;
   startDate?: string;
   endDate?: string;
+  currency?: string;
+  location: string;
+  description: string;
   fuel: string;
-  status?: string;
   mileage?: string;
   minMileage?: string;
   maxMileage?: string;
   year?: string;
   minYear?: string;
   maxYear?: string;
-  features: string;
-  options: string[];
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
+  status?: string;
   brand?: string;
   color?: string;
   engineCapacity?: string;
@@ -55,6 +48,13 @@ export type PreviewData = {
   transmission?: string;
   traction?: string;
   history?: { title: string; description?: string; icon?: string }[];
+  features: string;
+  options: string[];
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  uploadedFiles: string[];
 };
 
 type CategoriesClientProps = {
@@ -103,7 +103,7 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     maxYear: '',
     features: '',
     options: [],
-    traction: 'integrala',
+    traction: undefined,
   }));
 
   const onPreviewUpdate = useCallback((data: PreviewData) => {

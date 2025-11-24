@@ -9,11 +9,11 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
+import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
+import AppMediaUploaderInput from '@/components/custom/input/AppMediaUploaderInput';
+import AppTextarea from '@/components/custom/input/AppTextarea';
 import { createStoryAction } from '@/actions/social/stories/actions';
 import { useSession } from '@/lib/auth/auth-client';
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
-import {AppTextarea} from '@/components/custom/input/AppTextarea';
 
 type Props = {
   open: boolean;
@@ -25,7 +25,6 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [caption, setCaption] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [captionError, setCaptionError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
@@ -45,10 +44,9 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
+
     if (caption.trim().length === 0 && files.length === 0) {
-      setCaptionError('Trebuie să adaugi o descriere sau cel puțin un fișier');
-      return setError('Trebuie să adaugi o descriere sau cel puțin un fișier');
+      return setCaptionError('Trebuie să adaugi o descriere sau cel puțin un fișier');
     }
     setLoading(true);
     try {
@@ -60,8 +58,7 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
       onOpenChange(false);
       router.refresh();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(msg || 'Eroare la postarea poveștii');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -165,7 +162,6 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
                   setCaption(v);
                   if (v.trim().length > 0 || files.length > 0) {
                     setCaptionError(null);
-                    setError(null);
                   } else {
                     setCaptionError('Trebuie să adaugi o descriere sau cel puțin un fișier');
                   }

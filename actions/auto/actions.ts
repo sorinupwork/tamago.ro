@@ -9,7 +9,9 @@ import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionF
 import { Car, Post, RawCarDoc, CarHistoryItem } from '@/lib/types';
 import { auth } from '@/lib/auth/auth';
 
-export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
+export async function submitSellAutoForm(
+  data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -24,7 +26,9 @@ export async function submitSellAutoForm(data: AutoSellFormData & { uploadedFile
   }
 }
 
-export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
+export async function submitBuyAutoForm(
+  data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -39,7 +43,9 @@ export async function submitBuyAutoForm(data: AutoBuyFormData & { uploadedFiles:
   }
 }
 
-export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
+export async function submitRentAutoForm(
+  data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -54,7 +60,9 @@ export async function submitRentAutoForm(data: AutoRentFormData & { uploadedFile
   }
 }
 
-export async function submitAuctionAutoForm(data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }) {
+export async function submitAuctionAutoForm(
+  data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.id) {
     throw new Error('Unauthorized: No valid session');
@@ -245,14 +253,9 @@ export async function getUserCars({
       }
 
       const coll = db.collection(collection);
-      await coll.createIndex({ userId: 1 }); // Add index for efficient userId queries
+      await coll.createIndex({ userId: 1 });
       const total = await coll.countDocuments(query);
-      const cars = await coll
-        .find(query)
-        .sort(sort)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .toArray();
+      const cars = await coll.find(query).sort(sort).toArray();
 
       return { cars, total, urlCategory, carCategory };
     });
@@ -266,7 +269,25 @@ export async function getUserCars({
       cars.forEach((car) => allCars.push({ ...car, urlCategory, carCategory } as RawCarDoc));
     });
 
-    const posts: Post[] = allCars.map((carDoc: RawCarDoc) => {
+    if (sortBy === 'createdAt') {
+      allCars.sort((a, b) => {
+        try {
+          const aTs = (a._id as ObjectId).getTimestamp().getTime();
+          const bTs = (b._id as ObjectId).getTimestamp().getTime();
+          return bTs - aTs;
+        } catch {
+          return 0;
+        }
+      });
+    } else if (sortBy === 'title') {
+      allCars.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    }
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const pageCars = allCars.slice(start, end);
+
+    const posts: Post[] = pageCars.map((carDoc: RawCarDoc) => {
       const mappedCar: Car = {
         id: carDoc._id.toString(),
         title: carDoc.title || '',
@@ -316,7 +337,7 @@ export async function getUserCars({
         images: mappedCar.images,
         status: mappedCar.status as 'active' | 'sold' | 'draft',
         views: carDoc.views || 0,
-        createdAt: carDoc._id.toString(),
+        createdAt: (carDoc._id as ObjectId).getTimestamp().toISOString(),
       };
     });
 

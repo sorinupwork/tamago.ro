@@ -2,23 +2,26 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { MapPin, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
-import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { AppInput } from '@/components/custom/input/AppInput';
-import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
-import { AppSlider } from '@/components/custom/input/AppSlider';
-import { AppCombobox } from '@/components/custom/input/AppCombobox';
-import { AppPagination } from '@/components/custom/pagination/AppPagination';
-import { AppLocationInput } from '@/components/custom/input/AppLocationInput';
+import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
+import AppInput from '@/components/custom/input/AppInput';
+import AppSelectInput from '@/components/custom/input/AppSelectInput';
+import AppSlider from '@/components/custom/input/AppSlider';
+import AppCombobox from '@/components/custom/input/AppCombobox';
+import AppPagination from '@/components/custom/pagination/AppPagination';
+import AppLocationInput from '@/components/custom/input/AppLocationInput';
+import AutoTabs from '@/components/custom/tabs/AutoTabs';
+import CarCard from '@/components/custom/auto/CarCard';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AutoTabs } from '@/components/custom/tabs/AutoTabs';
 import { categoryMapping } from '@/lib/categories';
-import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { getSortedCars } from '@/lib/auto/sorting';
+import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { calcTotalPages, paginateArray } from '@/lib/auto/pagination';
 import {
   defaultActiveTab,
@@ -35,9 +38,6 @@ import {
   getInitialCurrentPage,
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
-import { CarCard } from '@/components/custom/auto/CarCard';
-import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
-import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 
 export default function AutoPage() {
   const searchParams = useSearchParams();
@@ -84,19 +84,19 @@ export default function AutoPage() {
         startDate: doc.startDate || '',
         endDate: doc.endDate || '',
         year: parseInt(doc.year || '2020') || 2020,
-        brand: doc.brand || 'Unknown',
+        brand: doc.brand || '',
         category: activeTab === 'vanzare' ? 'sell' : activeTab === 'cumparare' ? 'buy' : activeTab === 'inchiriere' ? 'rent' : 'auction',
         mileage: parseInt(doc.mileage || '0') || 0,
-        fuel: doc.fuel || 'Petrol',
-        transmission: doc.transmission || 'Manual',
+        fuel: doc.fuel || '',
+        transmission: doc.transmission || '',
         location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
         images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
         dateAdded: new Date().toISOString(),
         sellerType: 'private',
         contactPhone: '123456789',
         contactEmail: 'email@example.com',
-        bodyType: doc.carType || 'Sedan',
-        color: doc.color || 'Alb',
+        bodyType: doc.carType || '',
+        color: doc.color || '',
         engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
         horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
         status: doc.status === 'new' ? 'nou' : doc.status === 'used' ? 'folosit' : doc.status === 'damaged' ? 'deteriorat' : 'folosit',
@@ -124,7 +124,7 @@ export default function AutoPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
-    // For filters, only include changed fields as individual params
+
     Object.keys(filters).forEach((key) => {
       const k = key as keyof AutoFilterState;
       if (JSON.stringify(filters[k]) !== JSON.stringify(defaultFilters[k])) {
@@ -163,7 +163,7 @@ export default function AutoPage() {
         }
       }
     });
-    // For sort, only include changed fields as individual params
+
     Object.keys(sortCriteria).forEach((key) => {
       const k = key as keyof SortCriteria;
       if (sortCriteria[k] !== defaultSortCriteria[k]) {
@@ -173,6 +173,7 @@ export default function AutoPage() {
         );
       }
     });
+
     if (searchQuery !== defaultSearchQuery) params.set('cautare', searchQuery);
     if (locationFilter.location) {
       params.set('lat', locationFilter.location.lat.toString());

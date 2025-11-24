@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChatFilters } from './ChatFilters';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import ChatFilters from './ChatFilters';
 import { AppListItem } from '../list/AppListItem';
 import { User as UserType } from '@/lib/types';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 type AppChatFilterProps = {
   search: string;
@@ -22,7 +22,7 @@ type AppChatFilterProps = {
   filteredUsers: UserType[];
 };
 
-export const AppChatFilter: React.FC<AppChatFilterProps> = ({
+const AppChatFilter: React.FC<AppChatFilterProps> = ({
   search,
   setSearch,
   sort,
@@ -108,3 +108,5 @@ export const AppChatFilter: React.FC<AppChatFilterProps> = ({
     </div>
   );
 };
+
+export default AppChatFilter;

@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 
-import { AppChatFilter } from '@/components/custom/chat/AppChatFilter';
-import { AppChatBox } from '@/components/custom/chat/AppChatBox';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
+import AppChatFilter from '@/components/custom/chat/AppChatFilter';
+import AppChatBox from '@/components/custom/chat/AppChatBox';
 import { User as UserType, Message } from '@/lib/types';
 
 export default function ChatTabSection({ users }: { users: UserType[] }) {

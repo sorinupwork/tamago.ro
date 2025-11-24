@@ -7,10 +7,10 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AppInput } from '@/components/custom/input/AppInput';
+import AppInput from '@/components/custom/input/AppInput';
+import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/lib/validations';
 import { requestPasswordReset } from '@/lib/auth/auth-client';
-import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
 export default function ForgotPasswordForm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

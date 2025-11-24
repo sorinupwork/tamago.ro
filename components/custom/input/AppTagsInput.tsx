@@ -17,7 +17,7 @@ type AppTagsInputProps = {
   maxTags?: number;
 };
 
-export const AppTagsInput: React.FC<AppTagsInputProps> = ({
+const AppTagsInput: React.FC<AppTagsInputProps> = ({
   label,
   error,
   required,
@@ -38,7 +38,7 @@ export const AppTagsInput: React.FC<AppTagsInputProps> = ({
   };
 
   const removeTag = (tagToRemove: string) => {
-    onTagsChange(tags.filter(tag => tag !== tagToRemove));
+    onTagsChange(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -86,3 +86,5 @@ export const AppTagsInput: React.FC<AppTagsInputProps> = ({
     </Field>
   );
 };
+
+export default AppTagsInput;

@@ -3,28 +3,42 @@
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { MapPin, PlusCircle, Trash } from 'lucide-react';
 import { toast } from 'sonner';
-import type { CarHistoryItem } from '@/lib/types';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
 import { Progress } from '@/components/ui/progress';
-import { AppTextarea } from '../../input/AppTextarea';
-import { AppLocationInput } from '../../input/AppLocationInput';
+import AppTextarea from '../../input/AppTextarea';
+import AppLocationInput from '../../input/AppLocationInput';
 import LoadingIndicator from '../../loading/LoadingIndicator';
+import AppMediaUploaderInput from '../../input/AppMediaUploaderInput';
+import AppInput from '../../input/AppInput';
+import AppSelectInput from '../../input/AppSelectInput';
+import AppCollapsibleCheckboxGroup from '../../input/AppCollapsibleCheckboxGroup';
+import AppSlider from '../../input/AppSlider';
+import { submitBuyAutoForm } from '@/actions/auto/actions';
 import { auto, AutoBuyFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
-import { submitBuyAutoForm } from '@/actions/auto/actions';
-import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
-import { AppInput } from '../../input/AppInput';
-import { AppSelectInput } from '../../input/AppSelectInput';
-import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
-import { AppSlider } from '../../input/AppSlider';
-import { brandOptions, colorOptions, carTypeOptions, transmissionOptions, availableOptions, iconOptions, tractionOptions } from '@/lib/mockData';
+import type { CarHistoryItem } from '@/lib/types';
+import {
+  brandOptions,
+  colorOptions,
+  carTypeOptions,
+  transmissionOptions,
+  availableOptions,
+  iconOptions,
+  tractionOptions,
+} from '@/lib/mockData';
 
-export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
+export default function BuyAutoForm({
+  onPreviewUpdate,
+  subcategory,
+}: {
+  onPreviewUpdate: (data: PreviewData) => void;
+  subcategory?: string;
+}) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
@@ -58,7 +72,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
       carType: undefined,
       horsePower: '',
       transmission: undefined,
-      traction: 'integrala',
+      traction: undefined,
       uploadedFiles: [],
     },
   });
@@ -366,10 +380,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
               required
             />
             <AppSelectInput
-              options={[
-                /* use centralized carTypeOptions */
-                ...carTypeOptions
-              ]}
+              options={[...carTypeOptions]}
               value={form.watch('carType')}
               onValueChange={(v) =>
                 form.setValue(
@@ -408,10 +419,7 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
               error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
             />
             <AppSelectInput
-              options={[
-                /* use centralized transmissionOptions */
-                ...transmissionOptions
-              ]}
+              options={[...transmissionOptions]}
               value={form.watch('transmission')}
               onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}
               placeholder='Selectați transmisia'
@@ -420,14 +428,14 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
               error={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined}
             />
             <AppSelectInput
-               label='Tractiune'
-               options={tractionOptions}
-               value={form.watch('traction')}
-               onValueChange={(v) => form.setValue('traction', v as 'integrala' | 'fata' | 'spate')}
-               placeholder='Selectați tracțiunea'
-               className='max-w-full'
-               error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
-             />
+              label='Tractiune'
+              options={tractionOptions}
+              value={form.watch('traction')}
+              onValueChange={(v) => form.setValue('traction', v as 'integrala' | 'fata' | 'spate')}
+              placeholder='Selectați tracțiunea'
+              className='max-w-full'
+              error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
+            />
           </div>
 
           <AppTextarea
@@ -439,13 +447,23 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
             className='min-w-0 w-full wrap-break-word'
           />
 
-          {/* History editor (similar to Sell form) */}
           <div className='mt-2'>
-            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină (opțional)</h4>
+            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină</h4>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
               <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
-              <AppSelectInput options={iconOptions} value={histIcon} onValueChange={(v) => setHistIcon(v as string)} placeholder='Selectați icon' label='Iconă' />
-              <AppInput value={histDesc} onChange={(e) => setHistDesc(e.target.value)} label='Scurtă descriere' placeholder='Ex: Revizie la 60.000 km' />
+              <AppSelectInput
+                options={iconOptions}
+                value={histIcon}
+                onValueChange={(v) => setHistIcon(v as string)}
+                placeholder='Selectați icon'
+                label='Iconă'
+              />
+              <AppInput
+                value={histDesc}
+                onChange={(e) => setHistDesc(e.target.value)}
+                label='Scurtă descriere'
+                placeholder='Ex: Revizie la 60.000 km'
+              />
               <div className='col-span-1 md:col-span-3 flex gap-2'>
                 <button
                   type='button'
@@ -463,7 +481,9 @@ export function BuyAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate:
                   {history.map((h, i) => (
                     <div key={i} className='flex items-center gap-2 rounded border px-2 py-1'>
                       <span className='text-sm font-medium'>{h.title}</span>
-                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}><Trash className='w-3 h-3' /></button>
+                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}>
+                        <Trash className='w-3 h-3' />
+                      </button>
                     </div>
                   ))}
                 </div>

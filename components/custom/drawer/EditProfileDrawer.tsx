@@ -7,11 +7,11 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
-import { AppMediaUploaderInput } from '@/components/custom/input/AppMediaUploaderInput';
-import { AppTagsInput } from '@/components/custom/input/AppTagsInput';
-import {AppTextarea} from '@/components/custom/input/AppTextarea';
-import { updateProfile } from '@/actions/auth/actions';
+import AppMediaUploaderInput from '@/components/custom/input/AppMediaUploaderInput';
+import AppTagsInput from '@/components/custom/input/AppTagsInput';
+import AppTextarea from '@/components/custom/input/AppTextarea';
 import LoadingIndicator from '../loading/LoadingIndicator';
+import { updateProfile } from '@/actions/auth/actions';
 
 type Props = {
   open: boolean;
@@ -30,8 +30,8 @@ type Props = {
   onCoverImageRemove?: () => void;
   onSave?: () => void;
   isSaving?: boolean;
-  bioInitial?: string | null; // optional initial bio
-  platformsInitial?: string[] | null; // optional initial platforms
+  bioInitial?: string | null;
+  platformsInitial?: string[] | null;
 };
 
 export default function EditProfileDrawer({
@@ -56,15 +56,11 @@ export default function EditProfileDrawer({
   const [saving, setSaving] = useState(false);
 
   const [localImageFile, setLocalImageFile] = useState<File | null>(null);
+  const [localCoverFile, setLocalCoverFile] = useState<File | null>(null);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
 
-  const [localCoverFile, setLocalCoverFile] = useState<File | null>(null);
-  const [localCoverPreview, setLocalCoverPreview] = useState<string | null>(null);
-
-  // Bio + platforms (tags) state
   const [bio, setBio] = useState<string>(bioInitial ?? '');
   const [platforms, setPlatforms] = useState<string[]>(platformsInitial ?? []);
-
   const router = useRouter();
 
   useEffect(() => {
@@ -72,7 +68,7 @@ export default function EditProfileDrawer({
       setTimeout(() => nameRef.current?.focus(), 140);
       setLocalImagePreview(imagePreview || null);
       setLocalImageFile(null);
-      setLocalCoverPreview(coverPreview || null);
+
       setLocalCoverFile(null);
       setBio(bioInitial ?? '');
       setPlatforms(platformsInitial ?? []);
@@ -96,12 +92,10 @@ export default function EditProfileDrawer({
     const f = selectedFiles?.[0];
     if (!f) {
       setLocalCoverFile(null);
-      setLocalCoverPreview(coverPreview || null);
       onCoverFilesChange?.([]);
       return;
     }
     setLocalCoverFile(f);
-    setLocalCoverPreview(URL.createObjectURL(f));
     onCoverFilesChange?.(selectedFiles);
   };
 
@@ -115,7 +109,6 @@ export default function EditProfileDrawer({
     let uploadedImageUrl: string | null = null;
     let uploadedCoverUrl: string | null = null;
     try {
-      // Upload avatar if present
       if (localImageFile) {
         const uploadForm = new FormData();
         uploadForm.append('files', localImageFile);
@@ -133,7 +126,6 @@ export default function EditProfileDrawer({
         if (!uploadedImageUrl) throw new Error('No avatar URL returned');
       }
 
-      // Upload cover if present
       if (localCoverFile) {
         const uploadForm = new FormData();
         uploadForm.append('files', localCoverFile);
@@ -155,7 +147,6 @@ export default function EditProfileDrawer({
       fd.append('name', name);
       if (uploadedImageUrl) fd.append('imageUrl', uploadedImageUrl);
       if (uploadedCoverUrl) fd.append('coverUrl', uploadedCoverUrl);
-      // append bio and platforms
       fd.append('bio', bio ?? '');
       try {
         fd.append('platforms', JSON.stringify(platforms || []));
@@ -180,7 +171,6 @@ export default function EditProfileDrawer({
     setLocalImageFile(null);
     setLocalImagePreview(imagePreview || null);
     setLocalCoverFile(null);
-    setLocalCoverPreview(coverPreview || null);
     onFilesChange?.([]);
     onCoverFilesChange?.([]);
     setBio(bioInitial ?? '');
@@ -212,7 +202,6 @@ export default function EditProfileDrawer({
               <input value={email} readOnly className='mt-1 block w-full rounded-md border bg-muted px-3 py-2 text-muted-foreground' />
             </label>
 
-            {/* Avatar */}
             <div>
               <span className='text-sm font-semibold block mb-2'>Avatar</span>
               <div className='flex items-center space-x-3'>
@@ -228,7 +217,7 @@ export default function EditProfileDrawer({
                       className='!p-0'
                       accept='image/*'
                       maxFiles={1}
-                      showPreview={false} // use Avatar component as single rounded preview
+                      showPreview={false}
                       layout='row'
                     />
                   </div>
@@ -251,18 +240,16 @@ export default function EditProfileDrawer({
               </div>
             </div>
 
-            {/* Cover */}
             <div>
               <span className='text-sm font-semibold block mb-2'>Cover Photo</span>
-              {/* column layout: uploader stacked above/below wider preview */}
               <div className='flex flex-col gap-3'>
                 <AppMediaUploaderInput
                   onFilesChange={handleCoverFilesChange}
-                  className='!p-0 w-full'
+                  className='p-0! w-full'
                   accept='image/*'
                   maxFiles={1}
                   showPreview={true}
-                  layout='col' // make preview wider and stacked
+                  layout='col'
                 />
 
                 <div className='flex items-center justify-between'>
@@ -274,7 +261,6 @@ export default function EditProfileDrawer({
                       type='button'
                       onClick={() => {
                         setLocalCoverFile(null);
-                        setLocalCoverPreview(null);
                         onCoverImageRemove?.();
                       }}
                     >
@@ -285,7 +271,6 @@ export default function EditProfileDrawer({
               </div>
             </div>
 
-            {/* Bio textarea (use AppTextarea) */}
             <div>
               <AppTextarea
                 label='About / Bio'
@@ -297,7 +282,6 @@ export default function EditProfileDrawer({
               />
             </div>
 
-            {/* Social Platforms / Tags input (use AppTagsInput) */}
             <div>
               <AppTagsInput label='Social Platforms' tags={platforms} onTagsChange={(t) => setPlatforms(t)} maxTags={24} />
               <p className='text-sm text-muted-foreground mt-2'>These are platform labels (no external links) shown on your profile.</p>

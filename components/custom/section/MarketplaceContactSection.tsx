@@ -4,11 +4,11 @@ import { ReactNode, useState } from 'react';
 import { MapPin, Filter } from 'lucide-react';
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
-import { User as UserType } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import AppSelectInput from '@/components/custom/input/AppSelectInput';
 import MapComponent from '../map/MapComponent';
 import WeatherWidget from '../weather/WeatherWidget';
+import { cn } from '@/lib/utils';
+import { User as UserType } from '@/lib/types';
 
 type CardData = {
   icon: ReactNode;
@@ -142,7 +142,6 @@ export default function MarketplaceContactSection({
                         onValueChange={(value) => setMapFilter(value as string[])}
                         multiple={true}
                         placeholder='Filtrează categorii'
-                        className='w-40'
                       />
                     </div>
                   </div>

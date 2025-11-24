@@ -2,23 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MapPin, PlusCircle, Trash } from 'lucide-react';
 import { toast } from 'sonner';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
-import { AutoPriceSelector } from '@/components/custom/input/AutoPriceSelector';
+import AutoPriceSelector from '@/components/custom/input/AutoPriceSelector';
+import AppLocationInput from '../../input/AppLocationInput';
+import LoadingIndicator from '../../loading/LoadingIndicator';
+import AppSelectInput from '../../input/AppSelectInput';
+import AppInput from '../../input/AppInput';
+import AppTextarea from '../../input/AppTextarea';
+import AppCollapsibleCheckboxGroup from '../../input/AppCollapsibleCheckboxGroup';
+import AppMediaUploaderInput from '../../input/AppMediaUploaderInput';
 import { submitSellAutoForm } from '@/actions/auto/actions';
 import { auto, AutoSellFormData } from '@/lib/validations';
-import { AppLocationInput } from '../../input/AppLocationInput';
-import LoadingIndicator from '../../loading/LoadingIndicator';
-import { AppSelectInput } from '../../input/AppSelectInput';
-import { AppInput } from '../../input/AppInput';
-import { AppTextarea } from '../../input/AppTextarea';
-import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
-import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
+import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
+import type { CarHistoryItem } from '@/lib/types';
 import {
   brandOptions,
   colorOptions,
@@ -28,10 +30,8 @@ import {
   iconOptions,
   tractionOptions,
 } from '@/lib/mockData';
-import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
-import type { CarHistoryItem } from '@/lib/types';
 
-export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
+export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
   const [options, setOptions] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
@@ -367,7 +367,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
           </div>
 
           <div className='mt-2'>
-            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină (opțional)</h4>
+            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină</h4>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
               <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
               <AppSelectInput
@@ -375,7 +375,7 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
                 value={histIcon}
                 onValueChange={(v) => setHistIcon(v as string)}
                 placeholder='Selectați icon'
-                label='Iconă'
+                label='Tag'
               />
               <AppInput
                 value={histDesc}
@@ -439,10 +439,6 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
         </FieldGroup>
       </FieldSet>
 
-      <Button type='submit' size={'lg'} className='w-full' disabled={isSubmitting}>
-        Trimite
-      </Button>
-
       {isSubmitting && (
         <LoadingIndicator
           showProgress={uploadProgress > 0}
@@ -450,6 +446,9 @@ export function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (data: Prev
           text={uploadProgress > 0 ? 'Se încarcă fișiere...' : 'Se trimite...'}
         />
       )}
+      <Button type='submit' size={'lg'} className='w-full' disabled={isSubmitting}>
+        Trimite
+      </Button>
     </form>
   );
 }

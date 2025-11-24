@@ -16,7 +16,7 @@ type AppSliderProps = {
   error?: { message?: string }[];
 };
 
-export const AppSlider: React.FC<AppSliderProps> = ({ label, value, onValueChange, min, max, step, className = '', currency, error }) => {
+const AppSlider: React.FC<AppSliderProps> = ({ label, value, onValueChange, min, max, step, className = '', currency, error }) => {
   const formatValue = (val: number) => {
     if (val == null || typeof val !== 'number' || isNaN(val)) {
       return '0';
@@ -40,3 +40,5 @@ export const AppSlider: React.FC<AppSliderProps> = ({ label, value, onValueChang
     </Field>
   );
 };
+
+export default AppSlider;

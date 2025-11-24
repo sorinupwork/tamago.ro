@@ -19,13 +19,7 @@ type AppCollapsibleCheckboxGroupProps = {
   className?: string;
 };
 
-export const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupProps> = ({
-  label,
-  options,
-  value,
-  onChange,
-  className = '',
-}) => {
+const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupProps> = ({ label, options, value, onChange, className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCheckedChange = (optionValue: string, checked: boolean) => {
@@ -58,3 +52,5 @@ export const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupPr
     </Collapsible>
   );
 };
+
+export default AppCollapsibleCheckboxGroup;

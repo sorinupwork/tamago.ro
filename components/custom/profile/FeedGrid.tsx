@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AppPagination } from '@/components/custom/pagination/AppPagination';
+import AppPagination from '@/components/custom/pagination/AppPagination';
 
 type FeedItem = {
   id: string;

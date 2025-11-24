@@ -22,7 +22,7 @@ type AppInputProps = {
   htmlFor?: string;
 } & React.ComponentProps<typeof Input>;
 
-export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
+const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
   (
     {
       type = 'text',
@@ -77,3 +77,5 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
 );
 
 AppInput.displayName = 'AppInput';
+
+export default AppInput;

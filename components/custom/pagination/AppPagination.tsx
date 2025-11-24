@@ -15,7 +15,7 @@ type AppPaginationProps = {
   className?: string;
 };
 
-export const AppPagination: React.FC<AppPaginationProps> = ({ currentPage, totalPages, onPageChange, className = '' }) => {
+const AppPagination: React.FC<AppPaginationProps> = ({ currentPage, totalPages, onPageChange, className = '' }) => {
   if (totalPages < 1) return null;
 
   const prevDisabled = currentPage <= 1;
@@ -54,3 +54,5 @@ export const AppPagination: React.FC<AppPaginationProps> = ({ currentPage, total
     </Pagination>
   );
 };
+
+export default AppPagination;

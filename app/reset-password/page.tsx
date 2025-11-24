@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { AppInput } from '@/components/custom/input/AppInput';
+import AppInput from '@/components/custom/input/AppInput';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations';
 import { resetPassword } from '@/lib/auth/auth-client';
 

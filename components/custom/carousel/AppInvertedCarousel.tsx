@@ -21,7 +21,7 @@ type AppInvertedCarouselProps = {
   categoryColors: Record<string, { text: string; icon: string; arrow: string }>;
 };
 
-export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo, categoryColors }: AppInvertedCarouselProps) {
+export default function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo, categoryColors }: AppInvertedCarouselProps) {
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 0);

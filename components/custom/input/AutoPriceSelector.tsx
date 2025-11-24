@@ -12,7 +12,7 @@ type AutoPriceSelectorProps<T extends { price: string; currency: 'EUR' | 'USD' |
   className?: string;
 };
 
-export function AutoPriceSelector<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }>({
+export default function AutoPriceSelector<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }>({
   form,
   showPeriod = false,
   label,
@@ -64,7 +64,7 @@ export function AutoPriceSelector<T extends { price: string; currency: 'EUR' | '
             name={'period' as Path<T>}
             render={({ field }) => (
               <Select value={field.value as string} onValueChange={(v) => field.onChange(v)}>
-                <SelectTrigger className='w-24'>
+                <SelectTrigger>
                   <SelectValue placeholder='Perioada' />
                 </SelectTrigger>
                 <SelectContent>

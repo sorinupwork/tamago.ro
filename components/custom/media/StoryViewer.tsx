@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StoryWithUser } from '@/lib/types';
 import { addLikeAction, addCommentAction } from '@/actions/social/feeds/actions';
 import { useSession } from '@/lib/auth/auth-client';
-import { AppInput } from '../input/AppInput';
+import AppInput from '../input/AppInput';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { getUserById } from '@/actions/auth/actions';

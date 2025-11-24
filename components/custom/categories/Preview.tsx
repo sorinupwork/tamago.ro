@@ -5,51 +5,10 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
-import { CarHistoryHighlights } from '@/components/custom/auto/CarHistoryHighlights';
-import type { CarHistoryItem } from '@/lib/types';
+import CarHistoryHighlights from '@/components/custom/auto/CarHistoryHighlights';
+import type { PreviewData } from './CategoriesClient';
 
-type PreviewProps = {
-  title: string;
-  description: string;
-  price?: string;
-  minPrice?: string;
-  maxPrice?: string;
-  currency?: string;
-  period?: string;
-  startingBid?: string;
-  location: string;
-  category: string;
-  uploadedFiles: string[];
-  duration?: string;
-  startDate?: string;
-  endDate?: string;
-  fuel: string;
-  status?: string;
-  mileage?: string;
-  minMileage?: string;
-  maxMileage?: string;
-  year?: string;
-  minYear?: string;
-  maxYear?: string;
-  features: string;
-  options: string[];
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  brand?: string;
-  color?: string;
-  engineCapacity?: string;
-  minEngineCapacity?: string;
-  maxEngineCapacity?: string;
-  carType?: string;
-  horsePower?: string;
-  transmission?: string;
-  traction?: string;
-  history?: CarHistoryItem[];
-};
-
-export function Preview({
+export default function Preview({
   title,
   description,
   price,
@@ -87,7 +46,7 @@ export function Preview({
   transmission,
   traction,
   history,
-}: PreviewProps) {
+}: PreviewData) {
   return (
     <Card className='shadow-md w-full'>
       <CardHeader className='flex items-center justify-between grow'>

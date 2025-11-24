@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MessageSquare, Search } from 'lucide-react';
 
-import { AppInput } from '../input/AppInput';
-import { AppSelectInput } from '../input/AppSelectInput';
-import { AppCheckbox } from '../input/AppCheckbox';
+import AppInput from '../input/AppInput';
+import AppSelectInput from '../input/AppSelectInput';
+import AppCheckbox from '../input/AppCheckbox';
 
 export default function FeedHeader() {
   const router = useRouter();

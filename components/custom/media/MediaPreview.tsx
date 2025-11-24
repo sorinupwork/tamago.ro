@@ -35,7 +35,7 @@ type MediaPreviewProps = {
   imageClassName?: string;
 };
 
-export function MediaPreview({
+export default function MediaPreview({
   mediaItems,
   className,
   trigger,

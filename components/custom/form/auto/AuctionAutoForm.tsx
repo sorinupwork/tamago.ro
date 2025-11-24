@@ -3,28 +3,42 @@
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Resolver, SubmitHandler } from 'react-hook-form';
-import { toast } from 'sonner';
 import { PlusCircle, Trash } from 'lucide-react';
-import type { CarHistoryItem } from '@/lib/types';
+import { toast } from 'sonner';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSet } from '@/components/ui/field';
-import { AppTextarea } from '../../input/AppTextarea';
-import { AppLocationInput } from '../../input/AppLocationInput';
-import { AppMediaUploaderInput } from '../../input/AppMediaUploaderInput';
+import { Progress } from '@/components/ui/progress';
+import AppTextarea from '../../input/AppTextarea';
+import AppLocationInput from '../../input/AppLocationInput';
+import AppMediaUploaderInput from '../../input/AppMediaUploaderInput';
+import AutoPriceSelector from '../../input/AutoPriceSelector';
+import LoadingIndicator from '../../loading/LoadingIndicator';
+import AppInput from '../../input/AppInput';
+import AppSelectInput from '../../input/AppSelectInput';
+import AppCollapsibleCheckboxGroup from '../../input/AppCollapsibleCheckboxGroup';
+import { submitAuctionAutoForm } from '@/actions/auto/actions';
 import { auto, AutoAuctionFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
-import { submitAuctionAutoForm } from '@/actions/auto/actions';
-import { Progress } from '@/components/ui/progress';
-import { AutoPriceSelector } from '../../input/AutoPriceSelector';
-import LoadingIndicator from '../../loading/LoadingIndicator';
-import { AppInput } from '../../input/AppInput';
-import { AppSelectInput } from '../../input/AppSelectInput';
-import { AppCollapsibleCheckboxGroup } from '../../input/AppCollapsibleCheckboxGroup';
-import { brandOptions, colorOptions, carTypeOptions, availableOptions, transmissionOptions, iconOptions, tractionOptions } from '@/lib/mockData';
+import type { CarHistoryItem } from '@/lib/types';
+import {
+  brandOptions,
+  colorOptions,
+  carTypeOptions,
+  availableOptions,
+  transmissionOptions,
+  iconOptions,
+  tractionOptions,
+} from '@/lib/mockData';
 
-export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpdate: (data: PreviewData) => void; subcategory?: string }) {
+export default function AuctionAutoForm({
+  onPreviewUpdate,
+  subcategory,
+}: {
+  onPreviewUpdate: (data: PreviewData) => void;
+  subcategory?: string;
+}) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
@@ -56,7 +70,7 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
       carType: undefined,
       horsePower: '',
       transmission: undefined,
-      traction: 'integrala',
+      traction: undefined,
       uploadedFiles: [],
     },
   });
@@ -366,6 +380,50 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             </div>
           )}
 
+          <div className='mt-2'>
+            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină</h4>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
+              <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
+              <AppSelectInput
+                options={iconOptions}
+                value={histIcon}
+                onValueChange={(v) => setHistIcon(v as string)}
+                placeholder='Selectați icon'
+                label='Iconă'
+              />
+              <AppInput
+                value={histDesc}
+                onChange={(e) => setHistDesc(e.target.value)}
+                label='Scurtă descriere'
+                placeholder='Ex: Revizie la 60.000 km'
+              />
+              <div className='col-span-1 md:col-span-3 flex gap-2'>
+                <button
+                  type='button'
+                  className='btn inline-flex items-center gap-2 px-3 py-1 rounded bg-primary text-white'
+                  onClick={() => {
+                    if (!histTitle) return;
+                    setHistory((h) => [...h, { title: histTitle, description: histDesc, icon: histIcon }]);
+                    setHistTitle('');
+                    setHistDesc('');
+                  }}
+                >
+                  <PlusCircle className='w-4 h-4' /> Adaugă
+                </button>
+                <div className='flex flex-wrap gap-2'>
+                  {history.map((h, i) => (
+                    <div key={i} className='flex items-center gap-2 rounded border px-2 py-1'>
+                      <span className='text-sm font-medium'>{h.title}</span>
+                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}>
+                        <Trash className='w-3 h-3' />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <AppTextarea
             value={form.watch('features')}
             onChange={(v) => form.setValue('features', v)}
@@ -392,37 +450,6 @@ export function AuctionAutoForm({ onPreviewUpdate, subcategory }: { onPreviewUpd
             required
             showPreview
           />
-
-          <div className='mt-2'>
-            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină (opțional)</h4>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
-              <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
-              <AppSelectInput options={iconOptions} value={histIcon} onValueChange={(v) => setHistIcon(v as string)} placeholder='Selectați icon' label='Iconă' />
-              <AppInput value={histDesc} onChange={(e) => setHistDesc(e.target.value)} label='Scurtă descriere' placeholder='Ex: Revizie la 60.000 km' />
-              <div className='col-span-1 md:col-span-3 flex gap-2'>
-                <button
-                  type='button'
-                  className='btn inline-flex items-center gap-2 px-3 py-1 rounded bg-primary text-white'
-                  onClick={() => {
-                    if (!histTitle) return;
-                    setHistory((h) => [...h, { title: histTitle, description: histDesc, icon: histIcon }]);
-                    setHistTitle('');
-                    setHistDesc('');
-                  }}
-                >
-                  <PlusCircle className='w-4 h-4' /> Adaugă
-                </button>
-                <div className='flex flex-wrap gap-2'>
-                  {history.map((h, i) => (
-                    <div key={i} className='flex items-center gap-2 rounded border px-2 py-1'>
-                      <span className='text-sm font-medium'>{h.title}</span>
-                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}><Trash className='w-3 h-3' /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </FieldGroup>
       </FieldSet>
 

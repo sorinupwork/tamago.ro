@@ -1,8 +1,8 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
-import { AppInput } from '@/components/custom/input/AppInput';
-import { AppSelectInput } from '@/components/custom/input/AppSelectInput';
+import AppInput from '@/components/custom/input/AppInput';
+import AppSelectInput from '@/components/custom/input/AppSelectInput';
 
 type ChatFiltersProps = {
   search: string;
@@ -11,7 +11,7 @@ type ChatFiltersProps = {
   setSort: (value: string) => void;
 };
 
-export const ChatFilters: React.FC<ChatFiltersProps> = ({ search, setSearch, sort, setSort }) => {
+const ChatFilters: React.FC<ChatFiltersProps> = ({ search, setSearch, sort, setSort }) => {
   return (
     <>
       <AppInput
@@ -37,3 +37,5 @@ export const ChatFilters: React.FC<ChatFiltersProps> = ({ search, setSearch, sor
     </>
   );
 };
+
+export default ChatFilters;
