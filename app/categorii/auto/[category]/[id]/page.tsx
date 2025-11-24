@@ -252,14 +252,14 @@ export default function CarDetailPage() {
                 loop: false,
               }}
               orientation='vertical'
-              className='w-full h-full overflow-visible pb-4'
+              className='w-full h-full overflow-visible '
               setApi={setApi}
               onNext={handleNext}
               onPrev={handlePrev}
             >
-              <CarouselContent className='-mt-1 max-h-[650px] gap-2.5 p-5'>
+              <CarouselContent className='-mt-1 py-4 max-h-[650px] gap-2.5 px-6'>
                 {car.images.map((image, index) => (
-                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] ring-3 ring-white rounded-xl'>
+                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] shadow-md ring-2 ring-white rounded-xl'>
                     <MediaPreview
                       mediaItems={car.images.map((url, i) => ({
                         type: 'image',
@@ -298,14 +298,16 @@ export default function CarDetailPage() {
                     {car.brand} - {car.year}
                   </p>
                 </div>
-                <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
+
+                <div className='flex items-center gap-2'>
+                  <Badge variant={isAuction ? 'destructive' : 'secondary'}>
+                    {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
+                  </Badge>
+                  {isAuction && <Badge variant='outline'>Activ</Badge>}
+                  <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
+                </div>
               </div>
-              <div className='flex items-center gap-2'>
-                <Badge variant={isAuction ? 'destructive' : 'secondary'}>
-                  {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
-                </Badge>
-                {isAuction && <Badge variant='outline'>Licitație Activ</Badge>}
-              </div>
+
               <p className='text-4xl font-bold text-green-600'>
                 {car.currency}{' '}
                 {isBuy

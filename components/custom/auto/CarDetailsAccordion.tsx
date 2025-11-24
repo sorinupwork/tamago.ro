@@ -38,7 +38,7 @@ export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
           <div key={i} className='bg-muted/50 p-3 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center'>
             <detail.icon className='h-6 w-6 mx-auto mb-1 text-primary' />
             <p className='text-sm font-semibold'>{detail.label}</p>
-            <p className='text-xs text-muted-foreground'>{detail.value}</p>
+            <p className='text-xs text-muted-foreground truncate'>{detail.value}</p>
           </div>
         ))}
       </div>

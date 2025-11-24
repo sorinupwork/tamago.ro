@@ -202,6 +202,8 @@ export default function AutoPage() {
 
   const { totalPages, paginatedItems } = paginateArray(filteredCars, currentPage);
 
+  const cardsPerPage = Math.min(Math.max(paginatedItems.length, 1), 3);
+
   const handleFilterChange = (key: keyof AutoFilterState, value: string | number[] | string[]) => {
     setFilters((prev) => {
       const next = { ...prev, [key]: value } as AutoFilterState;
@@ -575,7 +577,7 @@ export default function AutoPage() {
         {loading ? (
           <SkeletonLoading variant='auto' className='w-full col-span-full' />
         ) : (
-          paginatedItems.map((car) => <CarCard key={car.id} car={car} />)
+          paginatedItems.map((car) => <CarCard key={car.id} car={car} cardsPerPage={cardsPerPage} />)
         )}
       </div>
 
