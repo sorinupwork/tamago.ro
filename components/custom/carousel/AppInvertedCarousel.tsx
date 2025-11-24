@@ -30,16 +30,14 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   const [apiA, setApiA] = useState<CarouselApi | undefined>(undefined);
   const [currentA, setCurrentA] = useState(0);
   const [apiB, setApiB] = useState<CarouselApi | undefined>(undefined);
-  const [currentB, setCurrentB] = useState(0);
+  const [currentB, setCurrentB] = useState(() => Math.max(0, rowBItems.length - 1));
 
   const isSyncing = useRef(false);
-
-  const unifiedAutoplay = useRef<number | null>(null);
-
-  const [playing, setPlaying] = useState(true);
+  const pausedRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
 
   const prevARef = useRef<number | null>(null);
-  const prevBRef = useRef<number | null>(null);
+  const prevBRef = useRef<number | null>(Math.max(0, rowBItems.length - 1));
 
   const normalizeDelta = useCallback((delta: number, length: number) => {
     if (!length) return delta;
@@ -99,8 +97,10 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     if (!apiA) return;
 
     const onInitA = () => {
-      setCurrentA(apiA.selectedScrollSnap());
-      prevARef.current = apiA.selectedScrollSnap();
+      if (prevARef.current == null) {
+        setCurrentA(apiA.selectedScrollSnap());
+        prevARef.current = apiA.selectedScrollSnap();
+      }
     };
 
     const onPointerDownA = () => {
@@ -122,8 +122,10 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
     if (!apiB) return;
 
     const onInitB = () => {
-      setCurrentB(apiB.selectedScrollSnap());
-      prevBRef.current = apiB.selectedScrollSnap();
+      if (prevBRef.current == null) {
+        setCurrentB(apiB.selectedScrollSnap());
+        prevBRef.current = apiB.selectedScrollSnap();
+      }
     };
 
     const onPointerDownB = () => {
@@ -142,49 +144,32 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   }, [apiB, onSelectB]);
 
   useEffect(() => {
-    if (unifiedAutoplay.current) {
-      clearInterval(unifiedAutoplay.current);
-      unifiedAutoplay.current = null;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
-    if (!playing) return;
+    if (!apiA || !apiB) return;
 
-    const intervalMs = 4500;
-
-    if (apiA && apiB) {
-      const tick = () => {
-        if (isSyncing.current) return;
+    const tick = () => {
+      if (pausedRef.current || isSyncing.current) return;
+      try {
         isSyncing.current = true;
-        try {
-          apiA.scrollNext();
-          apiB.scrollPrev();
-        } finally {
-          setTimeout(() => (isSyncing.current = false), 150);
-        }
-      };
+        apiA.scrollNext();
+        apiB.scrollPrev();
+      } catch {}
+      setTimeout(() => (isSyncing.current = false), 150);
+    };
 
-      tick();
-      unifiedAutoplay.current = window.setInterval(tick, intervalMs);
-    } else if (apiA || apiB) {
-      const tick = () => {
-        if (isSyncing.current) return;
-        if (apiA) {
-          apiA.scrollNext();
-        } else if (apiB) {
-          apiB.scrollPrev();
-        }
-      };
-      tick();
-      unifiedAutoplay.current = window.setInterval(tick, intervalMs);
-    }
+    timerRef.current = window.setInterval(tick, 4500);
 
     return () => {
-      if (unifiedAutoplay.current) {
-        clearInterval(unifiedAutoplay.current);
-        unifiedAutoplay.current = null;
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [apiA, apiB, playing]);
+  }, [apiA, apiB]);
 
   const RenderRow = ({
     items,
@@ -207,17 +192,20 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
           isVisible ? 'opacity-100' : 'opacity-0'
         } transition-opacity duration-500`}
       >
-        <div onMouseEnter={() => setPlaying(false)} onMouseLeave={() => setPlaying(true)} className='flex justify-center'>
+        <div className='flex justify-center'>
           <Carousel
             setApi={setApi}
             opts={opts}
             className='w-full max-w-3xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-visible'
+            autoplay={false}
+            autoplayInterval={4500}
+            pauseOnHover={true}
           >
             <CarouselContent className='gap-6' containerClassName='overflow-visible'>
               {items.map((sub, i) => {
                 const origIndex = offset + i;
                 const length = items.length || 1;
-                const normalized = (((currentIndex - offset) % length) + length) % length;
+                const normalized = ((currentIndex % length) + length) % length;
                 const navigate = () => navigateTo(category, sub.title ? sub.title.toLowerCase().replace(' ', '-') : undefined);
                 return (
                   <CarouselItem
@@ -245,7 +233,15 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
   };
 
   return (
-    <div className='flex grow flex-col gap-6'>
+    <div
+      className='flex grow flex-col gap-6'
+      onMouseEnter={() => {
+        pausedRef.current = true;
+      }}
+      onMouseLeave={() => {
+        pausedRef.current = false;
+      }}
+    >
       {RenderRow({
         items: rowAItems,
         setApi: setApiA,
@@ -261,7 +257,7 @@ export function AppInvertedCarousel({ category, rowAItems, rowBItems, navigateTo
         currentIndex: currentB,
         offset: 0,
         apiKeyPrefix: 'b',
-        opts: { align: 'center', loop: true, startIndex: 7 },
+        opts: { align: 'center', loop: true, startIndex: Math.max(0, rowBItems.length - 1) },
       })}
     </div>
   );
