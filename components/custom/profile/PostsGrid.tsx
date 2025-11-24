@@ -1,9 +1,6 @@
 import PostCard from './PostCard';
 import { AppPagination } from '@/components/custom/pagination/AppPagination';
 
-import { Button } from '@/components/ui/button';
-import SkeletonLoading from '../loading/SkeletonLoading';
-
 type Post = {
   id: string;
   title: string;
@@ -21,9 +18,6 @@ export default function PostsGrid({
   onDelete,
   onToggle,
   onView,
-  hasMore,
-  onLoadMore,
-  loadingMore,
   currentPage,
   totalPages,
   onPageChange,
@@ -33,16 +27,11 @@ export default function PostsGrid({
   onDelete: (id: string) => void;
   onToggle: (id: string, current?: Post['status']) => void;
   onView: (post: Post) => void;
-  hasMore: boolean;
-  onLoadMore: () => void;
   loadingMore: boolean;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
 }) {
-  if (!posts?.length) {
-    return <SkeletonLoading variant='profile' />;
-  }
   return (
     <div className='w-full'>
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
@@ -55,15 +44,7 @@ export default function PostsGrid({
         <div className='mt-4 flex justify-center'>
           <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
         </div>
-      ) : (
-        hasMore && (
-          <div className='col-span-full flex justify-center mt-4'>
-            <Button onClick={onLoadMore} disabled={loadingMore} variant='outline'>
-              {loadingMore ? 'Se încarcă...' : 'Încarcă Mai Multe'}
-            </Button>
-          </div>
-        )
-      )}
+      ) : null}
     </div>
   );
 }

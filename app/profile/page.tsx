@@ -13,15 +13,19 @@ export default async function Profile() {
   }
 
   const userId = session?.user?.id;
-  const [feedsData, storiesData] = await Promise.all([getFeedPosts({ userId, limit: 20 }), getStories({ userId, limit: 20 })]);
+  const LIMIT = 3;
+  const [feedsData, storiesData] = await Promise.all([
+    getFeedPosts({ userId, limit: LIMIT, page: 1 }),
+    getStories({ userId, limit: LIMIT, page: 1 }),
+  ]);
 
   return (
     <ProfileClient
       session={session}
       initialFeedItems={feedsData.items}
-      initialFeedHasMore={feedsData.hasMore}
+      initialFeedTotal={feedsData.total}
       initialStoriesItems={storiesData.items}
-      initialStoriesHasMore={storiesData.hasMore}
+      initialStoriesTotal={storiesData.total}
     />
   );
 }

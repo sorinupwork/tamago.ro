@@ -19,7 +19,6 @@ import HeaderProfile from '@/components/custom/profile/HeaderProfile';
 import PostsFilters from '@/components/custom/profile/PostsFilters';
 import RecentActivity from '@/components/custom/profile/RecentActivity';
 import RewardsCard from '@/components/custom/profile/RewardsCard';
-import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
 import FeedGrid from '@/components/custom/profile/FeedGrid';
 import SecurityCard from '@/components/custom/profile/SecurityCard';
@@ -72,17 +71,24 @@ type StoryLocal = {
 type ProfileClientProps = {
   session: Session;
   initialFeedItems?: FeedItemLocal[];
-  initialFeedHasMore?: boolean;
+  initialFeedTotal?: number;
   initialStoriesItems?: StoryLocal[];
-  initialStoriesHasMore?: boolean;
+  initialStoriesTotal?: number;
+};
+
+type FeedQueryParams = {
+  userId?: string | undefined;
+  page: number;
+  limit: number;
+  type?: 'post' | 'poll';
 };
 
 export default function ProfileClient({
   session,
   initialFeedItems = [],
-  initialFeedHasMore = false,
+  initialFeedTotal = 0,
   initialStoriesItems = [],
-  initialStoriesHasMore = false,
+  initialStoriesTotal = 0,
 }: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
@@ -147,17 +153,14 @@ export default function ProfileClient({
 
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
-  const [postsError, setPostsError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [totalPosts, setTotalPosts] = useState(0);
-  const POSTS_PER_PAGE = 10;
+  const POSTS_PER_PAGE = 3;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
   const handlePageChange = async (page: number) => {
     if (!user?.id || page === currentPage) return;
     setLoadingPosts(true);
-    setPostsError(null);
     try {
       const params = {
         userId: user.id,
@@ -170,12 +173,10 @@ export default function ProfileClient({
       };
       const data = await getUserCars(params);
       setPosts(data.posts);
-      setHasMore(data.hasMore);
       setTotalPosts(data.total);
       setCurrentPage(page);
     } catch (err) {
       console.error(err);
-      setPostsError('Nu s-au putut încărca postările.');
       setPosts([]);
     } finally {
       setLoadingPosts(false);
@@ -185,19 +186,28 @@ export default function ProfileClient({
   const [clientFeedItems, setClientFeedItems] = useState<FeedItemLocal[]>(initialFeedItems);
   const [clientFeedPage, setClientFeedPage] = useState(1);
   const [clientFeedLoading, setClientFeedLoading] = useState(false);
-  const [clientFeedHasMore, setClientFeedHasMore] = useState(initialFeedHasMore);
+  const [clientFeedTotal, setClientFeedTotal] = useState(initialFeedTotal || 0);
+  const clientFeedTotalPages = Math.max(1, Math.ceil((clientFeedTotal || 0) / 3));
+
+  const [feedShowPosts, setFeedShowPosts] = useState(true);
+  const [feedShowPolls, setFeedShowPolls] = useState(true);
+  const deriveFeedType = (posts: boolean, polls: boolean) => {
+    if (posts && !polls) return 'post';
+    if (!posts && polls) return 'poll';
+    return 'both';
+  };
 
   const [clientStories, setClientStories] = useState<StoryLocal[]>(initialStoriesItems);
   const [clientStoriesPage, setClientStoriesPage] = useState(1);
   const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
-  const [clientStoriesHasMore, setClientStoriesHasMore] = useState(initialStoriesHasMore);
+  const [clientStoriesTotal, setClientStoriesTotal] = useState(initialStoriesTotal || 0);
+  const clientStoriesTotalPages = Math.max(1, Math.ceil((clientStoriesTotal || 0) / 3));
 
   useEffect(() => {
     if (!user?.id) return;
     let mounted = true;
     async function load(page = 1, append = false) {
       setLoadingPosts(true);
-      setPostsError(null);
       try {
         const params = {
           userId: user.id,
@@ -206,18 +216,16 @@ export default function ProfileClient({
           sortBy,
           ...(searchQuery && { search: searchQuery }),
           page,
-          limit: 10,
+          limit: POSTS_PER_PAGE,
         };
         const data = await getUserCars(params);
         if (mounted) {
           setPosts((prev) => (append && prev ? [...prev, ...data.posts] : data.posts));
-          setHasMore(data.hasMore);
           setTotalPosts(data.total);
           setCurrentPage(page);
         }
       } catch (err) {
         console.error(err);
-        if (mounted) setPostsError('Nu s-au putut încărca postările.');
         if (mounted) setPosts([]);
       } finally {
         if (mounted) setLoadingPosts(false);
@@ -229,57 +237,43 @@ export default function ProfileClient({
     };
   }, [user?.id, categoryFilter, statusFilter, sortBy, searchQuery]);
 
-  const handleLoadMore = () => {
-    if (hasMore && !loadingPosts) {
-      const nextPage = currentPage + 1;
-      async function loadMore() {
-        setLoadingPosts(true);
-        try {
-          const params = {
-            userId: user.id,
-            ...(categoryFilter !== 'all' && { category: categoryFilter }),
-            ...(statusFilter !== 'all' && { status: statusFilter }),
-            sortBy,
-            ...(searchQuery && { search: searchQuery }),
-            page: nextPage,
-            limit: 10,
-          };
-          const data = await getUserCars(params);
-          setPosts((prev) => (prev ? [...prev, ...data.posts] : data.posts));
-          setHasMore(data.hasMore);
-          setCurrentPage(nextPage);
-        } catch (err) {
-          console.error(err);
-          setPostsError('Nu s-au putut încărca mai multe postări.');
-        } finally {
-          setLoadingPosts(false);
-        }
-      }
-      loadMore();
-    }
-  };
-
-  const handleStoriesLoadMore = async () => {
-    if (!clientStoriesHasMore || clientStoriesLoading) return;
+  const handleStoriesPageChange = async (page: number) => {
+    if (!user?.id || page === clientStoriesPage) return;
     setClientStoriesLoading(true);
     try {
-      const next = clientStoriesPage + 1;
-      const res = await getStories({ userId: user?.id, page: next, limit: 10 });
-      setClientStoriesPage(next);
-      setClientStoriesHasMore(Boolean(res.hasMore));
+      const res = await getStories({ userId: user?.id, page, limit: 3 });
+      setClientStoriesPage(page);
+      setClientStories(res.items);
+      setClientStoriesTotal(res.total);
+    } catch (err) {
+      console.error('Error loading stories page:', err);
     } finally {
       setClientStoriesLoading(false);
     }
   };
 
-  const handleFeedLoadMore = async () => {
-    if (!clientFeedHasMore || clientFeedLoading) return;
+  const handleFeedPageChange = async (page: number, typeOverride?: 'post' | 'poll' | 'both') => {
+    if (!user?.id) return;
+    if (!typeOverride && page === clientFeedPage && clientFeedItems.length > 0) return;
     setClientFeedLoading(true);
     try {
-      const next = clientFeedPage + 1;
-      const res = await getFeedPosts({ userId: user?.id, page: next, limit: 10 });
-      setClientFeedPage(next);
-      setClientFeedHasMore(Boolean(res.hasMore));
+      const type = typeOverride ?? deriveFeedType(feedShowPosts, feedShowPolls);
+      const params: FeedQueryParams = { userId: user?.id, page, limit: 3 };
+      if (type && type !== 'both') params.type = type;
+      const res = await getFeedPosts(params);
+      const newTotalPages = Math.max(1, Math.ceil((res.total || 0) / 3));
+      if (page > newTotalPages) {
+        const adjusted = await getFeedPosts({ ...params, page: newTotalPages });
+        setClientFeedItems(adjusted.items);
+        setClientFeedTotal(adjusted.total);
+        setClientFeedPage(newTotalPages);
+      } else {
+        setClientFeedItems(res.items);
+        setClientFeedTotal(res.total);
+        setClientFeedPage(page);
+      }
+    } catch (err) {
+      console.error('Error loading feed page:', err);
     } finally {
       setClientFeedLoading(false);
     }
@@ -417,20 +411,33 @@ export default function ProfileClient({
               <TabsContent value='feed'>
                 <FeedGrid
                   userId={user?.id}
-                  hasMore={clientFeedHasMore}
-                  onLoadMore={handleFeedLoadMore}
-                  loadingMore={clientFeedLoading}
                   initialItems={clientFeedItems}
+                  loadingMore={clientFeedLoading}
+                  currentPage={clientFeedPage}
+                  totalPages={clientFeedTotalPages}
+                  onPageChange={handleFeedPageChange}
+                  showPosts={feedShowPosts}
+                  showPolls={feedShowPolls}
+                  onFilterToggle={(which: 'posts' | 'polls', value: boolean) => {
+                    const nextShowPosts = which === 'posts' ? value : feedShowPosts;
+                    const nextShowPolls = which === 'polls' ? value : feedShowPolls;
+                    setFeedShowPosts(nextShowPosts);
+                    setFeedShowPolls(nextShowPolls);
+                    const newType = deriveFeedType(nextShowPosts, nextShowPolls);
+                    setClientFeedPage(1);
+                    void handleFeedPageChange(1, newType);
+                  }}
                 />
               </TabsContent>
 
               <TabsContent value='stories' className='space-y-6'>
                 <StoriesGrid
                   userId={user?.id}
-                  hasMore={clientStoriesHasMore}
-                  onLoadMore={handleStoriesLoadMore}
-                  loadingMore={clientStoriesLoading}
                   initialItems={clientStories}
+                  loadingMore={clientStoriesLoading}
+                  currentPage={clientStoriesPage}
+                  totalPages={clientStoriesTotalPages}
+                  onPageChange={handleStoriesPageChange}
                 />
               </TabsContent>
 
@@ -453,8 +460,6 @@ export default function ProfileClient({
                     onDelete={handleDeletePost}
                     onToggle={handleToggleActive}
                     onView={handleViewPost}
-                    hasMore={hasMore}
-                    onLoadMore={handleLoadMore}
                     loadingMore={loadingPosts && currentPage > 1}
                     currentPage={currentPage}
                     totalPages={totalPages}

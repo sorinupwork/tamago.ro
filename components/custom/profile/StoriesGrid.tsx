@@ -4,9 +4,9 @@ import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { AppPagination } from '@/components/custom/pagination/AppPagination';
 
 type Story = {
   id: string;
@@ -18,13 +18,14 @@ type Story = {
 
 type StoriesGridProps = {
   userId?: string;
-  hasMore: boolean;
-  onLoadMore: () => void;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
   loadingMore: boolean;
   initialItems?: Story[];
 };
 
-export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, initialItems = [] }: StoriesGridProps) {
+export default function StoriesGrid({ userId, currentPage, totalPages, onPageChange, loadingMore, initialItems = [] }: StoriesGridProps) {
   const [stories, setStories] = useState<Story[]>(initialItems);
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
@@ -79,13 +80,12 @@ export default function StoriesGrid({ userId, hasMore, onLoadMore, loadingMore, 
         ))}
       </div>
 
-      {hasMore && (
-        <div className='text-center'>
-          <Button onClick={onLoadMore} disabled={loadingMore}>
-            {loadingMore ? 'Loading...' : 'Load More'}
-          </Button>
+      {/* pagination */}
+      {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
+        <div className='mt-4 flex justify-center'>
+          <AppPagination currentPage={currentPage || 1} totalPages={totalPages || 1} onPageChange={onPageChange} />
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
