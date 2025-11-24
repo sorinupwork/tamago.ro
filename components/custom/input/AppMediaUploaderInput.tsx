@@ -11,12 +11,13 @@ type AppMediaUploaderInputProps = {
   htmlFor?: string;
   uploaderKey?: number;
   onFilesChange: (files: File[]) => void;
-  id?: string; // Added for form integration
-  accept?: string; // Added for file type restriction
-  name?: string; // Added for form integration
-  maxFiles?: number; // Added to limit files
-  showPreview?: boolean; // Added to toggle preview display
-  disabled?: boolean; // Added to disable the uploader
+  id?: string;
+  accept?: string;
+  name?: string;
+  maxFiles?: number;
+  showPreview?: boolean;
+  disabled?: boolean;
+  layout?: 'row' | 'col'; // new: layout for avatar (row) vs cover (col)
 };
 
 export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
@@ -33,7 +34,14 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
   maxFiles,
   showPreview,
   disabled,
+  layout = 'row',
 }) => {
+  // choose wrapper classes based on layout
+  const wrapperClass = layout === 'col' ? 'flex flex-col items-start gap-2 w-full' : 'flex items-center gap-2';
+
+  // if layout is col (cover) restrict to single file preview
+  const effectiveMaxFiles = layout === 'col' ? 1 : maxFiles;
+
   return (
     <Field className={className}>
       {label && (
@@ -41,16 +49,17 @@ export const AppMediaUploaderInput: React.FC<AppMediaUploaderInputProps> = ({
           {label}
         </FieldLabel>
       )}
-      <div>
+      <div className={wrapperClass}>
         <MediaUploader
           key={uploaderKey}
           onFilesChange={onFilesChange}
           id={id}
           accept={accept}
-          maxFiles={maxFiles}
+          maxFiles={effectiveMaxFiles}
           showPreview={showPreview}
           name={name}
           disabled={disabled}
+          layout={layout}
         />
       </div>
       {error && <FieldError errors={error} />}

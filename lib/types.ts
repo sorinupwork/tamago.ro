@@ -145,14 +145,18 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  bio?: string | null;
   password?: string;
-  provider: 'credentials' | 'google' | 'facebook' | 'instagram';
+  provider?: 'credentials' | 'google' | 'facebook' | 'instagram'; // made optional
   avatar?: string;
-  emailVerified?: Date;
+  image?: string | null;
+  coverImage?: string | null;
+  emailVerified?: boolean | Date | string | null; // accept boolean from session or Date/string from DB
   createdAt?: Date | string;
   updatedAt?: Date | string;
   role?: 'user' | 'admin';
   badges?: string[];
+  platforms?: string[]; // added platforms
   progress?: { posts: number; friends: number; points: number };
   rewards?: { freePosts: number; premiumAccess: boolean };
   status?: string;

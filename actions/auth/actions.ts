@@ -16,6 +16,11 @@ type ProfileUpdateResponse = {
 type UserUpdate = {
   name?: string | null;
   image?: string | null;
+  coverImage?: string | null;
+  bio?: string | null;
+  socials?: Record<string, string> | null;
+  badges?: string[] | null;
+  platforms?: string[] | null;
 };
 
 type Favorite = {
@@ -37,18 +42,47 @@ export async function updateProfile(form: FormData): Promise<ProfileUpdateRespon
 
   const name = form.get('name')?.toString() || null;
   const imageUrl = form.get('imageUrl')?.toString() || null;
+  const coverUrl = form.get('coverUrl')?.toString() || null;
+  const bio = form.get('bio')?.toString() || null;
+  const socialsRaw = form.get('socials')?.toString() || null;
+  const badgesRaw = form.get('badges')?.toString() || null;
+  const platformsRaw = form.get('platforms')?.toString() || null;
 
   try {
     const users = db.collection('user');
     const updateData: UserUpdate = {};
     if (name) updateData.name = name;
     if (imageUrl) updateData.image = imageUrl;
+    if (coverUrl) updateData.coverImage = coverUrl;
+    if (bio) updateData.bio = bio;
+    if (socialsRaw) {
+      try {
+        updateData.socials = JSON.parse(socialsRaw);
+      } catch {
+        // ignore invalid socials format
+      }
+    }
+    if (badgesRaw) {
+      try {
+        updateData.badges = JSON.parse(badgesRaw);
+      } catch {
+        // ignore invalid badges format
+      }
+    }
+    if (platformsRaw) {
+      try {
+        updateData.platforms = JSON.parse(platformsRaw);
+      } catch {
+        // ignore invalid platforms format
+      }
+    }
 
     if (Object.keys(updateData).length > 0) {
       const result = await users.updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
       if (result.matchedCount === 0) {
         throw new Error('User not found');
       }
+      revalidatePath(`/profile/${userId}`);
     }
 
     return { success: true };
@@ -65,6 +99,11 @@ export async function getUserById(id: string) {
         _id: user._id.toString(),
         name: user.name || 'Unknown',
         image: user.image || '/avatars/01.jpg',
+        coverImage: user.coverImage || '/placeholder.svg',
+        bio: user.bio || '',
+        socials: user.socials || {},
+        badges: user.badges || [],
+        platforms: user.platforms || [],
         status: user.status || 'Online',
         category: user.category || 'Prieteni',
         email: user.email || '',

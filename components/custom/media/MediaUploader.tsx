@@ -17,6 +17,7 @@ type MediaUploaderProps = {
   id?: string;
   name?: string;
   disabled?: boolean;
+  layout?: 'row' | 'col';
 };
 
 type PreviewFile = {
@@ -34,6 +35,7 @@ export function MediaUploader({
   id,
   name,
   disabled = false,
+  layout = 'row',
 }: MediaUploaderProps) {
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
 
@@ -94,44 +96,92 @@ export function MediaUploader({
       </div>
 
       {previews.length > 0 && showPreview && (
-        <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-          {previews.map((preview, index) => (
-            <Card key={index} className='relative'>
-              <CardContent className='p-2'>
-                {preview.type === 'image' ? (
-                  <Image
-                    src={preview.preview}
-                    alt={`Preview ${index}`}
-                    width={150}
-                    height={150}
-                    className='w-full h-32 object-cover rounded'
-                  />
-                ) : preview.type === 'video' ? (
-                  <div className='relative w-full h-32'>
-                    <video src={preview.preview} className='w-full h-full object-cover rounded' controls={false} muted />
-                    <FileVideo className='absolute inset-0 m-auto h-8 w-8 text-white bg-black/50 rounded-full p-1' />
-                  </div>
-                ) : (
-                  <div className='w-full h-32 bg-gray-100 rounded flex items-center justify-center'>
-                    <p className='text-gray-500 text-sm'>Previzualizare document</p>
-                  </div>
-                )}
-              </CardContent>
-              <Button
-                type='button'
-                variant='destructive'
-                size='sm'
-                className='absolute top-1 right-1 z-10'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removePreview(index);
-                }}
-              >
-                <X className='h-4 w-4' />
-              </Button>
-            </Card>
-          ))}
-        </div>
+        <>
+          {layout === 'col' ? (
+            // single full-width preview for cover (use first preview only)
+            <div className='w-full'>
+              {(() => {
+                const preview = previews[0];
+                return (
+                  <Card className='relative w-full'>
+                    <CardContent className='p-0'>
+                      {preview.type === 'image' ? (
+                        <Image
+                          src={preview.preview}
+                          alt='Cover preview'
+                          width={1200}
+                          height={320}
+                          className='w-full h-48 md:h-56 object-cover rounded'
+                        />
+                      ) : preview.type === 'video' ? (
+                        <div className='relative w-full h-48 md:h-56'>
+                          <video src={preview.preview} className='w-full h-full object-cover rounded' controls={false} muted />
+                          <FileVideo className='absolute inset-0 m-auto h-8 w-8 text-white bg-black/50 rounded-full p-1' />
+                        </div>
+                      ) : (
+                        <div className='w-full h-48 md:h-56 bg-gray-100 rounded flex items-center justify-center'>
+                          <p className='text-gray-500 text-sm'>Previzualizare document</p>
+                        </div>
+                      )}
+                    </CardContent>
+                    <Button
+                      type='button'
+                      variant='destructive'
+                      size='sm'
+                      className='absolute top-2 right-2 z-10'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePreview(0);
+                      }}
+                    >
+                      <X className='h-4 w-4' />
+                    </Button>
+                  </Card>
+                );
+              })()}
+            </div>
+          ) : (
+            // default grid for multiple previews (avatar / general)
+            <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
+              {previews.map((preview, index) => (
+                <Card key={index} className='relative'>
+                  <CardContent className='p-2'>
+                    {preview.type === 'image' ? (
+                      <Image
+                        src={preview.preview}
+                        alt={`Preview ${index}`}
+                        width={150}
+                        height={150}
+                        className='w-full h-32 object-cover rounded'
+                      />
+                    ) : preview.type === 'video' ? (
+                      <div className='relative w-full h-32'>
+                        <video src={preview.preview} className='w-full h-full object-cover rounded' controls={false} muted />
+                        <FileVideo className='absolute inset-0 m-auto h-8 w-8 text-white bg-black/50 rounded-full p-1' />
+                      </div>
+                    ) : (
+                      <div className='w-full h-32 bg-gray-100 rounded flex items-center justify-center'>
+                        <p className='text-gray-500 text-sm'>Previzualizare document</p>
+                      </div>
+                    )}
+                  </CardContent>
+                  <Button
+                    type='button'
+                    variant='destructive'
+                    size='sm'
+                    className='absolute top-1 right-1 z-10'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePreview(index);
+                    }}
+                  >
+                    <X className='h-4 w-4' />
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {errorMessage && <p className='text-sm text-red-600'>{errorMessage}</p>}

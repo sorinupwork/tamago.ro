@@ -25,13 +25,7 @@ import SecurityCard from '@/components/custom/profile/SecurityCard';
 import { getUserCars } from '@/actions/auto/actions';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
-
-type User = {
-  id: string;
-  name?: string | null;
-  email?: string;
-  image?: string | null;
-};
+import type { User } from '@/lib/types';
 
 type Post = {
   id: string;
@@ -121,6 +115,11 @@ export default function ProfileClient({
   const [name, setName] = useState<string>(user?.name ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(user?.image ?? null);
+
+  // new cover states
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(user?.coverImage ?? null);
+
   const [isEditing, setIsEditing] = useState(false);
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -133,7 +132,9 @@ export default function ProfileClient({
     setName(user?.name ?? '');
     setImagePreview(user?.image ?? null);
     setImageFile(null);
-  }, [user?.name, user?.image]);
+    setCoverPreview(user?.coverImage ?? null);
+    setCoverFile(null);
+  }, [user?.name, user?.image, user?.coverImage]);
 
   const handleFilesFromUploader = (files: File[]) => {
     const f = files?.[0] ?? null;
@@ -146,9 +147,25 @@ export default function ProfileClient({
     setImagePreview(URL.createObjectURL(f));
   };
 
+  const handleCoverFilesFromUploader = (files: File[]) => {
+    const f = files?.[0] ?? null;
+    if (!f) {
+      setCoverFile(null);
+      setCoverPreview(user?.coverImage ?? null);
+      return;
+    }
+    setCoverFile(f);
+    setCoverPreview(URL.createObjectURL(f));
+  };
+
   const handleImageRemove = () => {
     setImageFile(null);
     setImagePreview(user?.image ?? null);
+  };
+
+  const handleCoverRemove = () => {
+    setCoverFile(null);
+    setCoverPreview(user?.coverImage ?? null);
   };
 
   const [posts, setPosts] = useState<Post[] | null>(null);
@@ -585,6 +602,8 @@ export default function ProfileClient({
           if (!open) {
             setImageFile(null);
             setImagePreview(user?.image ?? null);
+            setCoverFile(null);
+            setCoverPreview(user?.coverImage ?? null);
             setName(user?.name ?? '');
             setIsEditing(false);
           } else {
@@ -594,11 +613,17 @@ export default function ProfileClient({
         name={name}
         onNameChange={(value) => setName(value)}
         email={user?.email ?? ''}
-        imagePreview={user?.image ?? null}
+        imagePreview={imagePreview}
+        coverPreview={coverPreview}
         files={imageFile ? [imageFile] : []}
+        coverFiles={coverFile ? [coverFile] : []}
         userId={user?.id}
         onFilesChange={handleFilesFromUploader}
+        onCoverFilesChange={handleCoverFilesFromUploader}
         onImageRemove={handleImageRemove}
+        onCoverImageRemove={handleCoverRemove}
+        bioInitial={user?.bio ?? ''}
+        platformsInitial={user?.platforms ?? []}
       />
     </div>
   );
