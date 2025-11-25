@@ -1,4 +1,18 @@
-export const availableOptions: string[] = ['GPS', 'Aer Conditionat', 'Scaune Încălzite', 'Cameră 360°'];
+export const availableOptions: string[] = [
+  'GPS',
+  'Aer Conditionat',
+  'Scaune Încălzite',
+  'Cameră 360°',
+  // additional options
+  'Bluetooth',
+  'Pilot Automat',
+  'Senzori Parcare',
+  'Cameră Marsarier',
+  'Lumini LED',
+  'Interior Piele',
+  'Keyless Entry',
+  'Cruise Control',
+];
 
 export const brandOptions = [
   { value: 'BMW', label: 'BMW' },
@@ -89,14 +103,13 @@ export const transmissionOptions = [
 ];
 
 export const iconOptions = [
-  { value: 'Wrench', label: '🔧 Revizie' },
-  { value: 'FileText', label: '📄 RAR' },
-  { value: 'Droplet', label: '💧 Schimb Ulei' },
-  { value: 'Calendar', label: '📅 Eveniment' },
-  { value: 'Other', label: '⭐ Altul' },
+  { value: 'Wrench', label: 'Revizie' },
+  { value: 'FileText', label: 'RAR' },
+  { value: 'Droplet', label: 'Schimb Ulei' },
+  { value: 'Calendar', label: 'Eveniment' },
+  { value: 'Other', label: 'Altul' },
 ];
 
-// Add traction options
 export const tractionOptions = [
   { value: 'integrala', label: 'Integrala (4x4)' },
   { value: 'fata', label: 'Față' },

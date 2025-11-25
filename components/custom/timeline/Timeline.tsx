@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
+import { Eye, LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -40,8 +40,8 @@ export default function Timeline({ items, className = '', contentClassName = '' 
               {item.extraInfo && <div className='mt-3'>{item.extraInfo}</div>}
             </div>
 
-            <Button className='px-4 py-2' variant={'link'} onClick={() => toast('Coming soon: documents to upload etc.')}>
-              Vezi
+            <Button className='px-4 py-2' variant={'ghost'} onClick={() => toast('Coming soon: documents to upload etc.')}>
+              <Eye className='h-4 w-4' />
             </Button>
           </div>
         </div>

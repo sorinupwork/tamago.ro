@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MapPin, PlusCircle, Trash } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
 
@@ -34,6 +34,8 @@ import {
   iconOptions,
   tractionOptions,
 } from '@/lib/mockData';
+import { iconMap } from '@/lib/icons';
+import CarHighlightsForm from './CarHighlightsForm';
 
 export default function RentAutoForm({
   onPreviewUpdate,
@@ -50,9 +52,7 @@ export default function RentAutoForm({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [driverOpen, setDriverOpen] = useState(false);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
-  const [histTitle, setHistTitle] = useState('');
-  const [histDesc, setHistDesc] = useState('');
-  const [histIcon, setHistIcon] = useState<string>('Wrench');
+  
   const form = useForm<AutoRentFormData>({
     resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
     mode: 'onChange',
@@ -86,6 +86,8 @@ export default function RentAutoForm({
   });
 
   const watchedValues = useWatch({ control: form.control });
+
+  const iconSelectOptions = iconOptions.map((o) => ({ ...o, icon: iconMap[o.value] || undefined }));
 
   const handleFilesChange = (newFiles: File[]) => {
     setFiles(newFiles);
@@ -400,49 +402,7 @@ export default function RentAutoForm({
             />
           </div>
 
-          <div className='mt-2'>
-            <h4 className='text-sm font-semibold mb-2'>Istoric Mașină</h4>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-2 items-end'>
-              <AppInput value={histTitle} onChange={(e) => setHistTitle(e.target.value)} label='Titlu' placeholder='Ex: Revizie generală' />
-              <AppSelectInput
-                options={iconOptions}
-                value={histIcon}
-                onValueChange={(v) => setHistIcon(v as string)}
-                placeholder='Selectați icon'
-                label='Iconă'
-              />
-              <AppInput
-                value={histDesc}
-                onChange={(e) => setHistDesc(e.target.value)}
-                label='Scurtă descriere'
-                placeholder='Ex: Revizie la 60.000 km'
-              />
-              <div className='col-span-1 md:col-span-3 flex gap-2'>
-                <button
-                  type='button'
-                  className='btn inline-flex items-center gap-2 px-3 py-1 rounded bg-primary text-white'
-                  onClick={() => {
-                    if (!histTitle) return;
-                    setHistory((h) => [...h, { title: histTitle, description: histDesc, icon: histIcon }]);
-                    setHistTitle('');
-                    setHistDesc('');
-                  }}
-                >
-                  <PlusCircle className='w-4 h-4' /> Adaugă
-                </button>
-                <div className='flex flex-wrap gap-2'>
-                  {history.map((h, i) => (
-                    <div key={i} className='flex items-center gap-2 rounded border px-2 py-1'>
-                      <span className='text-sm font-medium'>{h.title}</span>
-                      <button type='button' onClick={() => setHistory((prev) => prev.filter((_, idx) => idx !== i))}>
-                        <Trash className='w-3 h-3' />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
 
           <AppTextarea
             value={form.watch('features')}
@@ -522,6 +482,7 @@ export default function RentAutoForm({
             value={options}
             onChange={setOptions}
             className='min-w-0 w-full'
+            containerClassName='grid grid-cols-2 gap-2'
           />
 
           <AppMediaUploaderInput

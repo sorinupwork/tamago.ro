@@ -1,4 +1,5 @@
 import React from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -7,7 +8,8 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 
 type Option = {
   value: string;
-  label: string;
+  label: React.ReactNode;
+  icon?: LucideIcon | React.ReactNode;
 };
 
 type AppSelectInputProps = {
@@ -64,7 +66,17 @@ const AppSelectInput: React.FC<AppSelectInputProps> = ({
                     : [...(value as string[]), option.value];
                   onValueChange(newSelected);
                 }}
+                className='flex items-center gap-2'
               >
+                {option.icon ? (
+                  React.isValidElement(option.icon) ? (
+                    option.icon
+                  ) : typeof option.icon === 'function' || typeof option.icon === 'object' ? (
+                    React.createElement(option.icon as unknown as LucideIcon, { className: 'inline-block mr-1', size: 16 })
+                  ) : (
+                    option.icon
+                  )
+                ) : null}
                 {option.label}
               </label>
             </div>
@@ -80,7 +92,18 @@ const AppSelectInput: React.FC<AppSelectInputProps> = ({
       <SelectContent>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            {option.label}
+            <div className='flex items-center gap-2'>
+              {option.icon ? (
+                React.isValidElement(option.icon) ? (
+                  option.icon
+                ) : typeof option.icon === 'function' || typeof option.icon === 'object' ? (
+                  React.createElement(option.icon as unknown as LucideIcon, { className: 'inline-block', size: 16 })
+                ) : (
+                  option.icon
+                )
+              ) : null}
+              <span>{option.label}</span>
+            </div>
           </SelectItem>
         ))}
       </SelectContent>

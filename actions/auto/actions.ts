@@ -12,13 +12,11 @@ import { auth } from '@/lib/auth/auth';
 export async function submitSellAutoForm(
   data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    throw new Error('Unauthorized: No valid session');
-  }
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.sellSchema.parse(data);
-    const result = await db.collection('sell_auto_cars').insertOne({ ...validatedData, userId: session.user.id });
+    const result = await db.collection('sell_auto_cars').insertOne({ ...validatedData, userId });
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting sell auto form:', error);
@@ -29,13 +27,11 @@ export async function submitSellAutoForm(
 export async function submitBuyAutoForm(
   data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    throw new Error('Unauthorized: No valid session');
-  }
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.buySchema.parse(data);
-    const result = await db.collection('buy_auto_cars').insertOne({ ...validatedData, userId: session.user.id });
+    const result = await db.collection('buy_auto_cars').insertOne({ ...validatedData, userId });
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting buy auto form:', error);
@@ -46,13 +42,11 @@ export async function submitBuyAutoForm(
 export async function submitRentAutoForm(
   data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    throw new Error('Unauthorized: No valid session');
-  }
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.rentSchema.parse(data);
-    const result = await db.collection('rent_auto_cars').insertOne({ ...validatedData, userId: session.user.id });
+    const result = await db.collection('rent_auto_cars').insertOne({ ...validatedData, userId });
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting rent auto form:', error);
@@ -63,13 +57,11 @@ export async function submitRentAutoForm(
 export async function submitAuctionAutoForm(
   data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    throw new Error('Unauthorized: No valid session');
-  }
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.auctionSchema.parse(data);
-    const result = await db.collection('auction_auto_cars').insertOne({ ...validatedData, userId: session.user.id });
+    const result = await db.collection('auction_auto_cars').insertOne({ ...validatedData, userId });
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting auction auto form:', error);
@@ -77,43 +69,133 @@ export async function submitAuctionAutoForm(
   }
 }
 
-export async function getSellAutoCars() {
-  try {
-    const cars = await db.collection('sell_auto_cars').find({}).toArray();
-    return JSON.parse(JSON.stringify(cars));
-  } catch (error) {
-    console.error('Error retrieving sell auto cars:', error);
-    return [];
-  }
+export async function getSellAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('sell_auto_cars', params);
 }
 
-export async function getBuyAutoCars() {
-  try {
-    const cars = await db.collection('buy_auto_cars').find({}).toArray();
-    return JSON.parse(JSON.stringify(cars));
-  } catch (error) {
-    console.error('Error retrieving buy auto cars:', error);
-    return [];
-  }
+export async function getBuyAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('buy_auto_cars', params);
 }
 
-export async function getRentAutoCars() {
-  try {
-    const cars = await db.collection('rent_auto_cars').find({}).toArray();
-    return JSON.parse(JSON.stringify(cars));
-  } catch (error) {
-    console.error('Error retrieving rent auto cars:', error);
-    return [];
-  }
+export async function getRentAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('rent_auto_cars', params);
 }
 
-export async function getAuctionAutoCars() {
+export async function getAuctionAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('auction_auto_cars', params);
+}
+
+type CarFetchParams = {
+  page?: number;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  status?: string;
+  sortBy?: string;
+  brand?: string;
+  fuel?: string[];
+  transmission?: string[];
+  bodyType?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  yearMin?: number;
+  yearMax?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  engineCapacityMin?: number;
+  engineCapacityMax?: number;
+  horsepowerMin?: number;
+  horsepowerMax?: number;
+};
+
+async function getCarsWithOptionalPagination(collectionName: string, maybeParams?: CarFetchParams | unknown) {
   try {
-    const cars = await db.collection('auction_auto_cars').find({}).toArray();
-    return JSON.parse(JSON.stringify(cars));
+    const params = (maybeParams as CarFetchParams) || undefined;
+    if (!params) {
+      const cars = await db.collection(collectionName).find({}).toArray();
+      return JSON.parse(JSON.stringify(cars));
+    }
+
+    const page = Math.max(1, params.page || 1);
+    const limit = Math.max(1, params.limit || 20);
+    const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
+    const filter: Record<string, unknown> = {};
+    if (params.status && params.status !== 'all') filter.status = params.status;
+    if (params.search)
+      filter.$or = [{ title: { $regex: params.search, $options: 'i' } }, { description: { $regex: params.search, $options: 'i' } }];
+    if (params.brand) filter.brand = params.brand;
+    if (params.fuel && params.fuel.length > 0) filter.fuel = { $in: params.fuel };
+    if (params.transmission && params.transmission.length > 0) filter.transmission = { $in: params.transmission };
+    if (params.bodyType && params.bodyType.length > 0) filter.carType = { $in: params.bodyType };
+    if (params.priceMin !== undefined || params.priceMax !== undefined) {
+      filter.price = {
+        ...(params.priceMin !== undefined && { $gte: params.priceMin }),
+        ...(params.priceMax !== undefined && { $lte: params.priceMax }),
+      };
+    }
+    if (params.yearMin !== undefined || params.yearMax !== undefined) {
+      filter.year = {
+        ...(params.yearMin !== undefined && { $gte: params.yearMin }),
+        ...(params.yearMax !== undefined && { $lte: params.yearMax }),
+      };
+    }
+    if (params.mileageMin !== undefined || params.mileageMax !== undefined) {
+      filter.mileage = {
+        ...(params.mileageMin !== undefined && { $gte: params.mileageMin }),
+        ...(params.mileageMax !== undefined && { $lte: params.mileageMax }),
+      };
+    }
+    if (params.engineCapacityMin !== undefined || params.engineCapacityMax !== undefined) {
+      filter.engineCapacity = {
+        ...(params.engineCapacityMin !== undefined && { $gte: params.engineCapacityMin }),
+        ...(params.engineCapacityMax !== undefined && { $lte: params.engineCapacityMax }),
+      };
+    }
+    if (params.horsepowerMin !== undefined || params.horsepowerMax !== undefined) {
+      filter.horsePower = {
+        ...(params.horsepowerMin !== undefined && { $gte: params.horsepowerMin }),
+        ...(params.horsepowerMax !== undefined && { $lte: params.horsepowerMax }),
+      };
+    }
+
+    const coll = db.collection(collectionName);
+    const total = await coll.countDocuments(filter);
+    let sortArray: [string, 1 | -1][] = [['_id', -1]];
+    if (params.sortBy) {
+      switch (params.sortBy) {
+        case 'title':
+          sortArray = [['title', 1]];
+          break;
+        case 'price_asc':
+          sortArray = [['price', 1]];
+          break;
+        case 'price_desc':
+          sortArray = [['price', -1]];
+          break;
+        case 'year_asc':
+          sortArray = [['year', 1]];
+          break;
+        case 'year_desc':
+          sortArray = [['year', -1]];
+          break;
+        case 'mileage_asc':
+          sortArray = [['mileage', 1]];
+          break;
+        case 'mileage_desc':
+          sortArray = [['mileage', -1]];
+          break;
+        default:
+          sortArray = [['_id', -1]];
+      }
+    }
+
+    const items = await coll.find(filter).sort(sortArray).skip(skipVal).limit(limit).toArray();
+    const hasMore = page * limit < total;
+    return { items: JSON.parse(JSON.stringify(items)), total, hasMore };
   } catch (error) {
-    console.error('Error retrieving auction auto cars:', error);
-    return [];
+    console.error('Error retrieving cars from', collectionName, error);
+    if (!maybeParams) return [];
+    return { items: [], total: 0, hasMore: false };
   }
 }
 

@@ -41,7 +41,6 @@ export async function createStoryAction(formData: FormData): Promise<void> {
 
     const files = (formData.getAll('files') as File[])?.filter(Boolean) || [];
 
-    // request upload + generate thumbnails for video files
     const uploaded = await uploadFilesToVercelBlob(files, userId, undefined, true);
     const doc = {
       caption: validated.caption,

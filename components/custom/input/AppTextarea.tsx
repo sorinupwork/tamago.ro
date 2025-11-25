@@ -30,6 +30,7 @@ type Props = {
   name?: string;
   id?: string;
   rows?: number;
+  subLabel?: string;
 };
 
 export default function AppTextarea({
@@ -39,6 +40,7 @@ export default function AppTextarea({
   className = '',
   label,
   error,
+  subLabel,
   required,
   htmlFor,
   icon: Icon,
@@ -66,6 +68,9 @@ export default function AppTextarea({
         <FieldLabel htmlFor={htmlFor} required={required}>
           {Icon && <Icon className='h-4 w-4 mr-2' />} {label}
         </FieldLabel>
+      )}
+      {subLabel && (
+        <div className='text-xs text-muted-foreground'>{subLabel}</div>
       )}
       {name && <input type='hidden' name={name} value={value ?? ''} />}
       <div className='rsw-root w-full min-w-0 wrap-break-word overflow-hidden'>

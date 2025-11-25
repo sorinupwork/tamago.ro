@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type Option = {
   value: string;
@@ -17,9 +18,17 @@ type AppCollapsibleCheckboxGroupProps = {
   value: string[];
   onChange: (selected: string[]) => void;
   className?: string;
+  containerClassName?: string;
 };
 
-const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupProps> = ({ label, options, value, onChange, className = '' }) => {
+const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupProps> = ({
+  label,
+  options,
+  value,
+  onChange,
+  className = '',
+  containerClassName = '',
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCheckedChange = (optionValue: string, checked: boolean) => {
@@ -35,7 +44,7 @@ const AppCollapsibleCheckboxGroup: React.FC<AppCollapsibleCheckboxGroupProps> = 
           <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className='space-y-2 p-2'>
+      <CollapsibleContent className={cn('space-y-2 p-2', containerClassName)}>
         {options.map((option) => (
           <div key={option.value} className='flex items-center space-x-2'>
             <Checkbox

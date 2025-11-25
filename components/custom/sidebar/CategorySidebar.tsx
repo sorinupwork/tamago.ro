@@ -90,12 +90,12 @@ export function CategorySidebar({
                         onClick={() => handleMainClick(cat.key)}
                         isActive={selectedCategory === cat.key && !selectedSubcategory}
                         tooltip={cat.label}
-                        className={`transition-all duration-300 hover:scale-105 ${
+                        className={`transition-all duration-300 hover:scale-102 h-8 ${
                           selectedCategory === cat.key ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                         }`}
                       >
                         <cat.icon className={`h-4 w-4 ${selectedCategory === cat.key ? 'animate-pulse' : ''}`} />
-                        <span>{cat.label}</span>
+                        <span className='text-base'>{cat.label}</span>
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -109,7 +109,7 @@ export function CategorySidebar({
                                 selectedSubcategory === (sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')
                               }
                               tooltip={sub.title || ''}
-                              className={`transition-all duration-200 ${
+                              className={`transition-all duration-200 py-4 ${
                                 selectedCategory === cat.key &&
                                 selectedSubcategory === (sub.title ? sub.title.toLowerCase().replace(' ', '-') : '')
                                   ? 'bg-primary/20 text-primary font-medium'

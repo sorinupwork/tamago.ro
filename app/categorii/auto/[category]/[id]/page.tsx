@@ -542,9 +542,11 @@ export default function CarDetailPage() {
               <CardTitle>Caracteristici</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className='list-disc list-inside space-y-1'>
-                {car.features?.map((feature, index) => <li key={index}>{feature}</li>) || '<li>Nu sunt disponibile caracteristici.</li>}'}
-              </ul>
+              {car?.features && Array.isArray(car.features) && car.features.length > 0 ? (
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(car.features.join('<br/>')) }} />
+              ) : (
+                <p>Nu sunt disponibile caracteristici.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -574,10 +576,7 @@ export default function CarDetailPage() {
                 <Phone className='h-4 w-4' />
                 <span>{car.contactPhone}</span>
               </div>
-              <div className='flex items-center gap-2'>
-                <Mail className='h-4 w-4' />
-                <span>{car.contactEmail}</span>
-              </div>
+
               <div className='flex gap-2'>
                 <Button asChild>
                   <a href={`tel:${car.contactPhone}`}>
@@ -585,12 +584,7 @@ export default function CarDetailPage() {
                     Sună
                   </a>
                 </Button>
-                <Button asChild variant='outline'>
-                  <a href={`mailto:${car.contactEmail}`}>
-                    <Mail className='mr-2 h-4 w-4' />
-                    Email
-                  </a>
-                </Button>
+
                 <Drawer>
                   <DrawerTrigger asChild>
                     <Button variant='secondary'>
