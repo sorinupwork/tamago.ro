@@ -77,7 +77,7 @@ type User = {
 };
 
 type PublicProfileClientProps = {
-  session: Session;
+  session: Session | null;
   user: User;
   initialFeedItems?: FeedItemLocal[];
   initialFeedTotal?: number;
@@ -160,7 +160,7 @@ export default function PublicProfileClient({
       if (data.posts.length === 0) {
         setAllPostsLoaded(true);
       } else {
-        setPosts(prev => [...prev, ...data.posts]);
+        setPosts((prev) => [...prev, ...data.posts]);
         setPostsPage(nextPage);
       }
     } catch (error) {
@@ -179,7 +179,7 @@ export default function PublicProfileClient({
       if (data.items.length === 0) {
         setAllFeedsLoaded(true);
       } else {
-        setFeeds(prev => [...prev, ...data.items]);
+        setFeeds((prev) => [...prev, ...data.items]);
         setFeedsPage(nextPage);
       }
     } catch (error) {
@@ -198,7 +198,7 @@ export default function PublicProfileClient({
       if (data.items.length === 0) {
         setAllStoriesLoaded(true);
       } else {
-        setStories(prev => [...prev, ...data.items]);
+        setStories((prev) => [...prev, ...data.items]);
         setStoriesPage(nextPage);
       }
     } catch (error) {
@@ -208,18 +208,17 @@ export default function PublicProfileClient({
     }
   };
 
-  const isOwnProfile = session.user.id === user._id;
+  const isOwnProfile = session?.user?.id === user._id;
 
   return (
     <div className='w-full max-w-7xl mx-auto'>
       {/* Cover area */}
       <div className='relative h-56 w-full bg-muted overflow-hidden rounded-b-md'>
         <Image src={coverSrc} alt={`${user.name} cover`} fill style={{ objectFit: 'cover' }} priority />
-        {/* Overlay gradient for readability */}
         <div className='absolute inset-0 bg-linear-to-t from-black/50 to-transparent' />
       </div>
 
-      {/* Header card overlapping the cover */}
+      {/* Header card */}
       <div className='relative -mt-12 px-6'>
         <div className='bg-card/95 backdrop-blur rounded-lg shadow-md p-6'>
           <div className='flex gap-4 items-start'>
@@ -244,7 +243,7 @@ export default function PublicProfileClient({
                 </div>
 
                 {/* Action buttons */}
-                {!isOwnProfile && (
+                {session && !isOwnProfile && (
                   <div className='flex gap-2'>
                     <Button variant='outline' size='sm' onClick={handleFollow}>
                       {isFollowing ? <UserCheck className='h-4 w-4 mr-2' /> : <Heart className='h-4 w-4 mr-2' />}
@@ -264,11 +263,7 @@ export default function PublicProfileClient({
 
               {/* Info */}
               <div className='mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm text-muted-foreground'>
-                {isFriend && (
-                  <span>
-                    Friends
-                  </span>
-                )}
+                {isFriend && <span>Friends</span>}
                 {user.privacySettings.locationPublic && (
                   <>
                     {isFriend && <span className='hidden sm:inline'>·</span>}
@@ -336,7 +331,11 @@ export default function PublicProfileClient({
                   <div key={post.id} className='border rounded-lg p-4'>
                     <h3 className='font-semibold'>{post.title}</h3>
                     <p className='text-sm text-muted-foreground'>Category: {post.category}</p>
-                    {post.price && <p className='text-sm'>Price: {post.price} {post.currency}</p>}
+                    {post.price && (
+                      <p className='text-sm'>
+                        Price: {post.price} {post.currency}
+                      </p>
+                    )}
                     <p className='text-xs text-muted-foreground'>Status: {post.status}</p>
                   </div>
                 ))
