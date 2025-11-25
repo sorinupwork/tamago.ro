@@ -113,6 +113,12 @@ export async function getUserById(id: string) {
         updatedAt: user.updatedAt,
         location: user.location || [0, 0],
         emailVerified: user.emailVerified,
+        privacySettings: user.privacySettings || {
+          emailPublic: false,
+          phonePublic: false,
+          locationPublic: true,
+          profileVisible: true,
+        },
       };
     }
     return null;
@@ -289,6 +295,103 @@ export async function updatePrivacySettings(formData: FormData): Promise<{ succe
     console.error('Error updating privacy settings:', error);
     throw new Error('Failed to update privacy settings');
   }
+}
+
+export async function toggleFollow(targetUserId: string): Promise<{ success: boolean; isFollowing: boolean }> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    throw new Error('You must be logged in to follow users!');
+  }
+  const userId = session.user.id;
+
+  if (userId === targetUserId) {
+    throw new Error('You cannot follow yourself');
+  }
+
+  const follows = db.collection('follows');
+  const existing = await follows.findOne({ followerId: new ObjectId(userId), followingId: new ObjectId(targetUserId) });
+
+  if (existing) {
+    await follows.deleteOne({ _id: existing._id });
+    revalidatePath(`/profile/${targetUserId}`);
+    return { success: true, isFollowing: false };
+  } else {
+    await follows.insertOne({
+      followerId: new ObjectId(userId),
+      followingId: new ObjectId(targetUserId),
+      createdAt: new Date(),
+    });
+    revalidatePath(`/profile/${targetUserId}`);
+    return { success: true, isFollowing: true };
+  }
+}
+
+export async function isFollowing(targetUserId: string): Promise<boolean> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    return false;
+  }
+  const userId = session.user.id;
+
+  const follows = db.collection('follows');
+  const existing = await follows.findOne({ followerId: new ObjectId(userId), followingId: new ObjectId(targetUserId) });
+  return !!existing;
+}
+
+export async function getFollowersCount(userId: string): Promise<number> {
+  const follows = db.collection('follows');
+  return await follows.countDocuments({ followingId: new ObjectId(userId) });
+}
+
+export async function toggleFriend(targetUserId: string): Promise<{ success: boolean; isFriend: boolean }> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    throw new Error('You must be logged in to add friends!');
+  }
+  const userId = session.user.id;
+
+  if (userId === targetUserId) {
+    throw new Error('You cannot add yourself as friend');
+  }
+
+  const friends = db.collection('friends');
+  const existing = await friends.findOne({
+    $or: [
+      { userId1: new ObjectId(userId), userId2: new ObjectId(targetUserId) },
+      { userId1: new ObjectId(targetUserId), userId2: new ObjectId(userId) },
+    ],
+  });
+
+  if (existing) {
+    await friends.deleteOne({ _id: existing._id });
+    revalidatePath(`/profile/${targetUserId}`);
+    return { success: true, isFriend: false };
+  } else {
+    await friends.insertOne({
+      userId1: new ObjectId(userId),
+      userId2: new ObjectId(targetUserId),
+      createdAt: new Date(),
+    });
+    revalidatePath(`/profile/${targetUserId}`);
+    return { success: true, isFriend: true };
+  }
+}
+
+export async function isFriend(targetUserId: string): Promise<boolean> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user.id) {
+    return false;
+  }
+  const userId = session.user.id;
+
+  const friends = db.collection('friends');
+  const existing = await friends.findOne({
+    $or: [
+      { userId1: new ObjectId(userId), userId2: new ObjectId(targetUserId) },
+      { userId1: new ObjectId(targetUserId), userId2: new ObjectId(userId) },
+    ],
+  });
+  return !!existing;
 }
 
 export async function claimReward(rewardId: string): Promise<{ success: boolean; message: string }> {
