@@ -1,69 +1,49 @@
-import { LucideIcon, Zap, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight, Lightbulb } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { proTips } from '@/lib/mockData';
 
-type ProTipVariant = 'default' | 'success' | 'warning';
+export default function ProTip() {
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-type ProTipProps = {
-  tip: string;
-  icon?: LucideIcon;
-  variant?: ProTipVariant;
-  title?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
+  const nextTip = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentTipIndex((prev) => (prev + 1) % proTips.length);
+      setIsAnimating(false);
+    }, 300); // Match transition duration
   };
-  className?: string;
-};
-
-const variantStyles: Record<ProTipVariant, string> = {
-  default: 'bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20',
-  success: 'bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
-  warning: 'bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20',
-};
-
-const iconColors: Record<ProTipVariant, string> = {
-  default: 'text-blue-500',
-  success: 'text-green-500',
-  warning: 'text-yellow-500',
-};
-
-const defaultIcons: Record<ProTipVariant, LucideIcon> = {
-  default: Zap,
-  success: CheckCircle,
-  warning: AlertTriangle,
-};
-
-export default function ProTip({
-  tip,
-  icon,
-  variant = 'default',
-  title = 'Sfat Pro',
-  action,
-  className,
-}: ProTipProps) {
-  const IconComponent = icon || defaultIcons[variant];
-  const iconColor = iconColors[variant];
 
   return (
-    <Card className={cn('hover:shadow-lg transition-all duration-300 rounded-xl', variantStyles[variant], className)}>
+    <Card className="rounded-xl hover:shadow-lg transition-all duration-300 bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20">
       <CardHeader>
-        <CardTitle className='text-sm flex items-center justify-between'>
-          <div className='flex items-center'>
-            <IconComponent className={cn('h-4 w-4 mr-2', iconColor)} />
-            {title}
-          </div>
-          {action && (
-            <Button size='sm' variant='outline' onClick={action.onClick} className='ml-2'>
-              {action.label}
-            </Button>
-          )}
+        <CardTitle className="flex items-center">
+          <Lightbulb className="h-5 w-5 mr-2 text-yellow-500" />
+          Pro Sfaturi Tamago
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className='text-xs text-muted-foreground'>{tip}</p>
+      <CardContent className="space-y-4">
+        <div className="relative min-h-[60px] flex items-center">
+          <p
+            className={`text-sm text-muted-foreground transition-all duration-300 ${
+              isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'
+            }`}
+          >
+            {proTips[currentTipIndex]}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={nextTip}
+          className="w-full hover:scale-105 transition-transform"
+        >
+          <ChevronRight className="h-4 w-4 mr-2" />
+          Următorul Sfat
+        </Button>
       </CardContent>
     </Card>
   );

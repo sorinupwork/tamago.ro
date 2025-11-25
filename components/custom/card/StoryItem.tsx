@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 
-import { StoryWithUser, User } from '@/lib/types';
 import UserProfileCard from './UserProfileCard';
 import { StoryViewer } from '../media/StoryViewer';
+import { StoryWithUser, User } from '@/lib/types';
 
 type StoryItemProps = {
   user: User | null;
@@ -16,10 +16,8 @@ export default function StoryItem({ user, stories }: StoryItemProps) {
 
   const userStories = stories.filter((story) => story.user?.id === user?.id);
   const hasStories = userStories.length > 0;
-  // pick a preview image: prefer thumbnailUrl from any file, then first image url
   const storyPreview: string | undefined = (() => {
     if (!hasStories) return undefined;
-    // iterate over typed file objects (StoryWithUser.files[number])
     for (const s of userStories) {
       for (const f of s.files) {
         if (f.thumbnailUrl) return f.thumbnailUrl;
@@ -30,7 +28,6 @@ export default function StoryItem({ user, stories }: StoryItemProps) {
         if (f.contentType?.startsWith?.('image/')) return f.url;
       }
     }
-    // no image preview available
     return undefined;
   })();
 

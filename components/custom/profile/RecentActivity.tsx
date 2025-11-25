@@ -1,4 +1,5 @@
 import { Heart } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -25,8 +26,8 @@ export default function RecentActivity({ activities = [] }: RecentActivityProps)
         </CardHeader>
         <CardContent>
           {activities.length > 0 ? (
-            <div className='space-y-2'>
-              {activities.map((activity, index) => (
+            <div className='space-y-2 max-h-40 overflow-y-auto'>
+              {activities.slice(0, 5).map((activity, index) => (
                 <p key={index} className='text-sm text-muted-foreground'>
                   • {activity}
                 </p>

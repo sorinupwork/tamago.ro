@@ -32,6 +32,7 @@ type Props = {
   isSaving?: boolean;
   bioInitial?: string | null;
   platformsInitial?: string[] | null;
+  onActivityUpdate?: (activity: string) => void;
 };
 
 export default function EditProfileDrawer({
@@ -51,6 +52,7 @@ export default function EditProfileDrawer({
   onCoverImageRemove,
   bioInitial = null,
   platformsInitial = null,
+  onActivityUpdate,
 }: Props) {
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [saving, setSaving] = useState(false);
@@ -74,6 +76,15 @@ export default function EditProfileDrawer({
       setPlatforms(platformsInitial ?? []);
     }
   }, [open, imagePreview, coverPreview, bioInitial, platformsInitial]);
+
+  useEffect(() => {
+    setLocalImageFile(files[0] || null);
+    setLocalImagePreview(files[0] ? URL.createObjectURL(files[0]) : imagePreview || null);
+  }, [files, imagePreview]);
+
+  useEffect(() => {
+    setLocalCoverFile(coverFiles[0] || null);
+  }, [coverFiles]);
 
   const handleFilesChange = (selectedFiles: File[]) => {
     const f = selectedFiles?.[0];
@@ -120,8 +131,14 @@ export default function EditProfileDrawer({
           method: 'POST',
           body: uploadForm,
         });
-        if (!res.ok) throw new Error('Upload failed');
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Avatar upload failed:', errorText);
+          throw new Error('Upload failed');
+        }
         const data = await res.json();
+
         uploadedImageUrl = data.urls?.[0];
         if (!uploadedImageUrl) throw new Error('No avatar URL returned');
       }
@@ -137,8 +154,14 @@ export default function EditProfileDrawer({
           method: 'POST',
           body: uploadForm,
         });
-        if (!res.ok) throw new Error('Cover upload failed');
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Cover upload failed:', errorText);
+          throw new Error('Cover upload failed');
+        }
         const data = await res.json();
+
         uploadedCoverUrl = data.urls?.[0];
         if (!uploadedCoverUrl) throw new Error('No cover URL returned');
       }
@@ -157,6 +180,7 @@ export default function EditProfileDrawer({
       await updateProfile(fd);
 
       toast.success('Profil actualizat');
+      onActivityUpdate?.(`Profil actualizat - ${new Date().toLocaleString()}`);
       onOpenChange(false);
       router.refresh();
     } catch (err) {
@@ -214,7 +238,7 @@ export default function EditProfileDrawer({
                   <div>
                     <AppMediaUploaderInput
                       onFilesChange={handleFilesChange}
-                      className='!p-0'
+                      className='p-0!'
                       accept='image/*'
                       maxFiles={1}
                       showPreview={false}

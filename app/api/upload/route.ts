@@ -28,14 +28,16 @@ export async function POST(request: NextRequest) {
     const storedKeys: string[] = [];
 
     for (const file of files) {
-      const buffer = Buffer.from(await file.arrayBuffer());
       const filename = `${Date.now()}-${file.name}`;
 
       const subfolder = getSubfolder(file, category, subcategory);
       const postSegment = postId ? `post_${postId}/` : '';
       const key = `user/${userId}/${postSegment}${subfolder}/${filename}`;
 
-      const blob = await put(key, buffer, { access: 'public' });
+      console.log('Uploading file:', filename, 'to key:', key);
+
+      const blob = await put(key, file, { access: 'public' });
+      console.log('Blob uploaded successfully, URL:', blob.url);
       urls.push(blob.url);
       storedKeys.push(key);
     }

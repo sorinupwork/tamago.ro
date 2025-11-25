@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPin, Star } from 'lucide-react';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { MapPin, Star } from 'lucide-react';
-import { User } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { User } from '@/lib/types';
 
 type Props = {
   user?: User | null;
@@ -20,14 +21,13 @@ type Props = {
 
 function UserProfileContent({ user }: { user?: User | null }) {
   if (!user) return null;
-  // use stable, deterministic date format (YYYY-MM-DD) to avoid SSR/client locale mismatch
   const joined = user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'N/A';
 
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex items-start gap-3'>
         <Avatar>
-          <AvatarImage src={user.avatar || '/avatars/default.jpg'} />
+          <AvatarImage src={user.image || '/avatars/default.jpg'} />
           <AvatarFallback>{user.name?.[0] || '?'}</AvatarFallback>
         </Avatar>
         <div className='flex-1'>

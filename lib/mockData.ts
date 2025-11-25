@@ -3,7 +3,6 @@ export const availableOptions: string[] = [
   'Aer Conditionat',
   'Scaune Încălzite',
   'Cameră 360°',
-  // additional options
   'Bluetooth',
   'Pilot Automat',
   'Senzori Parcare',
@@ -114,4 +113,92 @@ export const tractionOptions = [
   { value: 'integrala', label: 'Integrala (4x4)' },
   { value: 'fata', label: 'Față' },
   { value: 'spate', label: 'Spate' },
+];
+
+export const quests = [
+  {
+    id: 'post-quest',
+    title: 'Postează 5 articole',
+    description: 'Creează și postează 5 articole pentru a câștiga recompense.',
+    progress: 15,
+    total: 20,
+    reward: '5 Postări Gratuite',
+    type: 'posts',
+  },
+  {
+    id: 'friends-quest',
+    title: 'Adaugă 10 prieteni',
+    description: 'Conectează-te cu 10 prieteni pentru a crește rețeaua socială.',
+    progress: 8,
+    total: 10,
+    reward: 'Insignă "Social"',
+    type: 'friends',
+  },
+  {
+    id: 'points-quest',
+    title: 'Acumulează 200 puncte',
+    description: 'Cumpără sau vinde articole pentru a acumula 200 puncte.',
+    progress: 120,
+    total: 200,
+    reward: 'Acces Premium',
+    type: 'points',
+  },
+  {
+    id: 'verify-email',
+    title: 'Verifică email-ul',
+    description: 'Verifică adresa de email pentru securitate crescută.',
+    progress: 0,
+    total: 1,
+    reward: 'Insignă "Verificat"',
+    type: 'verification',
+  },
+];
+
+export const rewards = [
+  {
+    id: 'free-posts',
+    title: 'Postări Gratuite',
+    description: 'Primești 5 postări gratuite pentru vânzări.',
+    claimed: false,
+    available: true,
+  },
+  {
+    id: 'premium-access',
+    title: 'Acces Premium',
+    description: 'Acces nelimitat la vânzări și funcții premium.',
+    claimed: false,
+    available: false,
+  },
+  {
+    id: 'badge-social',
+    title: 'Insignă Social',
+    description: 'Insignă specială pentru conexiuni sociale.',
+    claimed: false,
+    available: true,
+  },
+  {
+    id: 'verify-email',
+    title: 'Insignă Verificat',
+    description: 'Insignă pentru cont verificat.',
+    claimed: false,
+    available: false,
+  },
+];
+
+export const proTips = [
+  'Postează anunțuri gratuite pentru vânzarea mașinilor tale!',
+  'Conectează-te cu alți pasionați de auto pe platformă!',
+  'Folosește filtrele pentru a găsi mașina perfectă!',
+  'Participă la evenimente și târguri auto!',
+  'Verifică-ți email-ul pentru securitate maximă!',
+  'Adaugă fotografii de înaltă calitate pentru anunțurile tale!',
+  'Comentează și interacționează cu alți utilizatori!',
+  'Creează povești pentru a împărtăși experiențele tale!',
+  'Folosește funcția de favorite pentru a salva anunțuri interesante!',
+  'Actualizează-ți profilul pentru a atrage mai mulți cumpărători!',
+  'Explorează categoriile pentru a descoperi oferte speciale!',
+  'Împărtășește profilul tău pentru a crește vizibilitatea!',
+  'Folosește chat-ul pentru a negocia direct cu vânzătorii!',
+  'Creează liste de dorințe pentru viitorul tău vehicul!',
+  'Participă la sondaje pentru a câștiga recompense!',
 ];

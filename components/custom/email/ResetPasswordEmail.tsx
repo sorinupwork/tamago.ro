@@ -1,8 +1,6 @@
-import * as React from 'react';
-
-interface ResetPasswordEmailProps {
+type ResetPasswordEmailProps = {
   resetUrl: string;
-}
+};
 
 export function ResetPasswordEmail({ resetUrl }: ResetPasswordEmailProps) {
   return (

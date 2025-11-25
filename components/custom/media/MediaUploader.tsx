@@ -98,7 +98,6 @@ export function MediaUploader({
       {previews.length > 0 && showPreview && (
         <>
           {layout === 'col' ? (
-            // single full-width preview for cover (use first preview only)
             <div className='w-full'>
               {(() => {
                 const preview = previews[0];
@@ -141,7 +140,6 @@ export function MediaUploader({
               })()}
             </div>
           ) : (
-            // default grid for multiple previews (avatar / general)
             <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
               {previews.map((preview, index) => (
                 <Card key={index} className='relative'>

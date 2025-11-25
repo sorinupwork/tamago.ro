@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 
 import { db } from '@/lib/mongo';
-import { sendResetPasswordEmail } from '@/lib/auth/email';
+import { sendResetPasswordEmail, sendVerificationEmail } from '@/lib/auth/email';
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -16,6 +16,11 @@ export const auth = betterAuth({
     },
     onPasswordReset: async ({ user }, request) => {
       console.log(`Password reset for user ${user?.email}`);
+    },
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendVerificationEmail({ user, url });
     },
   },
   // TODO: Add socialProviders here if enabling social auth (e.g., google: { clientId: ..., clientSecret: ... })

@@ -1,4 +1,5 @@
 import { Award, Zap } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,19 +28,13 @@ export default function RewardsCard({ freePosts, premiumAccess, onSellClick }: R
           </div>
           <div className='flex justify-between items-center'>
             <span>Acces Premium (Vânzări Nelimitate)</span>
-            <Badge variant={premiumAccess ? 'default' : 'outline'}>
-              {premiumAccess ? 'Da' : 'Nu'}
-            </Badge>
+            <Badge variant={premiumAccess ? 'default' : 'outline'}>{premiumAccess ? 'Da' : 'Nu'}</Badge>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant='outline'
-                className='w-full hover:scale-105 transition-transform'
-                onClick={onSellClick}
-              >
+              <Button variant='outline' className='w-full hover:scale-105 transition-transform' onClick={onSellClick}>
                 <Zap className='h-4 w-4 mr-2 text-primary' />
-                Vinde Acum
+                Revendica
               </Button>
             </TooltipTrigger>
             <TooltipContent>

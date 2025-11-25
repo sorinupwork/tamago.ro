@@ -33,9 +33,10 @@ type HeaderProfileProps = {
   shareProfile: () => void;
   setIsEditing: (editing: boolean) => void;
   avatarHref?: string;
+  platforms?: string[];
 };
 
-export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing, avatarHref }: HeaderProfileProps) {
+export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing, avatarHref, platforms = [] }: HeaderProfileProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -44,7 +45,7 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
     setLoggingOut(true);
     await signOut();
     toast.success('Deconectat cu succes!');
-    router.push('/cont');
+    router.push('/');
   };
 
   return (
@@ -77,6 +78,15 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
         <CardDescription>
           <p className='text-muted-foreground'>{user?.email}</p>
           <p className='text-sm max-w-full'>{userData.bio}</p>
+          {platforms.length > 0 && (
+            <div className='flex flex-wrap gap-1 mt-2'>
+              {platforms.map((platform) => (
+                <Badge key={platform} variant='outline' className='text-xs'>
+                  {platform}
+                </Badge>
+              ))}
+            </div>
+          )}
           <div className='flex items-center gap-4 mt-2 text-xs text-muted-foreground'>
             <div className='flex items-center gap-1'>
               <Calendar className='h-3 w-3' />

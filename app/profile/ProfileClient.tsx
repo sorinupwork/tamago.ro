@@ -22,9 +22,14 @@ import RewardsCard from '@/components/custom/profile/RewardsCard';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
 import FeedGrid from '@/components/custom/profile/FeedGrid';
 import SecurityCard from '@/components/custom/profile/SecurityCard';
+import RewardsDialog from '@/components/custom/profile/RewardsDialog';
+import SecurityDialog from '@/components/custom/profile/SecurityDialog';
+import PrivacyDialog from '@/components/custom/profile/PrivacyDialog';
+import VerificationDialog from '@/components/custom/profile/VerificationDialog';
 import { getUserCars } from '@/actions/auto/actions';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
+import { sendVerificationEmail, claimReward } from '@/actions/auth/actions';
 import type { User } from '@/lib/types';
 
 type Post = {
@@ -68,6 +73,7 @@ type ProfileClientProps = {
   initialFeedTotal?: number;
   initialStoriesItems?: StoryLocal[];
   initialStoriesTotal?: number;
+  initialBadges?: string[];
 };
 
 type FeedQueryParams = {
@@ -83,44 +89,131 @@ export default function ProfileClient({
   initialFeedTotal = 0,
   initialStoriesItems = [],
   initialStoriesTotal = 0,
+  initialBadges = [],
 }: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
 
-  const userData = {
-    badges: [
-      'Prima Conectare',
-      'Email Verificat',
-      'Top Poster',
-      'Ajutor Comunitate',
-      'Maestru Serie',
-      'Vânzător de Mașini',
-      'Creator de Sondaje',
-      'Expert Laptopuri',
-      'Pasionat Auto',
-      'Influencer Comunitate',
-      'Vânzător Premium',
-    ],
-    progress: { posts: 15, friends: 8, points: 120 },
-    rewards: { freePosts: 5, premiumAccess: false },
-    verified: { email: true, social: false },
-    bio: 'Pasionat de mașini și construcția comunității. Întotdeauna explorând noi aventuri!',
-    followers: 245,
-    following: 180,
-    postsCount: 42,
-    joinDate: 'Ian 2023',
-    lastActive: 'Acum 2 ore',
-  };
+  const [emailVerified, setEmailVerified] = useState(Boolean(user?.emailVerified));
+
+  // Dynamic user data
+  const [userData, setUserData] = useState({
+    badges: initialBadges,
+    progress: { 
+      posts: 15, 
+      friends: 8, 
+      points: 120,
+      verification: initialBadges.includes('Email Verificat') ? 1 : 0 
+    }, // TODO: Calculate from real data
+    rewards: { freePosts: 5, premiumAccess: false }, // TODO: Calculate from real data
+    verified: { email: emailVerified, social: false },
+    bio: user?.bio || 'Pasionat de mașini și construcția comunității. Întotdeauna explorând noi aventuri!',
+    followers: 245, // TODO: Calculate from real data
+    following: 180, // TODO: Calculate from real data
+    postsCount: 42, // TODO: Calculate from real data
+    joinDate: 'Ian 2023', // TODO: Calculate from real data
+    lastActive: 'Acum 2 ore', // TODO: Calculate from real data
+  });
+
+  useEffect(() => {
+    setUserData((prev) => ({
+      ...prev,
+      verified: { email: emailVerified, social: false },
+    }));
+  }, [emailVerified]);
+
+  // Dynamic quests based on real progress
+  const dynamicQuests = [
+    {
+      id: 'post-quest',
+      title: 'Postează 5 articole',
+      description: 'Creează și postează 5 articole pentru a câștiga recompense.',
+      progress: userData.progress.posts,
+      total: 20,
+      reward: '5 Postări Gratuite',
+      type: 'posts' as const,
+    },
+    {
+      id: 'friends-quest',
+      title: 'Adaugă 10 prieteni',
+      description: 'Conectează-te cu 10 prieteni pentru a crește rețeaua socială.',
+      progress: userData.progress.friends,
+      total: 10,
+      reward: 'Insignă "Social"',
+      type: 'friends' as const,
+    },
+    {
+      id: 'points-quest',
+      title: 'Acumulează 200 puncte',
+      description: 'Cumpără sau vinde articole pentru a acumula 200 puncte.',
+      progress: userData.progress.points,
+      total: 200,
+      reward: 'Acces Premium',
+      type: 'points' as const,
+    },
+    {
+      id: 'verify-email',
+      title: 'Verifică email-ul',
+      description: 'Verifică adresa de email pentru securitate crescută.',
+      progress: emailVerified ? 1 : 0,
+      total: 1,
+      reward: 'Insignă "Verificat"',
+      type: 'verification' as const,
+    },
+  ];
+
+  // Dynamic rewards based on progress
+  const dynamicRewards = [
+    {
+      id: 'free-posts',
+      title: 'Postări Gratuite',
+      description: 'Primești 5 postări gratuite pentru vânzări.',
+      claimed: false,
+      available: userData.progress.posts >= 20,
+    },
+    {
+      id: 'premium-access',
+      title: 'Acces Premium',
+      description: 'Acces nelimitat la vânzări și funcții premium.',
+      claimed: false,
+      available: userData.progress.points >= 200,
+    },
+    {
+      id: 'badge-social',
+      title: 'Insignă Social',
+      description: 'Insignă specială pentru conexiuni sociale.',
+      claimed: false,
+      available: userData.progress.friends >= 10 && !userData.badges.includes('Social'),
+    },
+    {
+      id: 'verify-email',
+      title: 'Insignă Verificat',
+      description: 'Insignă pentru cont verificat.',
+      claimed: false,
+      available: emailVerified && !userData.badges.includes('Email Verificat'),
+    },
+  ];
+
+  // Dynamic activities state
+  const [activities, setActivities] = useState<string[]>([
+    'Bine ai venit pe platformă!',
+    'Completează-ți profilul pentru mai multe funcții',
+  ]);
 
   const [name, setName] = useState<string>(user?.name ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(user?.image ?? null);
 
-  // new cover states
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(user?.coverImage ?? null);
 
   const [isEditing, setIsEditing] = useState(false);
+
+  // Dialog states
+  const [rewardsDialogOpen, setRewardsDialogOpen] = useState(false);
+  const [securityDialogOpen, setSecurityDialogOpen] = useState(false);
+  const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
+  const [verificationDialogOpen, setVerificationDialogOpen] = useState(false);
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -166,6 +259,58 @@ export default function ProfileClient({
   const handleCoverRemove = () => {
     setCoverFile(null);
     setCoverPreview(user?.coverImage ?? null);
+  };
+
+  const handleRewardsClick = () => {
+    setRewardsDialogOpen(true);
+  };
+
+  const handleSecurityClick = () => {
+    setSecurityDialogOpen(true);
+  };
+
+  const handlePrivacyClick = () => {
+    setPrivacyDialogOpen(true);
+  };
+
+  const handleVerificationClick = () => {
+    setVerificationDialogOpen(true);
+  };
+
+  const handleVerificationRequest = async () => {
+    await sendVerificationEmail();
+    setActivities((prev) => [`Email de verificare trimis - ${new Date().toLocaleString()}`, ...prev.slice(0, 9)]);
+  };
+
+  const handleClaimReward = async (rewardId: string) => {
+    try {
+      const result = await claimReward(rewardId);
+      if (result.success) {
+        toast.success(result.message);
+        // Update local badges
+        let newBadge: string | null = null;
+        if (rewardId === 'verify-email') {
+          newBadge = 'Email Verificat';
+        } else if (rewardId === 'badge-social') {
+          newBadge = 'Social';
+        }
+        if (newBadge && !userData.badges.includes(newBadge)) {
+          setUserData((prev) => ({
+            ...prev,
+            badges: [...prev.badges, newBadge!],
+            progress: {
+              ...prev.progress,
+              verification: rewardId === 'verify-email' ? 1 : prev.progress.verification,
+            },
+          }));
+        }
+        setActivities((prev) => [`Recompensă revendicată: ${result.message} - ${new Date().toLocaleString()}`, ...prev.slice(0, 9)]);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to claim reward');
+    }
   };
 
   const [posts, setPosts] = useState<Post[] | null>(null);
@@ -335,9 +480,7 @@ export default function ProfileClient({
             onLoadMore={() => toast.success('Încarcă mai multe notificări')}
           />
 
-          <RecentActivity
-            activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
-          />
+          <RecentActivity activities={activities} />
 
           <QuickActions />
 
@@ -347,11 +490,7 @@ export default function ProfileClient({
             points={userData.progress.points}
             onClaimReward={() => toast.success('Revendică recompensa')}
           />
-          <ProTip
-            tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
-            variant='success'
-            action={{ label: 'Află Mai Multe', onClick: () => toast.info('Mai multe sfaturi în curând!') }}
-          />
+          <ProTip />
         </aside>
 
         <div className='flex-1 p-2 space-y-4 lg:basis-3/4'>
@@ -363,6 +502,7 @@ export default function ProfileClient({
               avatarHref={user?.id ? `/profile/${user.id}` : undefined}
               shareProfile={shareProfile}
               setIsEditing={setIsEditing}
+              platforms={user?.platforms}
             />
 
             <Tabs defaultValue='overview' className='w-full'>
@@ -396,7 +536,7 @@ export default function ProfileClient({
                   <RewardsCard
                     freePosts={userData.rewards.freePosts}
                     premiumAccess={userData.rewards.premiumAccess}
-                    onSellClick={() => router.push('/sell')}
+                    onSellClick={handleRewardsClick}
                   />
                   <SecurityCard
                     title='Securitate Cont'
@@ -404,7 +544,7 @@ export default function ProfileClient({
                     status='warning'
                     icon={<Lock className='h-5 w-5 mr-2 text-blue-500' />}
                     buttonText='Gestionează Securitatea'
-                    onButtonClick={() => router.push('/settings/security')}
+                    onButtonClick={handleSecurityClick}
                   />
                   <SecurityCard
                     title='Confidențialitate'
@@ -412,7 +552,7 @@ export default function ProfileClient({
                     status='secure'
                     icon={<Eye className='h-5 w-5 mr-2 text-green-500' />}
                     buttonText='Setări Confidențialitate'
-                    onButtonClick={() => router.push('/settings/privacy')}
+                    onButtonClick={handlePrivacyClick}
                   />
                   <SecurityCard
                     title='Verificare Cont'
@@ -420,7 +560,7 @@ export default function ProfileClient({
                     status={userData.verified.email ? 'secure' : 'danger'}
                     icon={<CheckCircle className='h-5 w-5 mr-2 text-purple-500' />}
                     buttonText='Verifică Acum'
-                    onButtonClick={() => router.push('/settings/verification')}
+                    onButtonClick={handleVerificationClick}
                   />
                 </div>
               </TabsContent>
@@ -574,9 +714,7 @@ export default function ProfileClient({
               onLoadMore={() => console.log('Încarcă mai multe notificări')}
             />
 
-            <RecentActivity
-              activities={['Postat un articol acum 2 ore', 'Câștigat insigna "Top Poster" ieri', 'Urmărit 3 utilizatori noi']}
-            />
+            <RecentActivity activities={activities} />
 
             <QuickActions />
 
@@ -587,11 +725,7 @@ export default function ProfileClient({
               onClaimReward={() => console.log('Revendică recompensa')}
             />
 
-            <ProTip
-              tip='Distribuie postările pentru a câștiga puncte și insigne extra!'
-              variant='success'
-              action={{ label: 'Află Mai Multe', onClick: () => toast.info('Mai multe sfaturi în curând!') }}
-            />
+            <ProTip />
           </aside>
         </div>
       </div>
@@ -624,6 +758,38 @@ export default function ProfileClient({
         onCoverImageRemove={handleCoverRemove}
         bioInitial={user?.bio ?? ''}
         platformsInitial={user?.platforms ?? []}
+        onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
+      />
+
+      {/* Dialogs */}
+      <RewardsDialog
+        open={rewardsDialogOpen}
+        onOpenChange={setRewardsDialogOpen}
+        currentProgress={userData.progress}
+        onClaimReward={handleClaimReward}
+        quests={dynamicQuests}
+        rewards={dynamicRewards}
+        badges={userData.badges}
+      />
+
+      <SecurityDialog
+        open={securityDialogOpen}
+        onOpenChange={setSecurityDialogOpen}
+        onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
+      />
+
+      <PrivacyDialog
+        open={privacyDialogOpen}
+        onOpenChange={setPrivacyDialogOpen}
+        onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
+      />
+
+      <VerificationDialog
+        open={verificationDialogOpen}
+        onOpenChange={setVerificationDialogOpen}
+        isEmailVerified={userData.verified.email}
+        userEmail={user?.email ?? ''}
+        onVerificationRequest={handleVerificationRequest}
       />
     </div>
   );
