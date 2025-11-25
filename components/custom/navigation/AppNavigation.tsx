@@ -41,7 +41,7 @@ export function AppNavigation() {
           <div className='flex items-center gap-2 md:gap-4'>
             <AppLogo />
 
-            <NavigationMenu>
+            <NavigationMenu delayDuration={10}>
               <NavigationMenuList>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className='flex items-center gap-1 md:gap-2 p-2'>
@@ -53,9 +53,7 @@ export function AppNavigation() {
                       <AppNavDropdownItem
                         href='/'
                         className='row-span-3 min-h-24 md:min-h-72 shine'
-                        linkClassName='bg-[url("/tamago.png")] bg-cover bg-center backdrop-blur-sm bg-black/30 dark:bg-black/40 flex h-full w-full flex-col justify-center items-center rounded-md p-4 no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md md:p-6'
-                        titleClass='mb-2 text-lg sm:mt-4 text-center text-white backdrop-blur-xs'
-                        pClass='leading-tight text-center text-white backdrop-blur-xs'
+                        linkClassName='bg-[url("/logo.png")] bg-contain bg-center backdrop-blur-sm bg-black/30 dark:bg-black/40 flex h-full w-full flex-col justify-center items-center rounded-md no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md'
                       />
 
                       <div>

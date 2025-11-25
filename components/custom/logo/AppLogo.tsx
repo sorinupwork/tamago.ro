@@ -6,7 +6,7 @@ export function AppLogo() {
   return (
     <Link href='/' className='cursor-default shine'>
       <Avatar className="aspect-square rounded">
-        <AvatarImage src='/tamago.png' alt='Tamago Logo' />
+        <AvatarImage src='/logo.png' alt='Tamago Logo' />
       </Avatar>
     </Link>
   );
