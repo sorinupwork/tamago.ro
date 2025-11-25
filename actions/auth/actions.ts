@@ -318,8 +318,6 @@ export async function claimReward(rewardId: string): Promise<{ success: boolean;
         throw new Error('Reward already claimed');
       }
     } else if (rewardId === 'badge-social') {
-      // For now, assume friends >=10, but since not implemented, skip or add logic
-      // For simplicity, add if not present
       if (!currentBadges.includes('Social')) {
         newBadge = 'Social';
       } else {

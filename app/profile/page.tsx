@@ -29,6 +29,7 @@ export default async function Profile() {
       initialStoriesItems={storiesData.items}
       initialStoriesTotal={storiesData.total}
       initialBadges={userData?.badges || []}
+      initialBio={userData?.bio || ''}
     />
   );
 }

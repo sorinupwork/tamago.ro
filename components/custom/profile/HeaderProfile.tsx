@@ -1,21 +1,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Share2, Edit, LogOut, Calendar, Clock } from 'lucide-react';
+import { Share2, Edit, LogOut, Calendar, Clock, BadgeCheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import sanitizeHtml from 'sanitize-html';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardDescription, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { signOut } from '@/lib/auth/auth-client';
-
-type User = {
-  id: string;
-  name?: string | null;
-  email?: string;
-  image?: string | null;
-};
+import { User } from '@/lib/types';
 
 type UserData = {
   bio: string;
@@ -34,9 +29,19 @@ type HeaderProfileProps = {
   setIsEditing: (editing: boolean) => void;
   avatarHref?: string;
   platforms?: string[];
+  onVerifyClick?: () => void;
 };
 
-export default function HeaderProfile({ user, userData, imagePreview, shareProfile, setIsEditing, avatarHref, platforms = [] }: HeaderProfileProps) {
+export default function HeaderProfile({
+  user,
+  userData,
+  imagePreview,
+  shareProfile,
+  setIsEditing,
+  avatarHref,
+  platforms = [],
+  onVerifyClick,
+}: HeaderProfileProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -73,11 +78,25 @@ export default function HeaderProfile({ user, userData, imagePreview, shareProfi
       <div className='flex-1 space-y-2'>
         <div className='flex items-center gap-2'>
           <CardTitle className='text-3xl font-bold'>{user?.name}</CardTitle>
-          <Badge variant='secondary'>Verified</Badge>
+          {Boolean(user?.emailVerified) ? (
+            <Badge variant='secondary'>
+              <BadgeCheckIcon className='w-4 h-4 mr-1' />
+              Verificat
+            </Badge>
+          ) : (
+            <Button
+              variant='outline'
+              size='sm'
+              className='text-yellow-600 border-yellow-600 hover:bg-yellow-50'
+              onClick={onVerifyClick}
+            >
+              Neverificat - Verifică email-ul
+            </Button>
+          )}
         </div>
         <CardDescription>
           <p className='text-muted-foreground'>{user?.email}</p>
-          <p className='text-sm max-w-full'>{userData.bio}</p>
+          <div className='text-sm max-w-full' dangerouslySetInnerHTML={{ __html: sanitizeHtml(userData.bio) }} />
           {platforms.length > 0 && (
             <div className='flex flex-wrap gap-1 mt-2'>
               {platforms.map((platform) => (

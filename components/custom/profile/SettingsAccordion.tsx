@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Zap, Trophy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Bell, Trophy } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -13,17 +12,15 @@ type SettingsAccordionProps = {
   icon: React.ReactNode;
   title: string;
   content: React.ReactNode;
-  buttonText?: string;
-  onButtonClick?: () => void;
   className?: string;
   defaultOpen?: boolean;
   subItems?: {
     value: string;
     title: string;
     content: React.ReactNode;
-    buttonText?: string;
-    onButtonClick?: () => void;
   }[];
+  progressValue?: number;
+  isNotifications?: boolean;
 };
 
 export default function SettingsAccordion({
@@ -31,14 +28,15 @@ export default function SettingsAccordion({
   icon,
   title,
   content,
-  buttonText,
-  onButtonClick,
   className,
   subItems,
   defaultOpen = false,
+  progressValue = 50,
+  isNotifications = false,
 }: SettingsAccordionProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [privacyLevel, setPrivacyLevel] = useState(50);
+
+  const currentProgressValue = isNotifications ? (notificationsEnabled ? 100 : 0) : progressValue;
 
   return (
     <Accordion type='single' collapsible defaultValue={defaultOpen ? value : undefined} className='w-full'>
@@ -60,8 +58,8 @@ export default function SettingsAccordion({
             <Trophy className='h-5 w-5 text-yellow-500' />
             <span className='font-medium'>Progres Setări</span>
           </div>
-          <Progress value={privacyLevel} className='h-2' />
-          <div className='text-sm text-muted-foreground'>Nivel Confidențialitate: {privacyLevel}%</div>
+          <Progress value={currentProgressValue} className='h-2' />
+          <div className='text-sm text-muted-foreground'>Nivel Securitate: {currentProgressValue}%</div>
 
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
@@ -94,23 +92,11 @@ export default function SettingsAccordion({
                     <AccordionTrigger className='px-3 py-2 text-sm font-medium'>{s.title}</AccordionTrigger>
                     <AccordionContent className='px-3 py-2 text-sm space-y-2'>
                       {s.content}
-                      {s.buttonText && s.onButtonClick && (
-                        <Button variant='outline' className='w-full mt-2' onClick={s.onButtonClick}>
-                          {s.buttonText}
-                        </Button>
-                      )}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
             </div>
-          )}
-
-          {buttonText && onButtonClick && (
-            <Button variant='outline' className='w-full hover:scale-105 transition-transform' onClick={onButtonClick}>
-              <Zap className='h-4 w-4 mr-2' />
-              {buttonText}
-            </Button>
           )}
         </AccordionContent>
       </AccordionItem>

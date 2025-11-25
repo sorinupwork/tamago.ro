@@ -31,6 +31,7 @@ import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
 import { sendVerificationEmail, claimReward } from '@/actions/auth/actions';
 import type { User } from '@/lib/types';
+import { Progress } from '@/components/ui/progress';
 
 type Post = {
   id: string;
@@ -74,6 +75,7 @@ type ProfileClientProps = {
   initialStoriesItems?: StoryLocal[];
   initialStoriesTotal?: number;
   initialBadges?: string[];
+  initialBio?: string;
 };
 
 type FeedQueryParams = {
@@ -90,24 +92,22 @@ export default function ProfileClient({
   initialStoriesItems = [],
   initialStoriesTotal = 0,
   initialBadges = [],
+  initialBio = '',
 }: ProfileClientProps) {
   const user = session.user;
   const router = useRouter();
-
   const [emailVerified, setEmailVerified] = useState(Boolean(user?.emailVerified));
-
-  // Dynamic user data
   const [userData, setUserData] = useState({
     badges: initialBadges,
-    progress: { 
-      posts: 15, 
-      friends: 8, 
+    progress: {
+      posts: 15,
+      friends: 8,
       points: 120,
-      verification: initialBadges.includes('Email Verificat') ? 1 : 0 
+      verification: initialBadges.filter(b => b === 'Email Verificat' || b === 'Social').length,
     }, // TODO: Calculate from real data
     rewards: { freePosts: 5, premiumAccess: false }, // TODO: Calculate from real data
-    verified: { email: emailVerified, social: false },
-    bio: user?.bio || 'Pasionat de mașini și construcția comunității. Întotdeauna explorând noi aventuri!',
+    verified: { email: initialBadges.includes('Email Verificat'), social: initialBadges.includes('Social') },
+    bio: initialBio,
     followers: 245, // TODO: Calculate from real data
     following: 180, // TODO: Calculate from real data
     postsCount: 42, // TODO: Calculate from real data
@@ -118,11 +118,14 @@ export default function ProfileClient({
   useEffect(() => {
     setUserData((prev) => ({
       ...prev,
-      verified: { email: emailVerified, social: false },
+      verified: { email: prev.badges.includes('Email Verificat'), social: prev.badges.includes('Social') },
+      progress: {
+        ...prev.progress,
+        verification: prev.badges.filter(b => b === 'Email Verificat' || b === 'Social').length,
+      },
     }));
-  }, [emailVerified]);
+  }, []);
 
-  // Dynamic quests based on real progress
   const dynamicQuests = [
     {
       id: 'post-quest',
@@ -162,7 +165,6 @@ export default function ProfileClient({
     },
   ];
 
-  // Dynamic rewards based on progress
   const dynamicRewards = [
     {
       id: 'free-posts',
@@ -194,7 +196,6 @@ export default function ProfileClient({
     },
   ];
 
-  // Dynamic activities state
   const [activities, setActivities] = useState<string[]>([
     'Bine ai venit pe platformă!',
     'Completează-ți profilul pentru mai multe funcții',
@@ -203,13 +204,10 @@ export default function ProfileClient({
   const [name, setName] = useState<string>(user?.name ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(user?.image ?? null);
-
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(user?.coverImage ?? null);
-
   const [isEditing, setIsEditing] = useState(false);
 
-  // Dialog states
   const [rewardsDialogOpen, setRewardsDialogOpen] = useState(false);
   const [securityDialogOpen, setSecurityDialogOpen] = useState(false);
   const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
@@ -218,7 +216,6 @@ export default function ProfileClient({
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('createdAt');
-
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
@@ -287,7 +284,6 @@ export default function ProfileClient({
       const result = await claimReward(rewardId);
       if (result.success) {
         toast.success(result.message);
-        // Update local badges
         let newBadge: string | null = null;
         if (rewardId === 'verify-email') {
           newBadge = 'Email Verificat';
@@ -488,7 +484,7 @@ export default function ProfileClient({
             posts={userData.progress.posts}
             friends={userData.progress.friends}
             points={userData.progress.points}
-            onClaimReward={() => toast.success('Revendică recompensa')}
+            onOpenDialog={() => setRewardsDialogOpen(true)}
           />
           <ProTip />
         </aside>
@@ -503,6 +499,7 @@ export default function ProfileClient({
               shareProfile={shareProfile}
               setIsEditing={setIsEditing}
               platforms={user?.platforms}
+              onVerifyClick={() => setVerificationDialogOpen(true)}
             />
 
             <Tabs defaultValue='overview' className='w-full'>
@@ -640,8 +637,9 @@ export default function ProfileClient({
                     defaultOpen={true}
                     icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
                     title='Informații Verificate'
+                    progressValue={(userData.progress.verification / 2) * 100}
                     content={
-                      <div>
+                      <div className='space-y-4'>
                         <div className='flex items-start gap-2'>
                           <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
                           <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
@@ -652,6 +650,13 @@ export default function ProfileClient({
                             Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
                           </p>
                         </div>
+                        <div>
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Progres Verificare</span>
+                            <span>{userData.progress.verification}/2</span>
+                          </div>
+                          <Progress value={(userData.progress.verification / 2) * 100} className='h-2' />
+                        </div>
                       </div>
                     }
                   />
@@ -660,6 +665,7 @@ export default function ProfileClient({
                     value='notifications'
                     icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
                     title='Notificări Vânzări & Postări'
+                    isNotifications={true}
                     content={
                       <div className='flex items-start gap-2'>
                         <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
@@ -668,40 +674,54 @@ export default function ProfileClient({
                         </p>
                       </div>
                     }
-                    buttonText='Editează Notificările'
-                    onButtonClick={() => console.log('Editează notificările')}
                   />
 
                   <SettingsAccordion
                     value='marketplace'
                     icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
                     title='Setări Marketplace'
+                    progressValue={(userData.progress.verification / 2) * 100}
                     content={
-                      <div className='flex items-start gap-2'>
-                        <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
-                        </p>
+                      <div className='space-y-4'>
+                        <div className='flex items-start gap-2'>
+                          <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>
+                            Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
+                          </p>
+                        </div>
+                        <div>
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Postări</span>
+                            <span>{userData.progress.posts}/20</span>
+                          </div>
+                          <Progress value={(userData.progress.posts / 20) * 100} className='h-2' />
+                        </div>
                       </div>
                     }
-                    buttonText='Editează Setările Vânzărilor'
-                    onButtonClick={() => console.log('Editează setările marketplace')}
                   />
 
                   <SettingsAccordion
                     value='privacy'
                     icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
                     title='Confidențialitate & Vânzări'
+                    progressValue={(userData.progress.verification / 2) * 100}
                     content={
-                      <div className='flex items-start gap-2'>
-                        <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
-                        </p>
+                      <div className='space-y-4'>
+                        <div className='flex items-start gap-2'>
+                          <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>
+                            Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
+                          </p>
+                        </div>
+                        <div>
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Prieteni</span>
+                            <span>{userData.progress.friends}/10</span>
+                          </div>
+                          <Progress value={(userData.progress.friends / 10) * 100} className='h-2' />
+                        </div>
                       </div>
                     }
-                    buttonText='Gestionează Confidențialitatea'
-                    onButtonClick={() => console.log('Gestionează confidențialitatea')}
                   />
                 </div>
               </TabsContent>
@@ -722,7 +742,7 @@ export default function ProfileClient({
               posts={userData.progress.posts}
               friends={userData.progress.friends}
               points={userData.progress.points}
-              onClaimReward={() => console.log('Revendică recompensa')}
+              onOpenDialog={() => setRewardsDialogOpen(true)}
             />
 
             <ProTip />
@@ -761,7 +781,6 @@ export default function ProfileClient({
         onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
       />
 
-      {/* Dialogs */}
       <RewardsDialog
         open={rewardsDialogOpen}
         onOpenChange={setRewardsDialogOpen}
