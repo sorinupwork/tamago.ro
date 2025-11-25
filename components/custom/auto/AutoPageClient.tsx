@@ -6,7 +6,6 @@ import { MapPin, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import AppInput from '@/components/custom/input/AppInput';
 import AppSelectInput from '@/components/custom/input/AppSelectInput';
@@ -449,7 +448,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         <Button variant='default'>Caută</Button>
       </div>
 
-      <div className='mb-4 flex justify-center md:justify-start gap-4'>
+      <div className='mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
         <AppSlider
           label='Preț'
           min={0}
@@ -552,10 +551,18 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       </div>
 
       <div className='mb-4 flex justify-center md:justify-start'>
-        <Select
+        <AppSelectInput
+          options={[
+            { value: 'price_asc', label: 'Preț crescător' },
+            { value: 'price_desc', label: 'Preț descrescător' },
+            { value: 'year_asc', label: 'An crescător' },
+            { value: 'year_desc', label: 'An descrescător' },
+            { value: 'mileage_asc', label: 'Kilometraj crescător' },
+            { value: 'mileage_desc', label: 'Kilometraj descrescător' },
+          ]}
           value={currentSort}
           onValueChange={(value) => {
-            const [key, order] = value.split('_');
+            const [key, order] = (value as string).split('_');
             setSortCriteria((prev) => {
               const newCriteria = { ...prev };
               Object.keys(newCriteria).forEach((k) => (newCriteria[k as keyof SortCriteria] = null));
@@ -564,19 +571,10 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             });
             setCurrentPage(1);
           }}
-        >
-          <SelectTrigger className='w-48'>
-            <SelectValue placeholder='Sortează după' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='price_asc'>Preț crescător</SelectItem>
-            <SelectItem value='price_desc'>Preț descrescător</SelectItem>
-            <SelectItem value='year_asc'>An crescător</SelectItem>
-            <SelectItem value='year_desc'>An descrescător</SelectItem>
-            <SelectItem value='mileage_asc'>Kilometraj crescător</SelectItem>
-            <SelectItem value='mileage_desc'>Kilometraj descrescător</SelectItem>
-          </SelectContent>
-        </Select>
+          multiple={false}
+          placeholder='Sortează după'
+          className='col-span-full'
+        />
       </div>
 
       <div className='mb-4 flex flex-wrap gap-2 min-h-8'>
@@ -589,7 +587,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             className='flex items-center gap-1'
           >
             {filter.label}
-            <X className='h-3 w-3' />
+            <X className='h-2 w-2' />
           </Button>
         ))}
         {appliedFilters.length > 0 && (

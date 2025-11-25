@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { Phone, Mail, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
+import { Phone, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';

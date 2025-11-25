@@ -145,7 +145,7 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
         {/* Carousel Items */}
         <div className='flex gap-4 overflow-hidden'>
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className='flex-shrink-0 w-64'>
+            <div key={index} className='shrink-0 w-64'>
               <Skeleton className='h-32 w-full rounded' />
               <Skeleton className='h-4 w-3/4 mt-2' />
               <Skeleton className='h-3 w-1/2 mt-1' />
