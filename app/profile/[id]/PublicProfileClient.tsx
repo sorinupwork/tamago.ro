@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, MessageCircle, UserCheck, Heart } from 'lucide-react';
+import { UserPlus, MessageCircle, UserCheck, Heart, ThumbsUp } from 'lucide-react';
 import { toggleFollow, toggleFriend } from '@/actions/auth/actions';
 import { getUserCars } from '@/actions/auto/actions';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
+import sanitizeHtml from 'sanitize-html';
 
 type Post = {
   id: string;
@@ -41,6 +43,12 @@ type FeedItemLocal = {
   files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
   createdAt: string;
   tags?: string[];
+  reactions?: {
+    likes: { total: number; userIds: string[] };
+    comments: unknown[];
+  };
+  votes?: number[];
+  votedUsers?: string[];
 };
 
 type StoryLocal = {
@@ -49,6 +57,10 @@ type StoryLocal = {
   files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
   createdAt: string;
   expiresAt: string;
+  reactions?: {
+    likes: { total: number; userIds: string[] };
+    comments: unknown[];
+  };
 };
 
 type User = {
@@ -115,6 +127,12 @@ export default function PublicProfileClient({
   const [postsPage, setPostsPage] = useState(1);
   const [feedsPage, setFeedsPage] = useState(1);
   const [storiesPage, setStoriesPage] = useState(1);
+
+  const router = useRouter();
+
+  const handleViewPost = (post: Post) => {
+    router.push(`/categorii/auto/${post.category}/${post.id}`);
+  };
 
   const [postsLoading, setPostsLoading] = useState(false);
   const [feedsLoading, setFeedsLoading] = useState(false);
@@ -210,6 +228,8 @@ export default function PublicProfileClient({
 
   const isOwnProfile = session?.user?.id === user._id;
 
+  console.log(feeds);
+
   return (
     <div className='w-full max-w-7xl mx-auto'>
       {/* Cover area */}
@@ -285,7 +305,7 @@ export default function PublicProfileClient({
               {/* Bio */}
               {user.bio && (
                 <div className='mt-4'>
-                  <p className='text-sm'>{user.bio}</p>
+                  <p className='text-sm' dangerouslySetInnerHTML={{ __html: sanitizeHtml(user.bio) }} />
                 </div>
               )}
 
@@ -325,18 +345,28 @@ export default function PublicProfileClient({
 
           <TabsContent value='posts' className='mt-6'>
             {/* Posts content */}
-            <div className='grid gap-4'>
+            <div className='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <div key={post.id} className='border rounded-lg p-4'>
-                    <h3 className='font-semibold'>{post.title}</h3>
-                    <p className='text-sm text-muted-foreground'>Category: {post.category}</p>
-                    {post.price && (
-                      <p className='text-sm'>
-                        Price: {post.price} {post.currency}
-                      </p>
+                  <div key={post.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow'>
+                    {post.images && post.images.length > 0 && (
+                      <div className='relative h-48 w-full'>
+                        <Image src={post.images[0]} alt={post.title} fill className='object-cover' />
+                      </div>
                     )}
-                    <p className='text-xs text-muted-foreground'>Status: {post.status}</p>
+                    <div className='p-4'>
+                      <h3 className='font-semibold text-lg mb-2'>{post.title}</h3>
+                      <p className='text-sm text-muted-foreground mb-1'>Category: {post.category}</p>
+                      {post.price && (
+                        <p className='text-sm font-medium mb-1'>
+                          Price: {post.price} {post.currency}
+                        </p>
+                      )}
+                      <p className='text-xs text-muted-foreground mb-3'>Status: {post.status}</p>
+                      <Button onClick={() => handleViewPost(post)} size='sm' className='w-full'>
+                        View Post
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -354,12 +384,59 @@ export default function PublicProfileClient({
 
           <TabsContent value='feeds' className='mt-6'>
             {/* Feeds content */}
-            <div className='grid gap-4'>
+            <div className='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
               {feeds.length > 0 ? (
                 feeds.map((item) => (
-                  <div key={item.id} className='border rounded-lg p-4'>
-                    <p>{item.text || item.question}</p>
-                    <p className='text-xs text-muted-foreground'>{new Date(item.createdAt).toLocaleDateString()}</p>
+                  <div key={item.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow'>
+                    {item.type === 'post' && item.files && item.files.length > 0 && (
+                      <div className='relative h-48 w-full'>
+                        <Image src={item.files[0].url} alt={item.text || 'Post'} fill className='object-cover' />
+                      </div>
+                    )}
+                    <div className='p-4'>
+                      {item.type === 'post' ? (
+                        <>
+                          <p className='font-medium mb-2' dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.text || '') }} />
+                          {item.tags && item.tags.length > 0 && (
+                            <div className='flex gap-1 mb-2'>
+                              {item.tags.map((tag) => (
+                                <Badge key={tag} variant='secondary' className='text-xs'>
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className='font-medium mb-2' dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.question || '') }} />
+                          {item.options && item.votes && (
+                            <div className='space-y-1 mb-2'>
+                              {item.options.map((option, index) => (
+                                <div key={index} className='flex justify-between text-sm'>
+                                  <span>{option}</span>
+                                  <span>{item.votes?.[index] || 0} votes</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <p className='text-xs text-muted-foreground mb-2'>{new Date(item.createdAt).toLocaleDateString()}</p>
+                      <div className='flex gap-4 text-sm text-muted-foreground mb-3'>
+                        <span className='flex items-center gap-1'>
+                          <ThumbsUp className='h-4 w-4' />
+                          {item.reactions?.likes?.total || 0}
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <MessageCircle className='h-4 w-4' />
+                          {item.reactions?.comments?.length || 0}
+                        </span>
+                      </div>
+                      <Button onClick={() => router.push('/social')} size='sm' className='w-full'>
+                        Vezi pe Social
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -377,12 +454,32 @@ export default function PublicProfileClient({
 
           <TabsContent value='stories' className='mt-6'>
             {/* Stories content */}
-            <div className='grid gap-4'>
+            <div className='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
               {stories.length > 0 ? (
                 stories.map((story) => (
-                  <div key={story.id} className='border rounded-lg p-4'>
-                    <p>{story.caption || 'No caption'}</p>
-                    <p className='text-xs text-muted-foreground'>Expires: {new Date(story.expiresAt).toLocaleDateString()}</p>
+                  <div key={story.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow'>
+                    {story.files && story.files.length > 0 && (
+                      <div className='relative h-48 w-full'>
+                        <Image src={story.files[0].url} alt={story.caption || 'Story'} fill className='object-cover' />
+                      </div>
+                    )}
+                    <div className='p-4'>
+                      <p className='font-medium mb-2' dangerouslySetInnerHTML={{ __html: sanitizeHtml(story.caption || 'No caption') }} />
+                      <p className='text-xs text-muted-foreground mb-2'>Expires: {new Date(story.expiresAt).toLocaleDateString()}</p>
+                      <div className='flex gap-4 text-sm text-muted-foreground mb-3'>
+                        <span className='flex items-center gap-1'>
+                          <ThumbsUp className='h-4 w-4' />
+                          {story.reactions?.likes?.total || 0} likes
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <MessageCircle className='h-4 w-4' />
+                          {story.reactions?.comments?.length || 0} comments
+                        </span>
+                      </div>
+                      <Button onClick={() => router.push('/social')} size='sm' className='w-full'>
+                        Vezi pe Social
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
