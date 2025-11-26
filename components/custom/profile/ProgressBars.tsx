@@ -29,17 +29,17 @@ export default function ProgressBars({ posts, friends, points }: ProgressBarsPro
   const chartData = [
     {
       category: 'Postări',
-      value: (posts / 20) * 100,
-      label: `${posts}/20`,
+      value: posts,
+      label: `${posts}/4`,
     },
     {
       category: 'Prieteni',
-      value: (friends / 10) * 100,
+      value: friends,
       label: `${friends}/10`,
     },
     {
       category: 'Puncte',
-      value: (points / 200) * 100,
+      value: points,
       label: `${points}/200`,
     },
   ];

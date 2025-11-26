@@ -41,6 +41,8 @@ export default function RewardsDialog({
   const isClaimed = (rewardId: string) => {
     if (rewardId === 'verify-email') return badges.includes('Email Verificat');
     if (rewardId === 'badge-social') return badges.includes('Social');
+    if (rewardId === 'badge-friends') return badges.includes('Prietenos');
+    if (rewardId === 'badge-verification') return badges.includes('Verificat');
     return claimedRewards.includes(rewardId);
   };
 

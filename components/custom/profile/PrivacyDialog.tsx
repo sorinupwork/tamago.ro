@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, Mail, Phone, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,16 +20,42 @@ type PrivacyDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActivityUpdate?: (activity: string) => void;
+  initialPrivacySettings?: {
+    emailPublic: boolean;
+    phonePublic: boolean;
+    locationPublic: boolean;
+    profileVisible: boolean;
+  };
 };
 
-export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate }: PrivacyDialogProps) {
+export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, initialPrivacySettings }: PrivacyDialogProps) {
   const [privacySettings, setPrivacySettings] = useState({
-    emailPublic: false,
-    phonePublic: false,
-    locationPublic: false,
-    profileVisible: true,
+    emailPublic: initialPrivacySettings?.emailPublic ?? false,
+    phonePublic: initialPrivacySettings?.phonePublic ?? false,
+    locationPublic: initialPrivacySettings?.locationPublic ?? false,
+    profileVisible: initialPrivacySettings?.profileVisible ?? true,
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setPrivacySettings({
+        emailPublic: initialPrivacySettings?.emailPublic ?? false,
+        phonePublic: initialPrivacySettings?.phonePublic ?? false,
+        locationPublic: initialPrivacySettings?.locationPublic ?? false,
+        profileVisible: initialPrivacySettings?.profileVisible ?? true,
+      });
+    }
+  }, [open, initialPrivacySettings]);
+
+  const initialSettings = {
+    emailPublic: initialPrivacySettings?.emailPublic ?? false,
+    phonePublic: initialPrivacySettings?.phonePublic ?? false,
+    locationPublic: initialPrivacySettings?.locationPublic ?? false,
+    profileVisible: initialPrivacySettings?.profileVisible ?? true,
+  };
+
+  const hasChanges = JSON.stringify(privacySettings) !== JSON.stringify(initialSettings);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -154,7 +180,7 @@ export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate }: 
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving || !hasChanges}>
               {isSaving ? 'Se salvează...' : 'Salvează Setările'}
             </Button>
           </div>

@@ -5,7 +5,7 @@ import PublicProfileClient from './PublicProfileClient';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
 import { getUserCars } from '@/actions/auto/actions';
-import { getUserById, isFollowing, isFriend } from '@/actions/auth/actions';
+import { getUserById, isFollowing } from '@/actions/auth/actions';
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,12 +44,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     );
   } else {
     const LIMIT = 3;
-    const [feedsData, storiesData, postsData, followingStatus, friendStatus] = await Promise.all([
+    const [feedsData, storiesData, postsData, followingStatus] = await Promise.all([
       getFeedPosts({ userId: id, limit: LIMIT, page: 1 }),
       getStories({ userId: id, limit: LIMIT, page: 1 }),
       getUserCars({ userId: id, page: 1, limit: LIMIT }),
       isFollowing(id),
-      isFriend(id),
     ]);
 
     return (
@@ -63,7 +62,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         initialPosts={postsData.posts}
         initialPostsTotal={postsData.total}
         initialIsFollowing={followingStatus}
-        initialIsFriend={friendStatus}
       />
     );
   }

@@ -184,6 +184,13 @@ export type User = {
   category?: string;
   location?: [number, number];
 
+  privacySettings?: {
+    emailPublic: boolean;
+    phonePublic: boolean;
+    locationPublic: boolean;
+    profileVisible: boolean;
+  };
+
   videoUrl?: string;
 };
 

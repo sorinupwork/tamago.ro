@@ -45,10 +45,6 @@ type Post = {
   views?: number;
 };
 
-type Session = {
-  user: User;
-};
-
 type FeedItemLocal = {
   id: string;
   type: 'post' | 'poll';
@@ -69,13 +65,16 @@ type StoryLocal = {
 };
 
 type ProfileClientProps = {
-  session: Session;
+  user: User;
   initialFeedItems?: FeedItemLocal[];
   initialFeedTotal?: number;
   initialStoriesItems?: StoryLocal[];
   initialStoriesTotal?: number;
   initialBadges?: string[];
   initialBio?: string;
+  initialFollowers?: number;
+  initialFollowing?: number;
+  initialPostsTotal?: number;
 };
 
 type FeedQueryParams = {
@@ -85,34 +84,54 @@ type FeedQueryParams = {
   type?: 'post' | 'poll';
 };
 
+const getTimeAgo = (date: Date | string) => {
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now.getTime() - past.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffHours < 1) return 'Acum câteva minute';
+  if (diffHours < 24) return `Acum ${diffHours} ore`;
+  if (diffDays < 30) return `Acum ${diffDays} zile`;
+  return `Acum ${Math.floor(diffDays / 30)} luni`;
+};
+
 export default function ProfileClient({
-  session,
+  user,
   initialFeedItems = [],
   initialFeedTotal = 0,
   initialStoriesItems = [],
-  initialStoriesTotal = 0,
   initialBadges = [],
   initialBio = '',
+  initialFollowers = 0,
+  initialFollowing = 0,
+  initialPostsTotal = 0,
+  initialStoriesTotal = 0,
 }: ProfileClientProps) {
-  const user = session.user;
   const router = useRouter();
-  const [emailVerified, setEmailVerified] = useState(Boolean(user?.emailVerified));
+  const [emailVerified] = useState(Boolean(user?.emailVerified));
+  const calculatedTotalPosts = initialPostsTotal + initialStoriesTotal;
+  const totalFriends = initialFollowers + initialFollowing;
+  const isSocialLogin = initialBadges.includes('Social');
+  const verificationCount = isSocialLogin ? 2 : (emailVerified ? 1 : 0);
+  const points = (calculatedTotalPosts + totalFriends + verificationCount) * 5;
   const [userData, setUserData] = useState({
     badges: initialBadges,
     progress: {
-      posts: 15,
-      friends: 8,
-      points: 120,
-      verification: initialBadges.filter(b => b === 'Email Verificat' || b === 'Social').length,
-    }, // TODO: Calculate from real data
-    rewards: { freePosts: 5, premiumAccess: false }, // TODO: Calculate from real data
+      posts: calculatedTotalPosts,
+      friends: totalFriends,
+      points: points,
+      verification: verificationCount,
+    },
+    rewards: { freePosts: 4, premiumAccess: false },
     verified: { email: initialBadges.includes('Email Verificat'), social: initialBadges.includes('Social') },
     bio: initialBio,
-    followers: 245, // TODO: Calculate from real data
-    following: 180, // TODO: Calculate from real data
-    postsCount: 42, // TODO: Calculate from real data
-    joinDate: 'Ian 2023', // TODO: Calculate from real data
-    lastActive: 'Acum 2 ore', // TODO: Calculate from real data
+    postsCount: calculatedTotalPosts,
+    followers: initialFollowers,
+    following: initialFollowing,
+    joinDate: new Date(user.createdAt || new Date()).toLocaleDateString('ro-RO'),
+    lastActive: getTimeAgo(user.updatedAt || new Date()),
   });
 
   useEffect(() => {
@@ -121,19 +140,20 @@ export default function ProfileClient({
       verified: { email: prev.badges.includes('Email Verificat'), social: prev.badges.includes('Social') },
       progress: {
         ...prev.progress,
-        verification: prev.badges.filter(b => b === 'Email Verificat' || b === 'Social').length,
+        verification: prev.badges.includes('Social') ? 2 : (emailVerified ? 1 : 0),
       },
+      postsCount: prev.progress.posts,
     }));
-  }, []);
+  }, [emailVerified]);
 
   const dynamicQuests = [
     {
       id: 'post-quest',
-      title: 'Postează 5 articole',
-      description: 'Creează și postează 5 articole pentru a câștiga recompense.',
+      title: 'Postează 4 articole',
+      description: 'Creează și postează 4 articole pentru a câștiga recompense.',
       progress: userData.progress.posts,
-      total: 20,
-      reward: '5 Postări Gratuite',
+      total: 4,
+      reward: '4 Postări Gratuite',
       type: 'posts' as const,
     },
     {
@@ -142,7 +162,7 @@ export default function ProfileClient({
       description: 'Conectează-te cu 10 prieteni pentru a crește rețeaua socială.',
       progress: userData.progress.friends,
       total: 10,
-      reward: 'Insignă "Social"',
+      reward: 'Insignă "Prietenos"',
       type: 'friends' as const,
     },
     {
@@ -156,10 +176,10 @@ export default function ProfileClient({
     },
     {
       id: 'verify-email',
-      title: 'Verifică email-ul',
-      description: 'Verifică adresa de email pentru securitate crescută.',
-      progress: emailVerified ? 1 : 0,
-      total: 1,
+      title: 'Verifică contul',
+      description: 'Verifică email-ul și contul social pentru securitate crescută.',
+      progress: userData.progress.verification,
+      total: 2,
       reward: 'Insignă "Verificat"',
       type: 'verification' as const,
     },
@@ -169,9 +189,9 @@ export default function ProfileClient({
     {
       id: 'free-posts',
       title: 'Postări Gratuite',
-      description: 'Primești 5 postări gratuite pentru vânzări.',
+      description: 'Primești 4 postări gratuite pentru vânzări.',
       claimed: false,
-      available: userData.progress.posts >= 20,
+      available: userData.progress.posts >= 4,
     },
     {
       id: 'premium-access',
@@ -181,18 +201,18 @@ export default function ProfileClient({
       available: userData.progress.points >= 200,
     },
     {
-      id: 'badge-social',
-      title: 'Insignă Social',
+      id: 'badge-friends',
+      title: 'Insignă Prietenos',
       description: 'Insignă specială pentru conexiuni sociale.',
       claimed: false,
-      available: userData.progress.friends >= 10 && !userData.badges.includes('Social'),
+      available: userData.progress.friends >= 10 && !userData.badges.includes('Prietenos'),
     },
     {
-      id: 'verify-email',
+      id: 'badge-verification',
       title: 'Insignă Verificat',
       description: 'Insignă pentru cont verificat.',
       claimed: false,
-      available: emailVerified && !userData.badges.includes('Email Verificat'),
+      available: userData.progress.verification >= 2 && !userData.badges.includes('Verificat'),
     },
   ];
 
@@ -484,6 +504,7 @@ export default function ProfileClient({
             posts={userData.progress.posts}
             friends={userData.progress.friends}
             points={userData.progress.points}
+            verification={userData.progress.verification}
             onOpenDialog={() => setRewardsDialogOpen(true)}
           />
           <ProTip />
@@ -742,9 +763,9 @@ export default function ProfileClient({
               posts={userData.progress.posts}
               friends={userData.progress.friends}
               points={userData.progress.points}
+              verification={userData.progress.verification}
               onOpenDialog={() => setRewardsDialogOpen(true)}
             />
-
             <ProTip />
           </aside>
         </div>
@@ -801,6 +822,7 @@ export default function ProfileClient({
         open={privacyDialogOpen}
         onOpenChange={setPrivacyDialogOpen}
         onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
+        initialPrivacySettings={user?.privacySettings}
       />
 
       <VerificationDialog

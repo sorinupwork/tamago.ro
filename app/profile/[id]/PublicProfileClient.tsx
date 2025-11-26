@@ -6,8 +6,8 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, MessageCircle, UserCheck, Heart, ThumbsUp } from 'lucide-react';
-import { toggleFollow, toggleFriend } from '@/actions/auth/actions';
+import { MessageCircle, UserCheck, Heart, ThumbsUp } from 'lucide-react';
+import { toggleFollow } from '@/actions/auth/actions';
 import { getUserCars } from '@/actions/auto/actions';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
@@ -155,15 +155,6 @@ export default function PublicProfileClient({
     }
   };
 
-  const handleAddFriend = async () => {
-    try {
-      const result = await toggleFriend(user._id);
-      setIsFriend(result.isFriend);
-    } catch (error) {
-      console.error('Error toggling friend:', error);
-    }
-  };
-
   const handleMessage = () => {
     // TODO: implement message action
     console.log('Message not implemented yet');
@@ -228,8 +219,6 @@ export default function PublicProfileClient({
 
   const isOwnProfile = session?.user?.id === user._id;
 
-  console.log(feeds);
-
   return (
     <div className='w-full max-w-7xl mx-auto'>
       {/* Cover area */}
@@ -269,10 +258,7 @@ export default function PublicProfileClient({
                       {isFollowing ? <UserCheck className='h-4 w-4 mr-2' /> : <Heart className='h-4 w-4 mr-2' />}
                       {isFollowing ? 'Following' : 'Follow'}
                     </Button>
-                    <Button variant='outline' size='sm' onClick={handleAddFriend}>
-                      {isFriend ? <UserCheck className='h-4 w-4 mr-2' /> : <UserPlus className='h-4 w-4 mr-2' />}
-                      {isFriend ? 'Friends' : 'Add Friend'}
-                    </Button>
+
                     <Button variant='default' size='sm' onClick={handleMessage}>
                       <MessageCircle className='h-4 w-4 mr-2' />
                       Message

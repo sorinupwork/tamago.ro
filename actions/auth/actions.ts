@@ -97,6 +97,7 @@ export async function getUserById(id: string) {
     const user = await db.collection('user').findOne({ _id: new ObjectId(id) });
     if (user) {
       return {
+        id: user._id.toString(),
         _id: user._id.toString(),
         name: user.name || 'Unknown',
         image: user.image || '/avatars/01.jpg',
@@ -343,56 +344,77 @@ export async function getFollowersCount(userId: string): Promise<number> {
   return await follows.countDocuments({ followingId: new ObjectId(userId) });
 }
 
-export async function toggleFriend(targetUserId: string): Promise<{ success: boolean; isFriend: boolean }> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    throw new Error('You must be logged in to add friends!');
-  }
-  const userId = session.user.id;
-
-  if (userId === targetUserId) {
-    throw new Error('You cannot add yourself as friend');
-  }
-
-  const friends = db.collection('friends');
-  const existing = await friends.findOne({
-    $or: [
-      { userId1: new ObjectId(userId), userId2: new ObjectId(targetUserId) },
-      { userId1: new ObjectId(targetUserId), userId2: new ObjectId(userId) },
-    ],
-  });
-
-  if (existing) {
-    await friends.deleteOne({ _id: existing._id });
-    revalidatePath(`/profile/${targetUserId}`);
-    return { success: true, isFriend: false };
-  } else {
-    await friends.insertOne({
-      userId1: new ObjectId(userId),
-      userId2: new ObjectId(targetUserId),
-      createdAt: new Date(),
-    });
-    revalidatePath(`/profile/${targetUserId}`);
-    return { success: true, isFriend: true };
-  }
+export async function getFollowingCount(userId: string): Promise<number> {
+  const follows = db.collection('follows');
+  return await follows.countDocuments({ followerId: new ObjectId(userId) });
 }
 
-export async function isFriend(targetUserId: string): Promise<boolean> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.id) {
-    return false;
-  }
-  const userId = session.user.id;
-
-  const friends = db.collection('friends');
-  const existing = await friends.findOne({
-    $or: [
-      { userId1: new ObjectId(userId), userId2: new ObjectId(targetUserId) },
-      { userId1: new ObjectId(targetUserId), userId2: new ObjectId(userId) },
-    ],
-  });
-  return !!existing;
+export async function getFollowers(userId: string): Promise<User[]> {
+  const follows = db.collection('follows');
+  const followerDocs = await follows.find({ followingId: new ObjectId(userId) }).toArray();
+  const followerIds = followerDocs.map(doc => doc.followerId);
+  const users = db.collection('user');
+  const followers = await users.find({ _id: { $in: followerIds } }).toArray();
+  return followers.map(user => ({
+    id: user._id.toString(),
+    _id: user._id.toString(),
+    name: user.name || '',
+    image: user.image || '',
+    coverImage: user.coverImage || '',
+    bio: user.bio || '',
+    socials: user.socials || {},
+    badges: user.badges || [],
+    platforms: user.platforms || [],
+    status: user.status || '',
+    category: user.category || '',
+    email: user.email || '',
+    provider: user.provider || '',
+    createdAt: user.createdAt?.toISOString() || '',
+    updatedAt: user.updatedAt?.toISOString() || '',
+    location: user.location || [0, 0],
+    emailVerified: user.emailVerified || false,
+    privacySettings: user.privacySettings || {
+      emailPublic: false,
+      phonePublic: false,
+      locationPublic: false,
+      profileVisible: true,
+    },
+  }));
 }
+
+export async function getFollowing(userId: string): Promise<User[]> {
+  const follows = db.collection('follows');
+  const followingDocs = await follows.find({ followerId: new ObjectId(userId) }).toArray();
+  const followingIds = followingDocs.map(doc => doc.followingId);
+  const users = db.collection('user');
+  const following = await users.find({ _id: { $in: followingIds } }).toArray();
+  return following.map(user => ({
+    id: user._id.toString(),
+    _id: user._id.toString(),
+    name: user.name || '',
+    image: user.image || '',
+    coverImage: user.coverImage || '',
+    bio: user.bio || '',
+    socials: user.socials || {},
+    badges: user.badges || [],
+    platforms: user.platforms || [],
+    status: user.status || '',
+    category: user.category || '',
+    email: user.email || '',
+    provider: user.provider || '',
+    createdAt: user.createdAt?.toISOString() || '',
+    updatedAt: user.updatedAt?.toISOString() || '',
+    location: user.location || [0, 0],
+    emailVerified: user.emailVerified || false,
+    privacySettings: user.privacySettings || {
+      emailPublic: false,
+      phonePublic: false,
+      locationPublic: false,
+      profileVisible: true,
+    },
+  }));
+}
+
 
 export async function claimReward(rewardId: string): Promise<{ success: boolean; message: string }> {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -423,6 +445,18 @@ export async function claimReward(rewardId: string): Promise<{ success: boolean;
     } else if (rewardId === 'badge-social') {
       if (!currentBadges.includes('Social')) {
         newBadge = 'Social';
+      } else {
+        throw new Error('Reward already claimed');
+      }
+    } else if (rewardId === 'badge-friends') {
+      if (!currentBadges.includes('Prietenos')) {
+        newBadge = 'Prietenos';
+      } else {
+        throw new Error('Reward already claimed');
+      }
+    } else if (rewardId === 'badge-verification') {
+      if (!currentBadges.includes('Verificat')) {
+        newBadge = 'Verificat';
       } else {
         throw new Error('Reward already claimed');
       }

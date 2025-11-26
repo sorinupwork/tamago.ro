@@ -204,7 +204,7 @@ export default function EditProfileDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side='right' className='w-full md:w-1/2 bg-card h-screen flex flex-col overflow-hidden'>
+      <SheetContent side='left' className='w-full md:w-1/2 bg-card h-screen flex flex-col overflow-hidden'>
         <SheetHeader>
           <SheetTitle className='text-lg font-medium text-primary'>Edit Profile</SheetTitle>
         </SheetHeader>
