@@ -210,7 +210,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
             onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
             placeholder='Introduceți locația'
             leftIcon={MapPin}
-            showMap={false}
+            showMap={true}
             onClear={() => form.setValue('location', '')}
             label='Locație'
             required

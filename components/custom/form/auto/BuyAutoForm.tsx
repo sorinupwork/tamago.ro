@@ -289,7 +289,7 @@ export default function BuyAutoForm({
             onChange={(location) => form.setValue('location', location)}
             placeholder='Introduceți locația'
             leftIcon={MapPin}
-            showMap={false}
+            showMap={true}
             value={form.watch('location').address}
             onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '' })}
             label='Locație'
