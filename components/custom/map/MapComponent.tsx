@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
 import { Moon, Sun } from 'lucide-react';
 
@@ -118,85 +118,95 @@ export default function MapComponent({
     }
   }, [scrollWheelZoom]);
 
-  <div className='flex items-center justify-center h-full'>Se încarcă harta...</div>;
-
   const isUserMode = users.length > 0;
   const mapCenter = isUserMode ? center : mapPosition || center;
 
-  const carIcon = L?.icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    shadowSize: [41, 41],
-  });
+  const carIcon = useMemo(() => {
+    if (!L) return undefined;
+    return L.icon({
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      shadowSize: [41, 41],
+    });
+  }, [L]);
+
+  const userIcon = useMemo(() => {
+    if (!L) return undefined;
+    return (avatar: string) => L.icon({
+      iconUrl: avatar,
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+      className: 'rounded-full border-2 border-white',
+    });
+  }, [L]);
 
   return (
     <div className='relative w-full h-full'>
-      <MapContainer center={mapCenter} zoom={zoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={scrollWheelZoom} ref={mapRef}>
-        <TileLayer url={isDarkMode ? darkTiles : lightTiles} />
-        {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
-        {onMapClick && (
-          <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
-        )}
-        {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
-        {filteredCars.map((car) =>
-          car.lat && car.lng ? (
-            <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
-              <Popup maxWidth={320}>
-                <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
-                  <div className='flex items-start gap-3'>
-                    {car.images && car.images[0] && (
-                      <Image
-                        src={car.images[0]}
-                        alt={car.title}
-                        width={48}
-                        height={48}
-                        className='w-12 h-12 rounded-md object-cover shrink-0'
-                      />
-                    )}
-                    <div className='flex-1'>
-                      <h4 className='text-sm font-semibold line-clamp-2'>{car.title}</h4>
-                      <p className='text-sm text-muted-foreground'>
-                        {car.brand} - {car.year}
-                      </p>
-                      <p className='text-sm font-medium text-green-600'>
-                        {car.currency} {car.price}
-                      </p>
-                      <p className='text-xs text-muted-foreground truncate'>{car.location}</p>
-                    </div>
-                  </div>
-                  <div className='flex items-center justify-between text-xs text-muted-foreground'>
-                    <span>{car.mileage} km</span>
-                    <span>{car.fuel}</span>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          ) : null
-        )}
-        {users
-          .filter((user) => user.location)
-          .map((user) => {
-            const customIcon = L?.icon({
-              iconUrl: user.avatar!,
-              iconSize: [40, 40],
-              iconAnchor: [20, 40],
-              popupAnchor: [0, -40],
-              className: 'rounded-full border-2 border-white',
-            });
-            return (
-              <Marker key={user.id} position={user.location!} icon={customIcon}>
+      {L ? (
+        <MapContainer center={mapCenter} zoom={zoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={scrollWheelZoom} ref={mapRef}>
+          <TileLayer url={isDarkMode ? darkTiles : lightTiles} />
+          {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
+          {onMapClick && (
+            <LocationMarker position={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null} setPosition={onMapClick} />
+          )}
+          {selectedLocation && radius && <Circle center={[selectedLocation.lat, selectedLocation.lng]} radius={radius * 1000} />}
+          {filteredCars.map((car) =>
+            car.lat && car.lng && carIcon ? (
+              <Marker key={car.id} position={[car.lat, car.lng]} icon={carIcon}>
                 <Popup maxWidth={320}>
-                  <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden'>
-                    <UserProfileCard user={user} contentOnly />
+                  <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
+                    <div className='flex items-start gap-3'>
+                      {car.images && car.images[0] && (
+                        <Image
+                          src={car.images[0]}
+                          alt={car.title}
+                          width={48}
+                          height={48}
+                          className='w-12 h-12 rounded-md object-cover shrink-0'
+                        />
+                      )}
+                      <div className='flex-1'>
+                        <h4 className='text-sm font-semibold line-clamp-2'>{car.title}</h4>
+                        <p className='text-sm text-muted-foreground'>
+                          {car.brand} - {car.year}
+                        </p>
+                        <p className='text-sm font-medium text-green-600'>
+                          {car.currency} {car.price}
+                        </p>
+                        <p className='text-xs text-muted-foreground truncate'>{car.location}</p>
+                      </div>
+                    </div>
+                    <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                      <span>{car.mileage} km</span>
+                      <span>{car.fuel}</span>
+                    </div>
                   </div>
                 </Popup>
               </Marker>
-            );
-          })}
-      </MapContainer>
+            ) : null
+          )}
+          {users
+            .filter((user) => user.location)
+            .map((user) => {
+              const customIcon = userIcon ? userIcon(user.avatar!) : undefined;
+              return customIcon ? (
+                <Marker key={user.id} position={user.location!} icon={customIcon}>
+                  <Popup maxWidth={320}>
+                    <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden'>
+                      <UserProfileCard user={user} contentOnly />
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null;
+            })}
+        </MapContainer>
+      ) : (
+        <div className='flex items-center justify-center h-full'>Se încarcă harta...</div>
+      )}
       <div className='absolute top-4 right-4 z-1000 flex flex-col gap-2'>
         <Button
           onClick={() => setIsDarkMode(!isDarkMode)}
