@@ -91,7 +91,6 @@ export const getInitialLocationFilter = (searchParams: URLSearchParams): Locatio
         lat: parseFloat(lat),
         lng: parseFloat(lng),
         address: '',
-        fullAddress: '',
       },
       radius: parseInt(raza),
     };

@@ -128,9 +128,7 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
     const filter: Record<string, unknown> = {};
     if (params.status && params.status !== 'all') {
-      console.log('params.status:', params.status);
       filter.status = params.status;
-      console.log('filter.status set to:', filter.status);
     }
     if (params.search)
       filter.$or = [{ title: { $regex: params.search, $options: 'i' } }, { description: { $regex: params.search, $options: 'i' } }];
@@ -141,7 +139,6 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     if (params.color && params.color.length > 0) filter.color = { $in: params.color };
 
     const coll = db.collection(collectionName);
-    console.log('Final filter object:', filter);
     const total = await coll.countDocuments(filter);
     let sortArray: [string, 1 | -1][] = [['_id', -1]];
     if (params.sortBy) {
@@ -173,14 +170,6 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     }
 
     const items = await coll.find(filter).sort(sortArray).skip(skipVal).limit(limit).toArray();
-    console.log(`Fetched ${items.length} items from ${collectionName}`);
-    items.forEach((item, index) => {
-      if (item.location && typeof item.location === 'object') {
-        console.log(`Item ${index}: lat=${item.location.lat}, lng=${item.location.lng}, address=${item.location.address}`);
-      } else {
-        console.log(`Item ${index}: no location object`);
-      }
-    });
     const hasMore = page * limit < total;
     return { items: JSON.parse(JSON.stringify(items)), total, hasMore };
   } catch (error) {

@@ -52,7 +52,7 @@ export default function RentAutoForm({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [driverOpen, setDriverOpen] = useState(false);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
-  
+
   const form = useForm<AutoRentFormData>({
     resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
     mode: 'onChange',
@@ -62,7 +62,7 @@ export default function RentAutoForm({
       price: '',
       currency: 'EUR',
       period: 'week',
-      location: { lat: 0, lng: 0, address: '', fullAddress: '' },
+      location: { lat: 0, lng: 0, address: '' },
       startDate: '',
       endDate: '',
       status: '',
@@ -248,7 +248,7 @@ export default function RentAutoForm({
             placeholder='Introduceți locația'
             className='w-full'
             value={form.watch('location').address}
-            onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '', fullAddress: '' })}
+            onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '' })}
             label='Locație'
             error={form.formState.errors.location?.address ? [{ message: form.formState.errors.location.address.message }] : undefined}
             required

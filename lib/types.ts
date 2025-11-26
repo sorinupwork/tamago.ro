@@ -9,7 +9,7 @@ export type RawCarDoc = {
   mileage?: string;
   fuel?: string;
   transmission?: string;
-  location?: string | { lat: number; lng: number; address: string; fullAddress: string };
+  location?: { lat: number; lng: number; address: string };
   uploadedFiles?: string[];
 
   images?: string[];
@@ -225,7 +225,6 @@ export type LocationData = {
   lat: number;
   lng: number;
   address: string;
-  fullAddress: string;
 };
 
 export type LocationFilter = {

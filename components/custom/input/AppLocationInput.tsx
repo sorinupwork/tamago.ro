@@ -18,7 +18,6 @@ type Location = {
   lat: number;
   lng: number;
   address: string;
-  fullAddress: string;
 };
 
 type Suggestion = {
@@ -59,7 +58,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
   htmlFor,
 }) => {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
-  const [mapPosition, setMapPosition] = useState<[number, number]>([44.4268, 26.1025]); // Default to Bucharest
+  const [mapPosition, setMapPosition] = useState<[number, number]>([44.4268, 26.1025]);
   const [radius, setRadius] = useState(50); // Default 50km
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -138,7 +137,6 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
                     options={suggestions}
                     value={selectedValue || ''}
                     displayValue={value || location?.address || ''}
-                    fullDisplayValue={location?.fullAddress || ''}
                     onValueChange={handleSelect}
                     onInputChange={debouncedOnInputChange}
                     placeholder={placeholder}
@@ -207,7 +205,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
                   />
                 </div>
               </TooltipTrigger>
-              {location?.fullAddress && <TooltipContent>{location.fullAddress}</TooltipContent>}
+              {location?.address && <TooltipContent>{location.address}</TooltipContent>}
             </Tooltip>
           </TooltipProvider>
         </div>

@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import 'leaflet/dist/leaflet.css';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import UserProfileCard from '@/components/custom/card/UserProfileCard';
+import { useEffect, useState, useRef } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
-import { Car, User } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import UserProfileCard from '@/components/custom/card/UserProfileCard';
+import { Car, User } from '@/lib/types';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
@@ -65,7 +68,7 @@ function MapController({ mapPosition }: { mapPosition: [number, number] }) {
   const map = useMap();
 
   useEffect(() => {
-    map.flyTo(mapPosition, 13);
+    map.flyTo(mapPosition, 7);
   }, [map, mapPosition]);
 
   return null;
@@ -74,8 +77,8 @@ function MapController({ mapPosition }: { mapPosition: [number, number] }) {
 export default function MapComponent({
   users = [],
   center = [45.9432, 24.9668],
-  zoom = 6,
   mapPosition,
+  zoom = 7,
   selectedLocation,
   onMapClick,
   filteredCars = [],
@@ -90,10 +93,16 @@ export default function MapComponent({
   const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
     import('leaflet').then((mod) => {
-      // Fix for default markers
-      // @ts-expect-error: Deleting Leaflet icon URL property to fix marker display issues
-      delete mod.Icon.Default.prototype._getIconUrl;
       mod.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -104,27 +113,17 @@ export default function MapComponent({
   }, []);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-      }
-    }, 0);
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
     if (mapRef.current && !scrollWheelZoom) {
       mapRef.current.scrollWheelZoom.disable();
     }
   }, [scrollWheelZoom]);
 
-  if (!L) return <div className='flex items-center justify-center h-full'>Loading map...</div>;
+  <div className='flex items-center justify-center h-full'>Se încarcă harta...</div>;
 
   const isUserMode = users.length > 0;
   const mapCenter = isUserMode ? center : mapPosition || center;
-  const mapZoom = isUserMode ? zoom : 13;
 
-  const carIcon = L.icon({
+  const carIcon = L?.icon({
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
@@ -135,13 +134,7 @@ export default function MapComponent({
 
   return (
     <div className='relative w-full h-full'>
-      <MapContainer
-        center={mapCenter}
-        zoom={mapZoom}
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={scrollWheelZoom}
-        ref={mapRef}
-      >
+      <MapContainer center={mapCenter} zoom={zoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom={scrollWheelZoom} ref={mapRef}>
         <TileLayer url={isDarkMode ? darkTiles : lightTiles} />
         {isUserMode ? <MapBounds users={users} /> : mapPosition && <MapController mapPosition={mapPosition} />}
         {onMapClick && (
@@ -155,7 +148,13 @@ export default function MapComponent({
                 <div className='bg-popover text-popover-foreground w-64 rounded-lg border p-4 shadow-md outline-hidden flex flex-col gap-3'>
                   <div className='flex items-start gap-3'>
                     {car.images && car.images[0] && (
-                      <img src={car.images[0]} alt={car.title} className='w-12 h-12 rounded-md object-cover flex-shrink-0' />
+                      <Image
+                        src={car.images[0]}
+                        alt={car.title}
+                        width={48}
+                        height={48}
+                        className='w-12 h-12 rounded-md object-cover shrink-0'
+                      />
                     )}
                     <div className='flex-1'>
                       <h4 className='text-sm font-semibold line-clamp-2'>{car.title}</h4>
@@ -180,7 +179,7 @@ export default function MapComponent({
         {users
           .filter((user) => user.location)
           .map((user) => {
-            const customIcon = L.icon({
+            const customIcon = L?.icon({
               iconUrl: user.avatar!,
               iconSize: [40, 40],
               iconAnchor: [20, 40],
@@ -198,13 +197,15 @@ export default function MapComponent({
             );
           })}
       </MapContainer>
-      <Button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className='absolute top-4 right-4 z-1000 bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'
-        size='sm'
-      >
-        {isDarkMode ? <Sun className='w-5 h-5 sm:w-6 sm:h-6' /> : <Moon className='w-5 h-5 sm:w-6 sm:h-6' />}
-      </Button>
+      <div className='absolute top-4 right-4 z-1000 flex flex-col gap-2'>
+        <Button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className='bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'
+          size='sm'
+        >
+          {isDarkMode ? <Sun className='w-5 h-5 sm:w-6 sm:h-6' /> : <Moon className='w-5 h-5 sm:w-6 sm:h-6' />}
+        </Button>
+      </div>
     </div>
   );
 }

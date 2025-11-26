@@ -13,9 +13,6 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
   const culoare = Array.isArray(resolvedSearchParams.culoare) ? resolvedSearchParams.culoare : (resolvedSearchParams.culoare as string)?.split(',') || [];
   const statusMapLocal = { nou: 'new', folosit: 'used', deteriorat: 'damaged' } as const;
   const status = (resolvedSearchParams.stare as string && statusMapLocal[resolvedSearchParams.stare as keyof typeof statusMapLocal]) || resolvedSearchParams.stare as string;
-  console.log('stare:', resolvedSearchParams.stare);
-  console.log('statusMapLocal[stare]:', statusMapLocal[resolvedSearchParams.stare as keyof typeof statusMapLocal]);
-  console.log('status:', status);
   const pretMin = parseInt(resolvedSearchParams.pretMin as string);
   const pretMax = parseInt(resolvedSearchParams.pretMax as string);
   const anMin = parseInt(resolvedSearchParams.anMin as string);

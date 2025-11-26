@@ -23,7 +23,6 @@ import { categoryMapping } from '@/lib/categories';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
-import { geocodeAddress, snapToRoad } from '@/lib/services';
 import { reverseGeocode } from '@/lib/services';
 import {
   defaultActiveTab,
@@ -112,45 +111,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    const geocodeCars = async () => {
-      const carsToGeocode = initialCars.filter(car => car.lat === undefined && car.location);
-      if (carsToGeocode.length > 0) {
-        const geocoded: Car[] = [];
-        for (const car of carsToGeocode) {
-          if (!car.location || car.location.trim() === '') {
-            geocoded.push(car);
-            continue;
-          }
-          try {
-            const results = await geocodeAddress(car.location);
-            if (results.length > 0) {
-              let lat = parseFloat(results[0].lat);
-              let lng = parseFloat(results[0].lon);
-              const snapped = await snapToRoad(lat, lng);
-              lat = snapped.lat;
-              lng = snapped.lng;
-              geocoded.push({ ...car, lat, lng });
-            } else {
-              geocoded.push(car);
-            }
-          } catch (error) {
-            console.error('Geocoding error for', car.location, error);
-            geocoded.push(car);
-          }
-          // Delay to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-        const updatedCars = initialCars.map(car => {
-          const geocodedCar = geocoded.find(gc => gc.id === car.id);
-          return geocodedCar || car;
-        });
-        setCars(updatedCars);
-      }
-    };
-    geocodeCars();
-  }, [initialCars]);
 
   useEffect(() => {
     if (locationFilter.location && !locationFilter.location.address) {

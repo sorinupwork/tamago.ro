@@ -34,10 +34,7 @@ export async function POST(request: NextRequest) {
       const postSegment = postId ? `post_${postId}/` : '';
       const key = `user/${userId}/${postSegment}${subfolder}/${filename}`;
 
-      console.log('Uploading file:', filename, 'to key:', key);
-
       const blob = await put(key, file, { access: 'public' });
-      console.log('Blob uploaded successfully, URL:', blob.url);
       urls.push(blob.url);
       storedKeys.push(key);
     }

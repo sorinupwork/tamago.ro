@@ -57,7 +57,7 @@ export default function BuyAutoForm({
       minPrice: '0',
       maxPrice: '10000',
       currency: 'EUR',
-      location: { lat: 0, lng: 0, address: '', fullAddress: '' },
+      location: { lat: 0, lng: 0, address: '' },
       features: '',
       status: '',
       fuel: '',
@@ -291,7 +291,7 @@ export default function BuyAutoForm({
             leftIcon={MapPin}
             showMap={false}
             value={form.watch('location').address}
-            onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '', fullAddress: '' })}
+            onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '' })}
             label='Locație'
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
           />
