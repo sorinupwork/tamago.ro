@@ -183,6 +183,7 @@ export type User = {
   status?: string;
   category?: string;
   location?: [number, number];
+  address?: string;
 
   privacySettings?: {
     emailPublic: boolean;

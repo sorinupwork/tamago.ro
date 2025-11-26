@@ -21,6 +21,8 @@ type UserUpdate = {
   socials?: Record<string, string> | null;
   badges?: string[] | null;
   platforms?: string[] | null;
+  location?: [number, number];
+  address?: string | null;
 };
 
 type Favorite = {
@@ -44,6 +46,8 @@ export async function updateProfile(form: FormData): Promise<ProfileUpdateRespon
   const imageUrl = form.get('imageUrl')?.toString() || null;
   const coverUrl = form.get('coverUrl')?.toString() || null;
   const bio = form.get('bio')?.toString() || null;
+  const locationRaw = form.get('location')?.toString() || null;
+  const address = form.get('address')?.toString() || null;
   const socialsRaw = form.get('socials')?.toString() || null;
   const badgesRaw = form.get('badges')?.toString() || null;
   const platformsRaw = form.get('platforms')?.toString() || null;
@@ -55,6 +59,17 @@ export async function updateProfile(form: FormData): Promise<ProfileUpdateRespon
     if (imageUrl) updateData.image = imageUrl;
     if (coverUrl) updateData.coverImage = coverUrl;
     if (bio) updateData.bio = bio;
+    if (locationRaw) {
+      try {
+        const location = JSON.parse(locationRaw);
+        if (Array.isArray(location) && location.length === 2 && typeof location[0] === 'number' && typeof location[1] === 'number') {
+          updateData.location = location as [number, number];
+        }
+      } catch {
+        // ignore invalid location format
+      }
+    }
+    if (address) updateData.address = address;
     if (socialsRaw) {
       try {
         updateData.socials = JSON.parse(socialsRaw);
@@ -113,6 +128,7 @@ export async function getUserById(id: string) {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         location: user.location || [0, 0],
+        address: user.address || '',
         emailVerified: user.emailVerified,
         privacySettings: user.privacySettings || {
           emailPublic: false,
@@ -368,6 +384,7 @@ export async function getFollowers(userId: string): Promise<User[]> {
     createdAt: user.createdAt?.toISOString() || '',
     updatedAt: user.updatedAt?.toISOString() || '',
     location: user.location || [0, 0],
+    address: user.address || '',
     emailVerified: user.emailVerified || false,
     privacySettings: user.privacySettings || {
       emailPublic: false,
@@ -401,6 +418,7 @@ export async function getFollowing(userId: string): Promise<User[]> {
     createdAt: user.createdAt?.toISOString() || '',
     updatedAt: user.updatedAt?.toISOString() || '',
     location: user.location || [0, 0],
+    address: user.address || '',
     emailVerified: user.emailVerified || false,
     privacySettings: user.privacySettings || {
       emailPublic: false,

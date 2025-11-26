@@ -257,6 +257,7 @@ export default function ProfileClient({
   const [imagePreview, setImagePreview] = useState<string | null>(user?.image ?? null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(user?.coverImage ?? null);
+  const [location, setLocation] = useState<[number, number]>(user?.location || [0, 0]);
   const [isEditing, setIsEditing] = useState(false);
 
   const [rewardsDialogOpen, setRewardsDialogOpen] = useState(false);
@@ -275,7 +276,8 @@ export default function ProfileClient({
     setImageFile(null);
     setCoverPreview(user?.coverImage ?? null);
     setCoverFile(null);
-  }, [user?.name, user?.image, user?.coverImage]);
+    setLocation(user?.location || [0, 0]);
+  }, [user?.name, user?.image, user?.coverImage, user?.location]);
 
   const handleFilesFromUploader = (files: File[]) => {
     const f = files?.[0] ?? null;
@@ -868,6 +870,7 @@ export default function ProfileClient({
             setCoverFile(null);
             setCoverPreview(user?.coverImage ?? null);
             setName(user?.name ?? '');
+            setLocation(user?.location || [0, 0]);
             setIsEditing(false);
           } else {
             setIsEditing(true);
@@ -887,6 +890,9 @@ export default function ProfileClient({
         onCoverImageRemove={handleCoverRemove}
         bioInitial={user?.bio ?? ''}
         platformsInitial={user?.platforms ?? []}
+        locationInitial={location}
+        addressInitial={user?.address ?? ''}
+        onLocationChange={setLocation}
         onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
       />
 

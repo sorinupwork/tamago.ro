@@ -79,6 +79,7 @@ type User = {
   createdAt: string;
   updatedAt: string;
   location: string | [number, number];
+  address: string;
   emailVerified: boolean;
   privacySettings: {
     emailPublic: boolean;
@@ -144,7 +145,7 @@ export default function PublicProfileClient({
 
   const coverSrc = user.coverImage || '/default-cover.jpg';
   const avatarSrc = user.image || '/default-avatar.png';
-  const locationText = Array.isArray(user.location) ? user.location.join(', ') : user.location || 'Unknown';
+  const locationText = user.address || 'Unknown';
 
   const handleFollow = async () => {
     try {

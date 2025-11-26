@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/com
 import AppMediaUploaderInput from '@/components/custom/input/AppMediaUploaderInput';
 import AppTagsInput from '@/components/custom/input/AppTagsInput';
 import AppTextarea from '@/components/custom/input/AppTextarea';
+import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import LoadingIndicator from '../loading/LoadingIndicator';
 import { updateProfile } from '@/actions/auth/actions';
 
@@ -32,6 +33,9 @@ type Props = {
   isSaving?: boolean;
   bioInitial?: string | null;
   platformsInitial?: string[] | null;
+  locationInitial?: [number, number];
+  addressInitial?: string;
+  onLocationChange?: (location: [number, number]) => void;
   onActivityUpdate?: (activity: string) => void;
 };
 
@@ -52,6 +56,9 @@ export default function EditProfileDrawer({
   onCoverImageRemove,
   bioInitial = null,
   platformsInitial = null,
+  locationInitial = [0, 0],
+  addressInitial = '',
+  onLocationChange,
   onActivityUpdate,
 }: Props) {
   const nameRef = useRef<HTMLInputElement | null>(null);
@@ -63,6 +70,8 @@ export default function EditProfileDrawer({
 
   const [bio, setBio] = useState<string>(bioInitial ?? '');
   const [platforms, setPlatforms] = useState<string[]>(platformsInitial ?? []);
+  const [location, setLocation] = useState<[number, number]>(locationInitial);
+  const [address, setAddress] = useState<string>(addressInitial);
   const router = useRouter();
 
   useEffect(() => {
@@ -74,8 +83,11 @@ export default function EditProfileDrawer({
       setLocalCoverFile(null);
       setBio(bioInitial ?? '');
       setPlatforms(platformsInitial ?? []);
+      setLocation(locationInitial);
+      setAddress(addressInitial);
+      setLocation(locationInitial);
     }
-  }, [open, imagePreview, coverPreview, bioInitial, platformsInitial]);
+  }, [open, imagePreview, coverPreview, bioInitial, platformsInitial, locationInitial, addressInitial]);
 
   useEffect(() => {
     setLocalImageFile(files[0] || null);
@@ -171,6 +183,8 @@ export default function EditProfileDrawer({
       if (uploadedImageUrl) fd.append('imageUrl', uploadedImageUrl);
       if (uploadedCoverUrl) fd.append('coverUrl', uploadedCoverUrl);
       fd.append('bio', bio ?? '');
+      fd.append('location', JSON.stringify(location));
+      fd.append('address', address);
       try {
         fd.append('platforms', JSON.stringify(platforms || []));
       } catch {
@@ -180,6 +194,7 @@ export default function EditProfileDrawer({
       await updateProfile(fd);
 
       toast.success('Profil actualizat');
+      onLocationChange?.(location);
       onActivityUpdate?.(`Profil actualizat - ${new Date().toLocaleString()}`);
       onOpenChange(false);
       router.refresh();
@@ -199,6 +214,8 @@ export default function EditProfileDrawer({
     onCoverFilesChange?.([]);
     setBio(bioInitial ?? '');
     setPlatforms(platformsInitial ?? []);
+    setLocation(locationInitial);
+    setAddress(addressInitial);
     onOpenChange(false);
   };
 
@@ -303,6 +320,19 @@ export default function EditProfileDrawer({
                 placeholder='Tell people about yourself...'
                 name='bio'
                 id='bio'
+              />
+            </div>
+
+            <div>
+              <AppLocationInput
+                location={location ? { lat: location[0], lng: location[1], address } : null}
+                onChange={(loc) => {
+                  setLocation([loc.lat, loc.lng]);
+                  setAddress(loc.address);
+                }}
+                placeholder='Set your location'
+                label='Location'
+                showMap={false}
               />
             </div>
 
