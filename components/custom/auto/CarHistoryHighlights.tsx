@@ -21,8 +21,6 @@ const ICON_MAP: { [key: string]: LucideIcon } = {
 };
 
 export default function CarHistoryHighlights({ car, features, items }: CarHistoryHighlightsProps) {
-  console.log('car history highlights', items);
-
   const historyItems =
     items && items.length > 0
       ? items.map((i) => ({

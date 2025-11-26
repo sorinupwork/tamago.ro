@@ -61,11 +61,14 @@ export function getFilteredCars(
 
   const loc = locationFilter.location;
   if (loc) {
+    console.log('Filtering by location:', loc.lat, loc.lng, 'radius:', locationFilter.radius);
     filtered = filtered.filter((car) => {
       if (car.lat && car.lng) {
         const distance = calculateDistance(loc.lat, loc.lng, car.lat, car.lng);
+        console.log(`Car ${car.id} at ${car.lat}, ${car.lng}, distance: ${distance} km`);
         return distance <= locationFilter.radius;
       }
+      console.log(`Car ${car.id} has no lat/lng`);
       return true;
     });
   }

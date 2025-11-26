@@ -96,6 +96,7 @@ type CarFetchParams = {
   fuel?: string[];
   transmission?: string[];
   bodyType?: string[];
+  color?: string[];
   priceMin?: number;
   priceMax?: number;
   yearMin?: number;
@@ -106,6 +107,9 @@ type CarFetchParams = {
   engineCapacityMax?: number;
   horsepowerMin?: number;
   horsepowerMax?: number;
+  lat?: number;
+  lng?: number;
+  radius?: number;
 };
 
 async function getCarsWithOptionalPagination(collectionName: string, maybeParams?: CarFetchParams | unknown) {
@@ -117,48 +121,27 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     }
 
     const page = Math.max(1, params.page || 1);
-    const limit = Math.max(1, params.limit || 20);
+    let limit = Math.max(1, params.limit || 20);
+    if (params.lat && params.lng && params.radius) {
+      limit = 1000;
+    }
     const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
     const filter: Record<string, unknown> = {};
-    if (params.status && params.status !== 'all') filter.status = params.status;
+    if (params.status && params.status !== 'all') {
+      console.log('params.status:', params.status);
+      filter.status = params.status;
+      console.log('filter.status set to:', filter.status);
+    }
     if (params.search)
       filter.$or = [{ title: { $regex: params.search, $options: 'i' } }, { description: { $regex: params.search, $options: 'i' } }];
     if (params.brand) filter.brand = params.brand;
     if (params.fuel && params.fuel.length > 0) filter.fuel = { $in: params.fuel };
     if (params.transmission && params.transmission.length > 0) filter.transmission = { $in: params.transmission };
     if (params.bodyType && params.bodyType.length > 0) filter.carType = { $in: params.bodyType };
-    if (params.priceMin !== undefined || params.priceMax !== undefined) {
-      filter.price = {
-        ...(params.priceMin !== undefined && { $gte: params.priceMin }),
-        ...(params.priceMax !== undefined && { $lte: params.priceMax }),
-      };
-    }
-    if (params.yearMin !== undefined || params.yearMax !== undefined) {
-      filter.year = {
-        ...(params.yearMin !== undefined && { $gte: params.yearMin }),
-        ...(params.yearMax !== undefined && { $lte: params.yearMax }),
-      };
-    }
-    if (params.mileageMin !== undefined || params.mileageMax !== undefined) {
-      filter.mileage = {
-        ...(params.mileageMin !== undefined && { $gte: params.mileageMin }),
-        ...(params.mileageMax !== undefined && { $lte: params.mileageMax }),
-      };
-    }
-    if (params.engineCapacityMin !== undefined || params.engineCapacityMax !== undefined) {
-      filter.engineCapacity = {
-        ...(params.engineCapacityMin !== undefined && { $gte: params.engineCapacityMin }),
-        ...(params.engineCapacityMax !== undefined && { $lte: params.engineCapacityMax }),
-      };
-    }
-    if (params.horsepowerMin !== undefined || params.horsepowerMax !== undefined) {
-      filter.horsePower = {
-        ...(params.horsepowerMin !== undefined && { $gte: params.horsepowerMin }),
-        ...(params.horsepowerMax !== undefined && { $lte: params.horsepowerMax }),
-      };
-    }
+    if (params.color && params.color.length > 0) filter.color = { $in: params.color };
 
     const coll = db.collection(collectionName);
+    console.log('Final filter object:', filter);
     const total = await coll.countDocuments(filter);
     let sortArray: [string, 1 | -1][] = [['_id', -1]];
     if (params.sortBy) {
@@ -190,6 +173,14 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     }
 
     const items = await coll.find(filter).sort(sortArray).skip(skipVal).limit(limit).toArray();
+    console.log(`Fetched ${items.length} items from ${collectionName}`);
+    items.forEach((item, index) => {
+      if (item.location && typeof item.location === 'object') {
+        console.log(`Item ${index}: lat=${item.location.lat}, lng=${item.location.lng}, address=${item.location.address}`);
+      } else {
+        console.log(`Item ${index}: no location object`);
+      }
+    });
     const hasMore = page * limit < total;
     return { items: JSON.parse(JSON.stringify(items)), total, hasMore };
   } catch (error) {

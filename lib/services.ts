@@ -10,7 +10,12 @@ export const geocodeAddress = async (query: string): Promise<NominatimResult[]> 
   if (!query) return [];
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=RO&limit=5`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=RO&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'tamago.ro/1.0',
+        },
+      }
     );
     const data: NominatimResult[] = await response.json();
     return data;
@@ -23,7 +28,11 @@ export const geocodeAddress = async (query: string): Promise<NominatimResult[]> 
 // Reverse geocode to get address from lat/lng
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+      headers: {
+        'User-Agent': 'tamago.ro/1.0',
+      },
+    });
     const data: NominatimResult = await response.json();
     return data.display_name || `${lat}, ${lng}`;
   } catch (error) {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { debounce } from 'lodash';
 import { toast } from 'sonner';
 import { LucideIcon, MapPin } from 'lucide-react';
@@ -13,8 +12,7 @@ import AppSlider from '@/components/custom/input/AppSlider';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-const MapComponent = dynamic(() => import('../map/MapComponent'), { ssr: false });
+import MapComponent from '../map/MapComponent';
 
 type Location = {
   lat: number;

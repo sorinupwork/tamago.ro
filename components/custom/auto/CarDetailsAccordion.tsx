@@ -7,6 +7,8 @@ type CarDetailsAccordionProps = {
 };
 
 export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
+  const statusMap = { new: 'Nou', used: 'Second hand', damaged: 'Deteriorat' };
+  const statusLabel = statusMap[car.status as keyof typeof statusMap] || car.status;
   const details = [
     { icon: CarIcon, label: 'Caroserie', value: car.bodyType },
     { icon: Palette, label: 'Culoare', value: car.color },
@@ -21,7 +23,7 @@ export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
 
   const previewDetails = [
     { icon: MapPin, label: 'Locație', value: car.location },
-    { icon: CarFront, label: 'Status', value: car.status },
+    { icon: CarFront, label: 'Status', value: statusLabel },
     { icon: Fuel, label: 'Combustibil', value: car.fuel },
   ];
 

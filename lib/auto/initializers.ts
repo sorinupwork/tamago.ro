@@ -27,6 +27,8 @@ export const defaultSearchQuery = '';
 export const defaultLocationFilter: LocationFilter = { location: null, radius: 50 };
 export const defaultCurrentPage = 1;
 
+export const statusMap = { nou: 'new', folosit: 'used', deteriorat: 'damaged' } as const;
+
 export const getInitialActiveTab = (searchParams: URLSearchParams): keyof typeof categoryMapping => {
   const categorieParam = searchParams.get('tip');
   return categorieParam && categorieParam in categoryMapping ? (categorieParam as keyof typeof categoryMapping) : defaultActiveTab;
@@ -34,7 +36,8 @@ export const getInitialActiveTab = (searchParams: URLSearchParams): keyof typeof
 
 export const getInitialFilters = (searchParams: URLSearchParams): AutoFilterState => {
   const filters = { ...defaultFilters };
-  filters.status = searchParams.get('stare') || defaultFilters.status;
+  const stare = searchParams.get('stare');
+  filters.status = (stare && statusMap[stare as keyof typeof statusMap]) || stare || defaultFilters.status;
   filters.brand = searchParams.get('marca') || defaultFilters.brand;
   filters.fuel = searchParams.getAll('combustibil');
   filters.transmission = searchParams.getAll('transmisie');
@@ -81,14 +84,13 @@ export const getInitialSearchQuery = (searchParams: URLSearchParams) => searchPa
 export const getInitialLocationFilter = (searchParams: URLSearchParams): LocationFilter => {
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
-  const adresa = searchParams.get('adresa');
   const raza = searchParams.get('raza');
   if (lat && lng && raza) {
     return {
       location: {
         lat: parseFloat(lat),
         lng: parseFloat(lng),
-        address: adresa || '',
+        address: '',
         fullAddress: '',
       },
       radius: parseInt(raza),

@@ -23,6 +23,8 @@ import { categoryMapping } from '@/lib/categories';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
+import { geocodeAddress, snapToRoad } from '@/lib/services';
+import { reverseGeocode } from '@/lib/services';
 import {
   defaultActiveTab,
   defaultFilters,
@@ -34,6 +36,7 @@ import {
   getInitialSortCriteria,
   getInitialSearchQuery,
   getInitialLocationFilter,
+  statusMap,
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
 
@@ -49,7 +52,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const result = use(initialResult);
   const initialCars = useMemo(
     () =>
-      result.items.map((doc: RawCarDoc) => ({
+      result.items.map((doc: RawCarDoc) => {
+        return {
         id: doc._id.toString(),
         title: doc.title || '',
         price: String(doc.price || '0'),
@@ -88,13 +92,14 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         driverContact: doc.driverContact || '',
         driverTelephone: doc.driverTelephone || '',
         options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+        lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
+        lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
         history: doc.history || [],
-      })),
+        };
+      }),
     [result, initialTip]
   );
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(initialTip as keyof typeof categoryMapping);
@@ -107,6 +112,57 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const geocodeCars = async () => {
+      const carsToGeocode = initialCars.filter(car => car.lat === undefined && car.location);
+      if (carsToGeocode.length > 0) {
+        const geocoded: Car[] = [];
+        for (const car of carsToGeocode) {
+          if (!car.location || car.location.trim() === '') {
+            geocoded.push(car);
+            continue;
+          }
+          try {
+            const results = await geocodeAddress(car.location);
+            if (results.length > 0) {
+              let lat = parseFloat(results[0].lat);
+              let lng = parseFloat(results[0].lon);
+              const snapped = await snapToRoad(lat, lng);
+              lat = snapped.lat;
+              lng = snapped.lng;
+              geocoded.push({ ...car, lat, lng });
+            } else {
+              geocoded.push(car);
+            }
+          } catch (error) {
+            console.error('Geocoding error for', car.location, error);
+            geocoded.push(car);
+          }
+          // Delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        const updatedCars = initialCars.map(car => {
+          const geocodedCar = geocoded.find(gc => gc.id === car.id);
+          return geocodedCar || car;
+        });
+        setCars(updatedCars);
+      }
+    };
+    geocodeCars();
+  }, [initialCars]);
+
+  useEffect(() => {
+    if (locationFilter.location && !locationFilter.location.address) {
+      reverseGeocode(locationFilter.location.lat, locationFilter.location.lng).then((fullAddress) => {
+        const address = fullAddress.length > 50 ? fullAddress.substring(0, 50) + '...' : fullAddress;
+        setLocationFilter((prev) => ({
+          ...prev,
+          location: prev.location ? { ...prev.location, address, fullAddress } : null,
+        }));
+      });
+    }
+  }, [locationFilter.location]);
 
   const currentSort = useMemo(() => {
     const key = Object.keys(sortCriteria).find((k) => sortCriteria[k as keyof SortCriteria]);
@@ -150,8 +206,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       driverContact: doc.driverContact || '',
       driverTelephone: doc.driverTelephone || '',
       options: doc.options || [],
-      lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
-      lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+      lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
+      lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
       minPrice: doc.minPrice,
       maxPrice: doc.maxPrice,
       userId: doc.userId ? doc.userId.toString() : '',
@@ -183,6 +239,9 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         engineCapacityMax: filters.engineCapacityRange[1] < 10 ? filters.engineCapacityRange[1] : undefined,
         horsepowerMin: filters.horsepowerRange[0] > 0 ? filters.horsepowerRange[0] : undefined,
         horsepowerMax: filters.horsepowerRange[1] < 1000 ? filters.horsepowerRange[1] : undefined,
+        lat: locationFilter.location?.lat,
+        lng: locationFilter.location?.lng,
+        radius: locationFilter.radius,
       };
       let result;
       switch (activeTab) {
@@ -241,8 +300,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         driverContact: doc.driverContact || '',
         driverTelephone: doc.driverTelephone || '',
         options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : 45.9432,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : 24.9668,
+        lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
+        lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
@@ -252,54 +311,58 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       setLoading(false);
     };
     fetchCars();
-  }, [activeTab, searchQuery, filters, sortCriteria]);
+  }, [activeTab, searchQuery, filters, sortCriteria, locationFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
 
-    Object.keys(filters).forEach((key) => {
-      const k = key as keyof AutoFilterState;
-      if (JSON.stringify(filters[k]) !== JSON.stringify(defaultFilters[k])) {
-        if (k === 'priceRange') {
-          params.set('pretMin', filters.priceRange[0].toString());
-          params.set('pretMax', filters.priceRange[1].toString());
-        } else if (k === 'yearRange') {
-          params.set('anMin', filters.yearRange[0].toString());
-          params.set('anMax', filters.yearRange[1].toString());
-        } else if (k === 'mileageRange') {
-          params.set('kilometrajMin', filters.mileageRange[0].toString());
-          params.set('kilometrajMax', filters.mileageRange[1].toString());
-        } else if (k === 'engineCapacityRange') {
-          params.set('capacitateMin', filters.engineCapacityRange[0].toString());
-          params.set('capacitateMax', filters.engineCapacityRange[1].toString());
-        } else if (k === 'horsepowerRange') {
-          params.set('caiPutereMin', filters.horsepowerRange[0].toString());
-          params.set('caiPutereMax', filters.horsepowerRange[1].toString());
-        } else if (Array.isArray(filters[k])) {
-          if ((filters[k] as string[]).length > 0) params.set(k, (filters[k] as string[]).join(','));
-        } else {
-          params.set(k, filters[k] as string);
-        }
-      }
-    });
+    if (filters.brand !== defaultFilters.brand) params.set('marca', filters.brand);
+    if (filters.fuel.length > 0) filters.fuel.forEach((f) => params.append('combustibil', f));
+    if (filters.transmission.length > 0) filters.transmission.forEach((t) => params.append('transmisie', t));
+    if (filters.bodyType.length > 0) filters.bodyType.forEach((b) => params.append('caroserie', b));
+    if (filters.color.length > 0) filters.color.forEach((c) => params.append('culoare', c));
+    if (filters.status !== defaultFilters.status) {
+      const stare = Object.keys(statusMap).find((k) => statusMap[k as keyof typeof statusMap] === filters.status) || filters.status;
+      params.set('stare', stare);
+    }
+    if (filters.priceRange[0] !== defaultFilters.priceRange[0] || filters.priceRange[1] !== defaultFilters.priceRange[1]) {
+      params.set('pretMin', filters.priceRange[0].toString());
+      params.set('pretMax', filters.priceRange[1].toString());
+    }
+    if (filters.yearRange[0] !== defaultFilters.yearRange[0] || filters.yearRange[1] !== defaultFilters.yearRange[1]) {
+      params.set('anMin', filters.yearRange[0].toString());
+      params.set('anMax', filters.yearRange[1].toString());
+    }
+    if (filters.mileageRange[0] !== defaultFilters.mileageRange[0] || filters.mileageRange[1] !== defaultFilters.mileageRange[1]) {
+      params.set('kilometrajMin', filters.mileageRange[0].toString());
+      params.set('kilometrajMax', filters.mileageRange[1].toString());
+    }
+    if (
+      filters.engineCapacityRange[0] !== defaultFilters.engineCapacityRange[0] ||
+      filters.engineCapacityRange[1] !== defaultFilters.engineCapacityRange[1]
+    ) {
+      params.set('capacitateMin', filters.engineCapacityRange[0].toString());
+      params.set('capacitateMax', filters.engineCapacityRange[1].toString());
+    }
+    if (
+      filters.horsepowerRange[0] !== defaultFilters.horsepowerRange[0] ||
+      filters.horsepowerRange[1] !== defaultFilters.horsepowerRange[1]
+    ) {
+      params.set('caiPutereMin', filters.horsepowerRange[0].toString());
+      params.set('caiPutereMax', filters.horsepowerRange[1].toString());
+    }
 
-    Object.keys(sortCriteria).forEach((key) => {
-      const k = key as keyof SortCriteria;
-      if (sortCriteria[k] !== defaultSortCriteria[k]) {
-        params.set(
-          k === 'price' ? 'pret' : k === 'year' ? 'an' : k === 'mileage' ? 'kilometraj' : k === 'date' ? 'data' : k,
-          sortCriteria[k] || ''
-        );
-      }
-    });
+    if (sortCriteria.price) params.set('pret', sortCriteria.price);
+    if (sortCriteria.year) params.set('an', sortCriteria.year);
+    if (sortCriteria.mileage) params.set('kilometraj', sortCriteria.mileage);
+    if (sortCriteria.date) params.set('data', sortCriteria.date);
 
     if (searchQuery !== defaultSearchQuery) params.set('cautare', searchQuery);
     if (locationFilter.location) {
       params.set('lat', locationFilter.location.lat.toString());
       params.set('lng', locationFilter.location.lng.toString());
       params.set('raza', locationFilter.radius.toString());
-      params.set('adresa', locationFilter.location.address);
     }
     if (currentPage !== defaultCurrentPage) params.set('pagina', currentPage.toString());
     const newUrl = params.toString() ? `?${params.toString()}` : '';
@@ -309,6 +372,11 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const uniqueBrands = useMemo(() => {
     const brands = [...new Set(cars.map((car) => car.brand))];
     return brands.map((brand) => ({ value: brand, label: brand }));
+  }, [cars]);
+
+  const uniqueBodyTypes = useMemo(() => {
+    const types = [...new Set(cars.map((car) => car.bodyType))];
+    return types.map((type) => ({ value: type, label: type }));
   }, [cars]);
 
   const filteredCars = useMemo(() => {
@@ -383,7 +451,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     setLocationFilter(defaultLocationFilter);
     setCurrentPage(defaultCurrentPage);
     setResetKey((prev) => prev + 1);
-    router.replace(window.location.pathname);
   };
 
   const saveSearch = async () => {
@@ -500,15 +567,14 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4'>
         <AppSelectInput
           options={[
-            { value: 'all', label: 'Status' },
-            { value: 'nou', label: 'Nou' },
-            { value: 'folosit', label: 'Second Hand' },
-            { value: 'deteriorat', label: 'Deteriorat' },
+            { value: 'new', label: 'Nou' },
+            { value: 'used', label: 'Folosit' },
+            { value: 'damaged', label: 'Deteriorat' },
           ]}
-          value={filters.status || 'all'}
-          onValueChange={(value) => handleFilterChange('status', (value as string) === 'all' ? '' : (value as string))}
+          value={filters.status}
+          onValueChange={(value) => handleFilterChange('status', value as string)}
           multiple={false}
-          placeholder='Status'
+          placeholder='Stare'
         />
         <AppCombobox
           options={uniqueBrands}
@@ -532,6 +598,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           options={[
             { value: 'Manual', label: 'Manuală' },
             { value: 'Automatic', label: 'Automată' },
+            { value: 'Semi-Automatic', label: 'Semi-automată' },
           ]}
           value={filters.transmission}
           onValueChange={(value) => handleFilterChange('transmission', value as string[])}
@@ -539,12 +606,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           placeholder='Transmisie'
         />
         <AppSelectInput
-          options={[
-            { value: 'SUV', label: 'SUV' },
-            { value: 'Sedan', label: 'Sedan' },
-            { value: 'Hatchback', label: 'Hatchback' },
-            { value: 'Coupe', label: 'Coupe' },
-          ]}
+          options={uniqueBodyTypes}
           value={filters.bodyType}
           onValueChange={(value) => handleFilterChange('bodyType', value as string[])}
           multiple={true}
