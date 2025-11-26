@@ -17,12 +17,8 @@ export default function QuickActionButton({ href }: QuickActionButtonProps) {
   const handleQuickAction = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Add to favorites
-    toast.success('Adăugat la favorite!');
-    // Copy link
     navigator.clipboard.writeText(`${window.location.origin}${href}`);
     toast.success('Link copied to clipboard');
-    // Redirect
     router.push(href);
   };
 

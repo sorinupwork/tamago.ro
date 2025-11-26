@@ -1,5 +1,6 @@
 import { Calendar, Wrench, FileText, Droplet, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import sanitizeHtml from 'sanitize-html';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Timeline from '@/components/custom/timeline/Timeline';
@@ -20,6 +21,8 @@ const ICON_MAP: { [key: string]: LucideIcon } = {
 };
 
 export default function CarHistoryHighlights({ car, features, items }: CarHistoryHighlightsProps) {
+  console.log('car history highlights', items);
+
   const historyItems =
     items && items.length > 0
       ? items.map((i) => ({
@@ -84,7 +87,7 @@ export default function CarHistoryHighlights({ car, features, items }: CarHistor
               <h5 className='text-sm font-semibold mb-2'>Descriere Istoric:</h5>
               <ul className='text-sm text-muted-foreground list-disc list-inside'>
                 {features.map((feature, i) => (
-                  <li key={i}>{feature}</li>
+                  <li key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(feature) }} />
                 ))}
               </ul>
             </div>

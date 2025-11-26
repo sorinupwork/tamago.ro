@@ -21,11 +21,7 @@ export default function RewardsCard({ freePosts, premiumAccess, onSellClick }: R
             Recompense
           </CardTitle>
         </CardHeader>
-        <CardContent className='space-y-4'>
-          <div className='flex justify-between items-center'>
-            <span>Postări Gratuite</span>
-            <Badge variant='secondary'>{freePosts}</Badge>
-          </div>
+        <CardContent className='space-y-4 flex flex-col justify-between flex-1'>
           <div className='flex justify-between items-center'>
             <span>Acces Premium (Vânzări Nelimitate)</span>
             <Badge variant={premiumAccess ? 'default' : 'outline'}>{premiumAccess ? 'Da' : 'Nu'}</Badge>

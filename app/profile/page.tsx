@@ -35,6 +35,7 @@ export default async function Profile() {
       initialFollowers={followersCount}
       initialFollowing={followingCount}
       initialPostsTotal={feedsData.total}
+      initialPrivacySettings={userData?.privacySettings}
     />
   );
 }

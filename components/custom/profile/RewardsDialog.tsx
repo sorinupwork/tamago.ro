@@ -41,8 +41,10 @@ export default function RewardsDialog({
   const isClaimed = (rewardId: string) => {
     if (rewardId === 'verify-email') return badges.includes('Email Verificat');
     if (rewardId === 'badge-social') return badges.includes('Social');
+    if (rewardId === 'badge-posts') return badges.includes('Creator');
     if (rewardId === 'badge-friends') return badges.includes('Prietenos');
     if (rewardId === 'badge-verification') return badges.includes('Verificat');
+    if (rewardId === 'premium-access') return badges.includes('Premium');
     return claimedRewards.includes(rewardId);
   };
 
@@ -55,18 +57,11 @@ export default function RewardsDialog({
   };
 
   const getProgressValue = (quest: typeof quests[0]) => {
-    switch (quest.type) {
-      case 'posts':
-        return (currentProgress.posts / quest.total) * 100;
-      case 'friends':
-        return (currentProgress.friends / quest.total) * 100;
-      case 'points':
-        return (currentProgress.points / quest.total) * 100;
-      case 'verification':
-        return (currentProgress.verification / quest.total) * 100;
-      default:
-        return 0;
-    }
+    const current = quest.type === 'posts' ? currentProgress.posts :
+      quest.type === 'friends' ? currentProgress.friends :
+      quest.type === 'points' ? currentProgress.points :
+      quest.type === 'verification' ? currentProgress.verification : 0;
+    return Math.min((current / quest.total), 1) * 100;
   };
 
   return (
@@ -101,11 +96,13 @@ export default function RewardsDialog({
                       <div className="flex justify-between text-sm">
                         <span>Progres</span>
                         <span>
-                          {quest.type === 'posts' ? currentProgress.posts :
-                           quest.type === 'friends' ? currentProgress.friends :
-                           quest.type === 'points' ? currentProgress.points :
-                           quest.type === 'verification' ? currentProgress.verification : 0}
-                          /{quest.total}
+                          {Math.min(
+                            quest.type === 'posts' ? currentProgress.posts :
+                            quest.type === 'friends' ? currentProgress.friends :
+                            quest.type === 'points' ? currentProgress.points :
+                            quest.type === 'verification' ? currentProgress.verification : 0,
+                            quest.total
+                          )}/{quest.total}
                         </span>
                       </div>
                       <Progress value={getProgressValue(quest)} className="h-2" />

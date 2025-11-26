@@ -21,6 +21,7 @@ type SettingsAccordionProps = {
   }[];
   progressValue?: number;
   isNotifications?: boolean;
+  showSecurityLevel?: boolean;
 };
 
 export default function SettingsAccordion({
@@ -33,6 +34,7 @@ export default function SettingsAccordion({
   defaultOpen = false,
   progressValue = 50,
   isNotifications = false,
+  showSecurityLevel = true,
 }: SettingsAccordionProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
@@ -58,29 +60,32 @@ export default function SettingsAccordion({
             <Trophy className='h-5 w-5 text-yellow-500' />
             <span className='font-medium'>Progres Setări</span>
           </div>
-          <Progress value={currentProgressValue} className='h-2' />
-          <div className='text-sm text-muted-foreground'>Nivel Securitate: {currentProgressValue}%</div>
+          {showSecurityLevel && (
+            <div className='text-sm text-muted-foreground'>Nivel Securitate: {currentProgressValue}%</div>
+          )}
 
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-2'>
-              <Bell className='h-4 w-4' />
-              <span>Notificări</span>
+          {isNotifications && (
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <Bell className='h-4 w-4' />
+                <span>Notificări</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Switch
+                      className='bg-primary ring-1 ring-foreground'
+                      checked={notificationsEnabled}
+                      onCheckedChange={setNotificationsEnabled}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Activează notificări pentru actualizări!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Switch
-                    className='bg-primary ring-1 ring-foreground'
-                    checked={notificationsEnabled}
-                    onCheckedChange={setNotificationsEnabled}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Activează notificări pentru actualizări!</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          )}
 
           {content}
 
@@ -90,9 +95,7 @@ export default function SettingsAccordion({
                 {subItems.map((s) => (
                   <AccordionItem key={s.value} value={s.value} className='border rounded-md bg-white dark:bg-gray-800'>
                     <AccordionTrigger className='px-3 py-2 text-sm font-medium'>{s.title}</AccordionTrigger>
-                    <AccordionContent className='px-3 py-2 text-sm space-y-2'>
-                      {s.content}
-                    </AccordionContent>
+                    <AccordionContent className='px-3 py-2 text-sm space-y-2'>{s.content}</AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>

@@ -25,30 +25,30 @@ export default function ProgressSummary({ posts, friends, points, verification =
           <div>
             <div className='flex justify-between text-xs mb-2'>
               <span className='font-medium'>Postări (Listări Vânzări)</span>
-              <span className='text-muted-foreground'>{posts}/4</span>
+              <span className='text-muted-foreground'>{Math.min(posts, 4)}/4</span>
             </div>
-            <Progress value={(posts / 4) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
+            <Progress value={Math.min((posts / 4), 1) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
           </div>
           <div>
             <div className='flex justify-between text-xs mb-2'>
               <span className='font-medium'>Prieteni (Rețea Socială)</span>
-              <span className='text-muted-foreground'>{friends}/10</span>
+              <span className='text-muted-foreground'>{Math.min(friends, 10)}/10</span>
             </div>
-            <Progress value={(friends / 10) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
+            <Progress value={Math.min((friends / 10), 1) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
           </div>
           <div>
             <div className='flex justify-between text-xs mb-2'>
               <span className='font-medium'>Puncte (Recompense Vânzări)</span>
-              <span className='text-muted-foreground'>{points}/200</span>
+              <span className='text-muted-foreground'>{Math.min(points, 100)}/100</span>
             </div>
-            <Progress value={(points / 200) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
+            <Progress value={Math.min((points / 100), 1) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
           </div>
           <div>
             <div className='flex justify-between text-xs mb-2'>
-              <span className='font-medium'>Verificare (Email & Social)</span>
-              <span className='text-muted-foreground'>{verification}/2</span>
+              <span className='font-medium'>Verificare (Email)</span>
+              <span className='text-muted-foreground'>{Math.min(verification, 1)}/1</span>
             </div>
-            <Progress value={(verification / 2) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
+            <Progress value={Math.min((verification / 1), 1) * 100} className='h-3 bg-gray-200 dark:bg-gray-700' />
           </div>
           <Button size='sm' variant='outline' className='w-full hover:scale-105 transition-transform' onClick={onOpenDialog}>
             <Zap className='h-3 w-3 mr-1' />

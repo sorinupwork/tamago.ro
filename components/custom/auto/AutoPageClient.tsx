@@ -93,6 +93,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
+        history: doc.history || [],
       })),
     [result, initialTip]
   );
@@ -245,6 +246,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         minPrice: doc.minPrice,
         maxPrice: doc.maxPrice,
         userId: doc.userId ? doc.userId.toString() : '',
+        history: doc.history || [],
       }));
       setCars(mappedCars);
       setLoading(false);

@@ -6,6 +6,7 @@ import { CheckCircle, Settings, Bell, TrendingUp, Lock, Eye } from 'lucide-react
 import { toast } from 'sonner';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import BadgesCarousel from '@/components/custom/carousel/BadgesCarousel';
 import EditProfileDrawer from '@/components/custom/drawer/EditProfileDrawer';
 import PostsGrid from '@/components/custom/profile/PostsGrid';
@@ -75,6 +76,13 @@ type ProfileClientProps = {
   initialFollowers?: number;
   initialFollowing?: number;
   initialPostsTotal?: number;
+  initialPrivacySettings?: {
+    emailPublic: boolean;
+    phonePublic: boolean;
+    locationPublic: boolean;
+    profileVisible: boolean;
+    twoFactorEnabled?: boolean;
+  };
 };
 
 type FeedQueryParams = {
@@ -108,14 +116,32 @@ export default function ProfileClient({
   initialFollowing = 0,
   initialPostsTotal = 0,
   initialStoriesTotal = 0,
+  initialPrivacySettings,
 }: ProfileClientProps) {
   const router = useRouter();
   const [emailVerified] = useState(Boolean(user?.emailVerified));
   const calculatedTotalPosts = initialPostsTotal + initialStoriesTotal;
   const totalFriends = initialFollowers + initialFollowing;
-  const isSocialLogin = initialBadges.includes('Social');
-  const verificationCount = isSocialLogin ? 2 : (emailVerified ? 1 : 0);
-  const points = (calculatedTotalPosts + totalFriends + verificationCount) * 5;
+  const verificationCount = emailVerified ? 1 : 0;
+  const [privacySettings, setPrivacySettings] = useState(
+    initialPrivacySettings || {
+      emailPublic: false,
+      phonePublic: false,
+      locationPublic: false,
+      profileVisible: true,
+      twoFactorEnabled: false,
+    }
+  );
+  const privacyPoints =
+    ((privacySettings.emailPublic ? 1 : 0) +
+      (privacySettings.phonePublic ? 1 : 0) +
+      (privacySettings.locationPublic ? 1 : 0) +
+      (privacySettings.profileVisible ? 1 : 0)) *
+    5;
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(initialPrivacySettings?.twoFactorEnabled ?? false);
+  const cappedPosts = Math.min(calculatedTotalPosts, 4);
+  const cappedFriends = Math.min(totalFriends, 10);
+  const points = (cappedPosts + cappedFriends + verificationCount) * 5 + privacyPoints + (twoFactorEnabled ? 5 : 0);
   const [userData, setUserData] = useState({
     badges: initialBadges,
     progress: {
@@ -140,7 +166,7 @@ export default function ProfileClient({
       verified: { email: prev.badges.includes('Email Verificat'), social: prev.badges.includes('Social') },
       progress: {
         ...prev.progress,
-        verification: prev.badges.includes('Social') ? 2 : (emailVerified ? 1 : 0),
+        verification: emailVerified ? 1 : 0,
       },
       postsCount: prev.progress.posts,
     }));
@@ -153,7 +179,7 @@ export default function ProfileClient({
       description: 'Creează și postează 4 articole pentru a câștiga recompense.',
       progress: userData.progress.posts,
       total: 4,
-      reward: '4 Postări Gratuite',
+      reward: 'Insignă Creator',
       type: 'posts' as const,
     },
     {
@@ -162,43 +188,43 @@ export default function ProfileClient({
       description: 'Conectează-te cu 10 prieteni pentru a crește rețeaua socială.',
       progress: userData.progress.friends,
       total: 10,
-      reward: 'Insignă "Prietenos"',
+      reward: 'Insignă Prietenos',
       type: 'friends' as const,
     },
     {
       id: 'points-quest',
-      title: 'Acumulează 200 puncte',
-      description: 'Cumpără sau vinde articole pentru a acumula 200 puncte.',
+      title: 'Acumulează 100 puncte',
+      description: 'Cumpără sau vinde articole pentru a acumula 100 puncte.',
       progress: userData.progress.points,
-      total: 200,
+      total: 100,
       reward: 'Acces Premium',
       type: 'points' as const,
     },
     {
       id: 'verify-email',
       title: 'Verifică contul',
-      description: 'Verifică email-ul și contul social pentru securitate crescută.',
+      description: 'Verifică email-ul pentru securitate crescută.',
       progress: userData.progress.verification,
-      total: 2,
-      reward: 'Insignă "Verificat"',
+      total: 1,
+      reward: 'Insignă Verificat',
       type: 'verification' as const,
     },
   ];
 
   const dynamicRewards = [
     {
-      id: 'free-posts',
-      title: 'Postări Gratuite',
-      description: 'Primești 4 postări gratuite pentru vânzări.',
+      id: 'badge-posts',
+      title: 'Insignă Creator',
+      description: 'Insignă specială pentru creator de conținut.',
       claimed: false,
-      available: userData.progress.posts >= 4,
+      available: userData.progress.posts >= 4 && !userData.badges.includes('Creator'),
     },
     {
       id: 'premium-access',
       title: 'Acces Premium',
       description: 'Acces nelimitat la vânzări și funcții premium.',
       claimed: false,
-      available: userData.progress.points >= 200,
+      available: userData.progress.points >= 100,
     },
     {
       id: 'badge-friends',
@@ -212,14 +238,19 @@ export default function ProfileClient({
       title: 'Insignă Verificat',
       description: 'Insignă pentru cont verificat.',
       claimed: false,
-      available: userData.progress.verification >= 2 && !userData.badges.includes('Verificat'),
+      available: userData.progress.verification >= 1 && !userData.badges.includes('Verificat'),
     },
   ];
 
-  const [activities, setActivities] = useState<string[]>([
-    'Bine ai venit pe platformă!',
-    'Completează-ți profilul pentru mai multe funcții',
-  ]);
+  const [activities, setActivities] = useState<string[]>([]);
+
+  const [activityFeedActivities, setActivityFeedActivities] = useState<string[]>([]);
+
+  // Notification settings
+  const [emailVerificationNotifications, setEmailVerificationNotifications] = useState(false);
+  const [socialPostNotifications, setSocialPostNotifications] = useState(false);
+  const [marketplaceNotifications, setMarketplaceNotifications] = useState(false);
+  const [followerNotifications, setFollowerNotifications] = useState(false);
 
   const [name, setName] = useState<string>(user?.name ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -491,12 +522,9 @@ export default function ProfileClient({
     <div className='min-h-screen flex flex-col lg:flex-row'>
       <div className='w-full flex flex-row items-start gap-4'>
         <aside className='hidden lg:block lg:basis-1/4 lg:flex-none lg:sticky lg:top-14 space-y-4 p-2'>
-          <ActivityFeed
-            activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
-            onLoadMore={() => toast.success('Încarcă mai multe notificări')}
-          />
+          <ActivityFeed activities={activityFeedActivities} onClear={() => setActivityFeedActivities([])} />
 
-          <RecentActivity activities={activities} />
+          <RecentActivity activities={activities} onClear={() => setActivities([])} />
 
           <QuickActions />
 
@@ -657,42 +685,80 @@ export default function ProfileClient({
                     value='verified'
                     defaultOpen={true}
                     icon={<CheckCircle className='h-4 w-4 mr-2 text-primary' />}
-                    title='Informații Verificate'
-                    progressValue={(userData.progress.verification / 2) * 100}
+                    title='Notificări Verificare Email'
+                    progressValue={userData.progress.verification * 100}
                     content={
                       <div className='space-y-4'>
                         <div className='flex items-start gap-2'>
                           <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
                           <p className='text-sm text-muted-foreground'>Email Verificat: {userData.verified.email ? 'Da' : 'Nu'}</p>
                         </div>
-                        <div className='flex items-start gap-2'>
-                          <CheckCircle className='h-4 w-4 text-primary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>
-                            Link-uri Sociale Verificate: {userData.verified.social ? 'Da' : 'Nu'}
-                          </p>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>Notificări pentru verificare email</span>
+                          <Switch
+                            checked={emailVerificationNotifications}
+                            onCheckedChange={(checked) => {
+                              setEmailVerificationNotifications(checked);
+                              const action = checked ? 'activat' : 'dezactivat';
+                              setActivityFeedActivities((prev) => [
+                                `Notificări pentru email verificare ${action} - ${new Date().toLocaleString()}`,
+                                ...prev.slice(0, 9),
+                              ]);
+                              toast.success(`Notificări pentru email verificare ${checked ? 'activat' : 'dezactivat'}`);
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Notificări Email</span>
+                            <span>{emailVerificationNotifications ? '1' : '0'}/1</span>
+                          </div>
+                          <Progress value={emailVerificationNotifications ? 100 : 0} className='h-2' />
                         </div>
                         <div>
                           <div className='flex justify-between text-xs mb-1'>
                             <span>Progres Verificare</span>
-                            <span>{userData.progress.verification}/2</span>
+                            <span>{userData.progress.verification}/1</span>
                           </div>
-                          <Progress value={(userData.progress.verification / 2) * 100} className='h-2' />
+                          <Progress value={userData.progress.verification * 100} className='h-2' />
                         </div>
                       </div>
                     }
                   />
 
                   <SettingsAccordion
-                    value='notifications'
+                    value='social-posts'
                     icon={<Bell className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Notificări Vânzări & Postări'
-                    isNotifications={true}
+                    title='Notificări Postări Sociale'
+                    showSecurityLevel={false}
                     content={
-                      <div className='flex items-start gap-2'>
-                        <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                        <p className='text-sm text-muted-foreground'>
-                          Gestionează notificări pentru oferte noi, comentarii pe postări și vânzări.
-                        </p>
+                      <div className='space-y-4'>
+                        <div className='flex items-start gap-2'>
+                          <Bell className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
+                          <p className='text-sm text-muted-foreground'>Gestionează notificări pentru feed, polls și stories.</p>
+                        </div>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>Notificări pentru postări sociale</span>
+                          <Switch
+                            checked={socialPostNotifications}
+                            onCheckedChange={(checked) => {
+                              setSocialPostNotifications(checked);
+                              const action = checked ? 'activat' : 'dezactivat';
+                              setActivityFeedActivities((prev) => [
+                                `Notificări pentru postări sociale ${action} - ${new Date().toLocaleString()}`,
+                                ...prev.slice(0, 9),
+                              ]);
+                              toast.success(`Notificări pentru postări sociale ${checked ? 'activat' : 'dezactivat'}`);
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Postări</span>
+                            <span>{userData.progress.posts}</span>
+                          </div>
+                          <Progress value={Math.min(userData.progress.posts, 100)} className='h-2' />
+                        </div>
                       </div>
                     }
                   />
@@ -700,46 +766,67 @@ export default function ProfileClient({
                   <SettingsAccordion
                     value='marketplace'
                     icon={<TrendingUp className='h-4 w-4 mr-2 text-primary' />}
-                    title='Setări Marketplace'
-                    progressValue={(userData.progress.verification / 2) * 100}
+                    title='Notificări Marketplace'
+                    showSecurityLevel={false}
                     content={
                       <div className='space-y-4'>
                         <div className='flex items-start gap-2'>
                           <TrendingUp className='h-4 w-4 text-primary mt-0.5 shrink-0' />
                           <p className='text-sm text-muted-foreground'>
-                            Configurează preferințe pentru listări (e.g., auto-aprobat vânzări, taxe).
+                            Notificări pentru vânzări, cumpărări, închirieri, licitații mașini.
                           </p>
                         </div>
-                        <div>
-                          <div className='flex justify-between text-xs mb-1'>
-                            <span>Postări</span>
-                            <span>{userData.progress.posts}/20</span>
-                          </div>
-                          <Progress value={(userData.progress.posts / 20) * 100} className='h-2' />
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>Notificări pentru marketplace</span>
+                          <Switch
+                            checked={marketplaceNotifications}
+                            onCheckedChange={(checked) => {
+                              setMarketplaceNotifications(checked);
+                              const action = checked ? 'activat' : 'dezactivat';
+                              setActivityFeedActivities((prev) => [
+                                `Notificări pentru marketplace ${action} - ${new Date().toLocaleString()}`,
+                                ...prev.slice(0, 9),
+                              ]);
+                              toast.success(`Notificări pentru marketplace ${checked ? 'activat' : 'dezactivat'}`);
+                            }}
+                          />
                         </div>
                       </div>
                     }
                   />
 
                   <SettingsAccordion
-                    value='privacy'
+                    value='followers'
                     icon={<Settings className='h-4 w-4 mr-2 text-secondary' />}
-                    title='Confidențialitate & Vânzări'
-                    progressValue={(userData.progress.verification / 2) * 100}
+                    title='Notificări Followers'
+                    progressValue={(userData.progress.friends / 10) * 100}
                     content={
                       <div className='space-y-4'>
                         <div className='flex items-start gap-2'>
                           <Settings className='h-4 w-4 text-secondary mt-0.5 shrink-0' />
-                          <p className='text-sm text-muted-foreground'>
-                            Controlează vizibilitatea profilului, setările pentru vânzări anonime și securitatea contului.
-                          </p>
+                          <p className='text-sm text-muted-foreground'>Notificări când cineva te urmărește sau interacționează.</p>
+                        </div>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>Notificări pentru followers</span>
+                          <Switch
+                            checked={followerNotifications}
+                            onCheckedChange={(checked) => {
+                              setFollowerNotifications(checked);
+                              const action = checked ? 'activat' : 'dezactivat';
+                              setActivityFeedActivities((prev) => [
+                                `Notificări pentru followers ${action} - ${new Date().toLocaleString()}`,
+                                ...prev.slice(0, 9),
+                              ]);
+                              toast.success(`Notificări pentru followers ${checked ? 'activat' : 'dezactivat'}`);
+                            }}
+                          />
                         </div>
                         <div>
                           <div className='flex justify-between text-xs mb-1'>
                             <span>Prieteni</span>
-                            <span>{userData.progress.friends}/10</span>
+                            <span>{userData.progress.friends}</span>
                           </div>
-                          <Progress value={(userData.progress.friends / 10) * 100} className='h-2' />
+                          <Progress value={Math.min(userData.progress.friends, 100)} className='h-2' />
                         </div>
                       </div>
                     }
@@ -751,11 +838,12 @@ export default function ProfileClient({
 
           <aside className='lg:hidden space-y-4 sm:space-y-6'>
             <ActivityFeed
-              activities={['Ai primit o ofertă nouă', 'Comentariu pe postarea ta', 'Urmărit de un nou utilizator']}
+              activities={activityFeedActivities}
               onLoadMore={() => console.log('Încarcă mai multe notificări')}
+              onClear={() => setActivityFeedActivities([])}
             />
 
-            <RecentActivity activities={activities} />
+            <RecentActivity activities={activities} onClear={() => setActivities([])} />
 
             <QuickActions />
 
@@ -816,13 +904,17 @@ export default function ProfileClient({
         open={securityDialogOpen}
         onOpenChange={setSecurityDialogOpen}
         onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
+        onTwoFactorChange={setTwoFactorEnabled}
+        initialTwoFactorEnabled={privacySettings.twoFactorEnabled ?? false}
+        onPrivacySettingsUpdate={(update) => setPrivacySettings((prev) => ({ ...prev, ...update }))}
       />
 
       <PrivacyDialog
         open={privacyDialogOpen}
         onOpenChange={setPrivacyDialogOpen}
         onActivityUpdate={(activity) => setActivities((prev) => [activity, ...prev.slice(0, 9)])}
-        initialPrivacySettings={user?.privacySettings}
+        initialPrivacySettings={privacySettings}
+        onPrivacySettingsUpdate={setPrivacySettings}
       />
 
       <VerificationDialog

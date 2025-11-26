@@ -273,23 +273,19 @@ export async function updatePrivacySettings(formData: FormData): Promise<{ succe
   const phonePublic = formData.get('phonePublic') === 'true';
   const locationPublic = formData.get('locationPublic') === 'true';
   const profileVisible = formData.get('profileVisible') === 'true';
+  const twoFactorEnabled = formData.get('twoFactorEnabled') === 'true';
 
   try {
     const users = db.collection('user');
-    await users.updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $set: {
-          privacySettings: {
-            emailPublic,
-            phonePublic,
-            locationPublic,
-            profileVisible,
-          },
-          updatedAt: new Date(),
-        },
-      }
-    );
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    
+    if (formData.has('emailPublic')) updateData['privacySettings.emailPublic'] = emailPublic;
+    if (formData.has('phonePublic')) updateData['privacySettings.phonePublic'] = phonePublic;
+    if (formData.has('locationPublic')) updateData['privacySettings.locationPublic'] = locationPublic;
+    if (formData.has('profileVisible')) updateData['privacySettings.profileVisible'] = profileVisible;
+    if (formData.has('twoFactorEnabled')) updateData['privacySettings.twoFactorEnabled'] = twoFactorEnabled;
+
+    await users.updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
 
     return { success: true };
   } catch (error) {
@@ -448,6 +444,12 @@ export async function claimReward(rewardId: string): Promise<{ success: boolean;
       } else {
         throw new Error('Reward already claimed');
       }
+    } else if (rewardId === 'badge-posts') {
+      if (!currentBadges.includes('Creator')) {
+        newBadge = 'Creator';
+      } else {
+        throw new Error('Reward already claimed');
+      }
     } else if (rewardId === 'badge-friends') {
       if (!currentBadges.includes('Prietenos')) {
         newBadge = 'Prietenos';
@@ -457,6 +459,12 @@ export async function claimReward(rewardId: string): Promise<{ success: boolean;
     } else if (rewardId === 'badge-verification') {
       if (!currentBadges.includes('Verificat')) {
         newBadge = 'Verificat';
+      } else {
+        throw new Error('Reward already claimed');
+      }
+    } else if (rewardId === 'premium-access') {
+      if (!currentBadges.includes('Premium')) {
+        newBadge = 'Premium';
       } else {
         throw new Error('Reward already claimed');
       }

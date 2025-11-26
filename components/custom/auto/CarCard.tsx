@@ -180,7 +180,7 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
       <CardDescription>
         {car.description && (
           <div
-            className='text-sm text-muted-foreground bg-muted/50 p-2 line-clamp-3 leading-[1.2] overflow-hidden px-4'
+            className='text-sm text-muted-foreground bg-muted/50 pt-2 line-clamp-3 leading-[1.4] overflow-hidden px-6'
             style={{ minHeight: 'calc(3 * 1.2em)' }}
             dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
           />

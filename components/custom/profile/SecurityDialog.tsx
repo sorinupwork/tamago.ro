@@ -16,16 +16,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { changePassword } from '@/actions/auth/actions';
+import { changePassword, updatePrivacySettings } from '@/actions/auth/actions';
 
 type SecurityDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActivityUpdate?: (activity: string) => void;
+  onTwoFactorChange?: (enabled: boolean) => void;
+  initialTwoFactorEnabled?: boolean;
+  onPrivacySettingsUpdate?: (settings: { twoFactorEnabled: boolean }) => void;
 };
 
-export default function SecurityDialog({ open, onOpenChange, onActivityUpdate }: SecurityDialogProps) {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+export default function SecurityDialog({ open, onOpenChange, onActivityUpdate, onTwoFactorChange, initialTwoFactorEnabled, onPrivacySettingsUpdate }: SecurityDialogProps) {
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(initialTwoFactorEnabled ?? false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -69,9 +72,12 @@ export default function SecurityDialog({ open, onOpenChange, onActivityUpdate }:
 
   const handleTwoFactorToggle = async (enabled: boolean) => {
     try {
-      // TODO: Implement 2FA API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const formData = new FormData();
+      formData.append('twoFactorEnabled', enabled.toString());
+      await updatePrivacySettings(formData);
       setTwoFactorEnabled(enabled);
+      onTwoFactorChange?.(enabled);
+      onPrivacySettingsUpdate?.({ twoFactorEnabled: enabled });
       const action = enabled ? 'activată' : 'dezactivată';
       toast.success(`Autentificarea în doi pași ${action}`);
       onActivityUpdate?.(`2FA ${action} - ${new Date().toLocaleString()}`);

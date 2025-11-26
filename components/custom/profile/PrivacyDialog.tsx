@@ -25,15 +25,24 @@ type PrivacyDialogProps = {
     phonePublic: boolean;
     locationPublic: boolean;
     profileVisible: boolean;
+    twoFactorEnabled?: boolean;
   };
+  onPrivacySettingsUpdate?: (settings: {
+    emailPublic: boolean;
+    phonePublic: boolean;
+    locationPublic: boolean;
+    profileVisible: boolean;
+    twoFactorEnabled?: boolean;
+  }) => void;
 };
 
-export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, initialPrivacySettings }: PrivacyDialogProps) {
+export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, initialPrivacySettings, onPrivacySettingsUpdate }: PrivacyDialogProps) {
   const [privacySettings, setPrivacySettings] = useState({
     emailPublic: initialPrivacySettings?.emailPublic ?? false,
     phonePublic: initialPrivacySettings?.phonePublic ?? false,
     locationPublic: initialPrivacySettings?.locationPublic ?? false,
     profileVisible: initialPrivacySettings?.profileVisible ?? true,
+    twoFactorEnabled: initialPrivacySettings?.twoFactorEnabled ?? false,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -44,6 +53,7 @@ export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, in
         phonePublic: initialPrivacySettings?.phonePublic ?? false,
         locationPublic: initialPrivacySettings?.locationPublic ?? false,
         profileVisible: initialPrivacySettings?.profileVisible ?? true,
+        twoFactorEnabled: initialPrivacySettings?.twoFactorEnabled ?? false,
       });
     }
   }, [open, initialPrivacySettings]);
@@ -53,6 +63,7 @@ export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, in
     phonePublic: initialPrivacySettings?.phonePublic ?? false,
     locationPublic: initialPrivacySettings?.locationPublic ?? false,
     profileVisible: initialPrivacySettings?.profileVisible ?? true,
+    twoFactorEnabled: initialPrivacySettings?.twoFactorEnabled ?? false,
   };
 
   const hasChanges = JSON.stringify(privacySettings) !== JSON.stringify(initialSettings);
@@ -65,10 +76,12 @@ export default function PrivacyDialog({ open, onOpenChange, onActivityUpdate, in
       formData.append('phonePublic', privacySettings.phonePublic.toString());
       formData.append('locationPublic', privacySettings.locationPublic.toString());
       formData.append('profileVisible', privacySettings.profileVisible.toString());
+      formData.append('twoFactorEnabled', privacySettings.twoFactorEnabled.toString());
 
       await updatePrivacySettings(formData);
       toast.success('Setările de confidențialitate au fost salvate!');
       onActivityUpdate?.(`Setări confidențialitate actualizate - ${new Date().toLocaleString()}`);
+      onPrivacySettingsUpdate?.(privacySettings);
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Eșec la salvarea setărilor');
