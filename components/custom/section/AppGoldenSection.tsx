@@ -71,9 +71,9 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
             </Link>
           </div>
           <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
-            <CardTitle className='text-white dark:text-black'>{post.title}</CardTitle>
+            <CardTitle className='text-white dark:text-black line-clamp-2'>{post.title}</CardTitle>
             <CardDescription className='text-white dark:text-black'>
-              <div dangerouslySetInnerHTML={{ __html: sanitizedDescs[index] || '' }} />
+              <div className='line-clamp-4' dangerouslySetInnerHTML={{ __html: sanitizedDescs[index] || '' }} />
             </CardDescription>
           </CardHeader>
         </Card>
