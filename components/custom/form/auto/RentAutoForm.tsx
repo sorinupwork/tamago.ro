@@ -252,6 +252,7 @@ export default function RentAutoForm({
             label='Locație'
             error={form.formState.errors.location?.address ? [{ message: form.formState.errors.location.address.message }] : undefined}
             required
+            showLabelDesc={false}
           />
 
           <DateRangePicker form={form} required />

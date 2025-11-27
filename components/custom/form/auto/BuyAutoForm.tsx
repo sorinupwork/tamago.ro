@@ -294,6 +294,7 @@ export default function BuyAutoForm({
             onClear={() => form.setValue('location', { lat: 0, lng: 0, address: '' })}
             label='Locație'
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
+            showLabelDesc={false}
           />
 
           <AppTextarea
@@ -440,6 +441,8 @@ export default function BuyAutoForm({
             />
           </div>
 
+          <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
+
           <AppTextarea
             value={form.watch('features')}
             onChange={(v) => form.setValue('features', v)}
@@ -448,8 +451,6 @@ export default function BuyAutoForm({
             error={form.formState.errors.features ? [form.formState.errors.features] : undefined}
             className='min-w-0 w-full wrap-break-word'
           />
-
-          <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
 
           <AppCollapsibleCheckboxGroup
             label='Opțiuni Adiționale'

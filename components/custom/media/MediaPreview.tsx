@@ -319,10 +319,6 @@ export default function MediaPreview({
                   <Share2 size={16} className='mr-1' />
                   <span className='hidden sm:inline'>Distribuie</span>
                 </Button>
-                <Button variant='outline' size='sm' onClick={handleDownload}>
-                  <Download size={16} className='mr-1' />
-                  <span className='hidden sm:inline'>Descarcă</span>
-                </Button>
               </div>
             )}
 
@@ -426,10 +422,6 @@ export default function MediaPreview({
                 <Button variant='outline' size='sm' onClick={handleShare}>
                   <Share2 size={16} className='mr-1' />
                   <span className='hidden sm:inline'>Distribuie</span>
-                </Button>
-                <Button variant='outline' size='sm' onClick={handleDownload}>
-                  <Download size={16} className='mr-1' />
-                  <span className='hidden sm:inline'>Descarcă</span>
                 </Button>
               </div>
             )}

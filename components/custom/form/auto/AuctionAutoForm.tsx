@@ -225,6 +225,7 @@ export default function AuctionAutoForm({
             label='Locație'
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
             required
+            showLabelDesc={false}
           />
 
           <AppInput

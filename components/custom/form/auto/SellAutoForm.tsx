@@ -216,6 +216,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
             required
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
             className='min-w-0 w-full'
+            showLabelDesc={false}
           />
 
           <AppTextarea

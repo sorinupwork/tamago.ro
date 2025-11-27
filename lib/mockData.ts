@@ -102,9 +102,9 @@ export const transmissionOptions = [
 ];
 
 export const iconOptions = [
-  { value: 'Wrench', label: 'Revizie' },
+  { value: 'Droplet', label: 'Revizie' },
   { value: 'FileText', label: 'RAR' },
-  { value: 'Droplet', label: 'Schimb Ulei' },
+  { value: 'Wrench', label: 'ITP' },
   { value: 'Calendar', label: 'Eveniment' },
   { value: 'Other', label: 'Altul' },
 ];
