@@ -81,7 +81,7 @@ const AppCheckbox: React.FC<AppCheckboxProps> = ({
     <Field orientation='horizontal' className={className}>
       <Checkbox id={htmlFor} checked={checked} onCheckedChange={(checked) => onChange?.(checked as boolean)} />
       {label && (
-        <FieldLabel className='font-normal cursor-default' onClick={() => onChange?.(!checked)}>
+        <FieldLabel lift={lift} className='font-normal cursor-default' onClick={() => onChange?.(!checked)}>
           {label}
         </FieldLabel>
       )}

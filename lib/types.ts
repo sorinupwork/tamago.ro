@@ -154,6 +154,7 @@ export type Car = CarSell | CarBuy | CarRent | CarAuction;
 export type Post = Car & {
   isNew?: boolean;
   verified?: boolean;
+  favoritesCount?: number;
 };
 
 // ============================================================================

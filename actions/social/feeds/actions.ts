@@ -290,13 +290,20 @@ export async function createPollAction(formData: FormData): Promise<void> {
 }
 
 export async function getFeedPosts(
-  params: { userId?: string; page?: number; limit?: number; type?: string; sortBy?: 1 | -1; tags?: string[] } = {}
+  params: { userId?: string; page?: number; limit?: number; type?: string; sortBy?: 1 | -1; tags?: string[]; search?: string } = {}
 ) {
   const page = Math.max(1, params.page || 1);
   const limit = Math.max(1, params.limit || 20);
   const filter: Record<string, unknown> = {};
   if (params.userId) filter.userId = params.userId;
   if (params.type && params.type !== 'both') filter.type = params.type;
+
+  // Add search filter if search query provided
+  if (params.search) {
+    const searchRegex = new RegExp(params.search, 'i');
+    filter.$or = [{ text: { $regex: searchRegex } }, { question: { $regex: searchRegex } }, { tags: { $in: [searchRegex] } }];
+  }
+
   const collection = db.collection('feeds');
   await collection.createIndex({ userId: 1 });
   const totalCount = await collection.countDocuments(filter);
@@ -435,4 +442,149 @@ export async function voteOnPollAction(pollId: string, optionIndex: number): Pro
   try {
     revalidateTag('feeds', {});
   } catch {}
+}
+
+export async function updateFeedPost(feedId: string, formData: FormData): Promise<{ success: boolean; message: string }> {
+  try {
+    const headersObj = await headers();
+    const session = await auth.api.getSession({ headers: headersObj });
+    if (!session?.user?.id) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const collection = db.collection('feeds');
+    const post = await collection.findOne({ _id: new ObjectId(feedId) });
+
+    if (!post) {
+      return { success: false, message: 'Feed post not found' };
+    }
+
+    if (post.userId !== session.user.id) {
+      return { success: false, message: 'Unauthorized: You can only edit your own posts' };
+    }
+
+    const data = {
+      text: (formData.get('text') as string) || '',
+      files: (formData.getAll('files') as File[]).filter(Boolean),
+      tags: (formData.getAll('tags') as string[]).filter(Boolean),
+    };
+
+    const validated = feedSchema.parse(data);
+
+    const files = (formData.getAll('files') as File[]).filter(Boolean);
+    let uploadedFiles = post.files || [];
+
+    if (files.length > 0) {
+      const newFiles = await uploadFilesToVercelBlob(files, session.user.id, feedId);
+      uploadedFiles = newFiles;
+    }
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(feedId) },
+      {
+        $set: {
+          text: validated.text,
+          files: uploadedFiles,
+          tags: validated.tags || [],
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return { success: false, message: 'Failed to update feed post' };
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/social');
+
+    return { success: true, message: 'Feed post updated successfully' };
+  } catch (error) {
+    console.error('Error updating feed post:', error);
+    return { success: false, message: 'An error occurred while updating the feed post' };
+  }
+}
+
+export async function updatePollPost(pollId: string, formData: FormData): Promise<{ success: boolean; message: string }> {
+  try {
+    const headersObj = await headers();
+    const session = await auth.api.getSession({ headers: headersObj });
+    if (!session?.user?.id) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const collection = db.collection('feeds');
+    const poll = await collection.findOne({ _id: new ObjectId(pollId), type: 'poll' });
+
+    if (!poll) {
+      return { success: false, message: 'Poll not found' };
+    }
+
+    if (poll.userId !== session.user.id) {
+      return { success: false, message: 'Unauthorized: You can only edit your own polls' };
+    }
+
+    const data = {
+      question: (formData.get('question') as string) || '',
+      options: (formData.getAll('options') as string[]).filter(Boolean).map((value) => ({ value })),
+    };
+
+    const validated = pollSchema.parse(data);
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(pollId) },
+      {
+        $set: {
+          question: validated.question,
+          options: validated.options.map((o) => o.value),
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return { success: false, message: 'Failed to update poll' };
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/social');
+
+    return { success: true, message: 'Poll updated successfully' };
+  } catch (error) {
+    console.error('Error updating poll:', error);
+    return { success: false, message: 'An error occurred while updating the poll' };
+  }
+}
+
+export async function deleteFeedPost(feedId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const headersObj = await headers();
+    const session = await auth.api.getSession({ headers: headersObj });
+    if (!session?.user?.id) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const collection = db.collection('feeds');
+    const post = await collection.findOne({ _id: new ObjectId(feedId) });
+
+    if (!post) {
+      return { success: false, message: 'Feed post not found' };
+    }
+
+    if (post.userId !== session.user.id) {
+      return { success: false, message: 'Unauthorized: You can only delete your own posts' };
+    }
+
+    const result = await collection.deleteOne({ _id: new ObjectId(feedId) });
+
+    if (result.deletedCount === 0) {
+      return { success: false, message: 'Failed to delete feed post' };
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/social');
+
+    return { success: true, message: 'Feed post deleted successfully' };
+  } catch (error) {
+    console.error('Error deleting feed post:', error);
+    return { success: false, message: 'An error occurred while deleting the feed post' };
+  }
 }

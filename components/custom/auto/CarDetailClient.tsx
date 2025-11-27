@@ -31,7 +31,7 @@ import AuctionBidders from '@/components/custom/section/AuctionBidders';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
 import Timeline from '@/components/custom/timeline/Timeline';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import type { Car, User } from '@/lib/types';
 
 type CarDetailClientProps = {

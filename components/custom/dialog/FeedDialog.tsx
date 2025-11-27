@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { FileText, Smile } from 'lucide-react';
 import Image from 'next/image';
-import sanitizeHtml from 'sanitize-html';
 import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -43,8 +42,6 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
     setFiles(newFiles);
     setUploaderKey((p) => p + 1);
   };
-
-  const sanitizedText = sanitizeHtml(text || '', { allowedTags: [], allowedAttributes: {} });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -235,7 +232,7 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
                     </div>
                   )}
 
-                  {sanitizedText && <p className='text-sm'>{sanitizedText}</p>}
+                  {text && <p className='text-sm'>{text}</p>}
                 </div>
               </div>
             )}

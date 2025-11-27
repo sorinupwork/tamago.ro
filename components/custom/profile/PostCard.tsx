@@ -1,68 +1,106 @@
 import Image from 'next/image';
-import { Edit, Trash, Eye, EyeOff } from 'lucide-react';
+import { Edit, Trash2, Eye, Heart } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { getPriceWithCurrency } from '@/lib/auto/helpers';
 import type { Post } from '@/lib/types';
+import SafeHtml from '@/components/custom/text/SafeHtml';
 
-export default function PostCard({
-  post,
-  onEdit,
-  onDelete,
-  onToggle,
-  onView,
-}: {
+type PostCardProps = {
   post: Post;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onToggle: (id: string, current?: Post['status']) => void;
+  onEdit: (post: Post) => void;
+  onDelete: (post: Post) => void;
   onView: (post: Post) => void;
-}) {
+};
+
+export default function PostCard({ post, onEdit, onDelete, onView }: PostCardProps) {
   const imageSrc = post.images?.[0] ?? '/placeholder.png';
   const isActive = post.status === 'active';
 
   return (
-    <Card className='hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-primary/20 hover:border-l-primary'>
-      <CardContent className='p-4'>
-        <div className='flex items-center gap-4'>
-          <div className='relative w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0'>
-            <Image src={imageSrc} alt={post.title} fill className='object-cover' sizes='80px' />
-          </div>
-
-          <div className='flex-1 min-w-0'>
-            <div className='flex items-start justify-between gap-2'>
-              <div className='min-w-0 flex-1'>
-                <h3 className='font-semibold text-sm truncate'>{post.title}</h3>
-                <p className='text-xs text-muted-foreground capitalize'>{post.category}</p>
-                <div className='flex items-center gap-2 mt-1'>
-                  <Badge variant={isActive ? 'default' : 'secondary'} className='text-xs'>
-                    {isActive ? 'Activ' : post.status === 'sold' ? 'Vândut' : 'Draft'}
-                  </Badge>
-                </div>
-              </div>
-              <div className='text-right shrink-0'>
-                <p className='font-bold text-sm'>
-                  {post.category === 'buy' && 'minPrice' in post ? `${post.minPrice} - ${post.maxPrice} ${post.currency || 'RON'}` : 'price' in post && post.price ? `${post.price} ${post.currency || 'RON'}` : 'Preț nedefinit'}
-                </p>
-                <span className='text-xs text-muted-foreground'>{post.views ?? 0} vizualizări</span>
-              </div>
+    <Card className='overflow-hidden hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-primary/20 hover:border-l-primary flex flex-col h-full'>
+      <CardContent className='p-4 flex flex-col h-full'>
+        <div className='flex flex-col h-full'>
+          <div className='space-y-3 flex-1'>
+          {/* Header with category and status */}
+          <div className='flex items-start justify-between gap-2'>
+            <div className='flex items-center gap-2'>
+              <Badge variant='outline' className='text-xs capitalize'>
+                {post.category}
+              </Badge>
+              <Badge variant={isActive ? 'default' : 'secondary'} className='text-xs'>
+                {isActive ? 'Activ' : post.status === 'sold' ? 'Vândut' : 'Draft'}
+              </Badge>
+            </div>
+            <div className='flex items-center gap-3'>
+              <span className='text-xs text-muted-foreground font-medium flex items-center gap-1'>
+                <Eye className='h-3 w-3' />
+                {post.views ?? 0}
+              </span>
+              {post.favoritesCount !== undefined && (
+                <span className='text-xs text-muted-foreground font-medium flex items-center gap-1'>
+                  <Heart className='h-3 w-3' />
+                  {post.favoritesCount}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className='flex items-center gap-1 shrink-0'>
-            <Button size='sm' variant='ghost' onClick={() => onView(post)} className='h-8 w-8 p-0'>
-              <Eye className='h-4 w-4' />
-            </Button>
-            <Button size='sm' variant='ghost' onClick={() => onEdit(post.id)} className='h-8 w-8 p-0'>
-              <Edit className='h-4 w-4' />
-            </Button>
-            <Button size='sm' variant='ghost' onClick={() => onToggle(post.id, post.status)} className='h-8 w-8 p-0'>
-              {isActive ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
-            </Button>
-            <Button size='sm' variant='destructive' onClick={() => onDelete(post.id)} className='h-8 w-8 p-0'>
-              <Trash className='h-4 w-4' />
-            </Button>
+          {/* Image */}
+          <div className='relative w-full h-48 rounded-lg overflow-hidden'>
+            <Image src={imageSrc} alt={post.title} fill className='object-cover' />
+          </div>
+
+          {/* Title and description */}
+          <div className='space-y-1'>
+            <h3 className='font-semibold text-sm line-clamp-2'>{post.title}</h3>
+            {post.description && <SafeHtml html={post.description} className='text-xs text-muted-foreground line-clamp-2' />}
+          </div>
+
+          {/* Price */}
+          <div className='border-t pt-2'>
+            <p className='font-bold text-sm'>{getPriceWithCurrency(post)}</p>
+          </div>
+
+          {/* Car details */}
+          <div className='grid grid-cols-2 gap-2 text-xs text-muted-foreground border-t pt-2'>
+            {post.year && <div>Year: {post.year}</div>}
+            {post.mileage !== undefined && <div>Mileage: {post.mileage.toLocaleString()} km</div>}
+            {post.fuel && <div>Fuel: {post.fuel}</div>}
+            {post.transmission && <div>Transmission: {post.transmission}</div>}
+          </div>
+
+          </div>
+
+          {/* Action buttons */}
+          <div className='flex items-center justify-between gap-2 border-t pt-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size='sm' variant='ghost' onClick={() => onView(post)} className='h-8 w-8 p-0'>
+                  <Eye className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Vizualizează</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size='sm' variant='ghost' onClick={() => onEdit(post)} className='h-8 w-8 p-0'>
+                  <Edit className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Editează</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size='sm' variant='destructive' onClick={() => onDelete(post)} className='h-8 w-8 p-0'>
+                  <Trash2 className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Șterge</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </CardContent>

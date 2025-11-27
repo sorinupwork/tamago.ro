@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
-import sanitizeHtml from 'sanitize-html';
 import { useRouter } from 'next/navigation';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -39,8 +38,6 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
     setFiles([]);
     setUploaderKey((p) => p + 1);
   };
-
-  const sanitizedCaption = sanitizeHtml(caption || '', { allowedTags: [], allowedAttributes: {} });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -144,9 +141,9 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
                     X
                   </Button>
                 </div>
-                {sanitizedCaption && (
+                {caption && (
                   <div className='border border-t-0 p-3 rounded-b-lg shadow-md'>
-                    <p className='text-sm font-semibold'>{sanitizedCaption}</p>
+                    <p className='text-sm font-semibold'>{caption}</p>
                   </div>
                 )}
               </div>

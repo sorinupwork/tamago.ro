@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
+import  SafeHtml  from '@/components/custom/text/SafeHtml';
 import CarHistoryHighlights from '@/components/custom/auto/CarHistoryHighlights';
 import type { PreviewData } from './CategoriesClient';
 
@@ -108,11 +109,7 @@ export default function Preview({
           </Carousel>
         )}
 
-        <p
-          className='prose prose-sm max-w-none w-full wrap-break-word overflow-wrap-break-word min-w-0 text-sm text-muted-foreground'
-          style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: description || 'Descriere...' }}
-        />
+        <SafeHtml html={description || 'Descriere...'} className='w-full text-sm text-muted-foreground' />
 
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
           <div className='text-sm'>

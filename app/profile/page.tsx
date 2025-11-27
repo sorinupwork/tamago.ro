@@ -32,6 +32,7 @@ export default async function Profile() {
       initialFeedTotal={feedsData.total}
       initialStoriesItems={storiesData.items}
       initialStoriesTotal={storiesData.total}
+      initialUserCars={userCarsData.posts}
       initialUserCarsTotal={userCarsData.total}
       initialBadges={userData?.badges || []}
       initialBio={userData?.bio || ''}

@@ -26,6 +26,7 @@ import FavoriteButton from '../button/FavoriteButton';
 import { useSession } from '@/lib/auth/auth-client';
 import { getFavorites } from '@/actions/auth/actions';
 import { reverseCategoryMapping } from '@/lib/categories';
+import { subcategories } from '@/lib/subcategories';
 
 type Item = {
   id: string;
@@ -37,8 +38,6 @@ type Item = {
 type FavoritesDrawerProps = {
   triggerIcon?: React.ReactNode;
   triggerText?: string;
-  filterOptions?: string[];
-  sortOptions?: string[];
   title?: string;
   description?: string;
   onOpenSearch?: () => void;
@@ -51,8 +50,6 @@ export default function FavoritesDrawer({
     </div>
   ),
   triggerText = 'Favorite',
-  filterOptions = ['all', 'Auto', 'Electronics', 'Home', 'Fashion', 'Sports', 'Books', 'Toys'],
-  sortOptions = ['title', 'none'],
   title = 'Favoritele tale',
   description = 'Vizualizează și gestionează articolele favorite.',
   onOpenSearch,
@@ -61,9 +58,12 @@ export default function FavoritesDrawer({
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<string[]>(['all']);
-  const [sort, setSort] = useState<string>('title');
+  const [sortByTitle, setSortByTitle] = useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
+
+  // Get filter options from subcategories
+  const filterOptions = ['all', ...subcategories.map((cat) => cat.title)];
 
   const fetchFavorites = useCallback(async () => {
     if (!session) {
@@ -100,7 +100,7 @@ export default function FavoritesDrawer({
 
   const filteredItems = items
     .filter((item) => filters.includes('all') || filters.includes(item.category))
-    .sort((a, b) => (sort === 'title' ? a.title.localeCompare(b.title) : 0));
+    .sort((a, b) => (sortByTitle ? a.title.localeCompare(b.title) : 0));
 
   const handleFilterChange = (option: string) => {
     if (option === 'all') {
@@ -141,24 +141,19 @@ export default function FavoritesDrawer({
                         onClick={() => handleFilterChange(option)}
                         disabled={!session}
                       >
-                        {option === 'all' ? 'All' : option}
+                        {option === 'all' ? 'Toate' : option}
                       </Button>
                     ))}
                   </div>
                 </ScrollArea>
-                <div className='flex gap-2'>
-                  {sortOptions.map((option) => (
-                    <Button
-                      key={option}
-                      variant={sort === option ? 'secondary' : 'outline'}
-                      size='sm'
-                      onClick={() => setSort(option)}
-                      disabled={!session}
-                    >
-                      {option === 'title' ? 'Sort by Title' : 'No Sort'}
-                    </Button>
-                  ))}
-                </div>
+                <Button
+                  variant={sortByTitle ? 'secondary' : 'outline'}
+                  size='sm'
+                  onClick={() => setSortByTitle(!sortByTitle)}
+                  disabled={!session}
+                >
+                  {sortByTitle ? 'Sortat după titlu' : 'Nesortate'}
+                </Button>
               </div>
 
               {filteredItems.length > 0 ? (

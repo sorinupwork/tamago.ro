@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Share2, Edit, LogOut, Calendar, Clock, BadgeCheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import sanitizeHtml from 'sanitize-html';
+import  SafeHtml  from '@/components/custom/text/SafeHtml';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -128,7 +128,7 @@ export default function HeaderProfile({
           </div>
           <CardDescription>
             <p className='text-muted-foreground'>{user?.email}</p>
-            <div className='text-sm max-w-full' dangerouslySetInnerHTML={{ __html: sanitizeHtml(userData.bio) }} />
+            <SafeHtml html={userData.bio} />
             {platforms.length > 0 && (
               <div className='flex flex-wrap gap-1 mt-2'>
                 {platforms.map((platform) => (

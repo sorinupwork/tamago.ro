@@ -18,7 +18,7 @@ import CarCard from '@/components/custom/auto/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { categoryMapping } from '@/lib/categories';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
@@ -37,7 +37,7 @@ import {
   statusMap,
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
-import { mapRawCarToPost } from '@/lib/auto/car-mapper';
+import { mapRawCarToPost } from '@/lib/auto/helpers'; 
 
 type AutoPageClientProps = {
   initialResult: Promise<{ items: RawCarDoc[]; total: number; hasMore: boolean }>;

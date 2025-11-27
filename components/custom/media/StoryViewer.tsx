@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { Play, Pause, X, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
-import sanitizeHtml from 'sanitize-html';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -18,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 import { getUserById } from '@/actions/auth/actions';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
+import  SafeHtml  from '@/components/custom/text/SafeHtml';
 
 type StoryViewerProps = {
   stories: StoryWithUser[];
@@ -377,9 +377,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, userId, initi
                     {currentStory.user?.name || 'Unknown'}
                   </Link>
                 </h2>
-                <p className='text-xs opacity-80 truncate'>
-                  {sanitizeHtml(currentStory.caption || 'No caption', { allowedTags: [], allowedAttributes: {} })}
-                </p>
+                <SafeHtml html={currentStory.caption} className='text-xs opacity-80 truncate' />
               </div>
             </div>
           </div>

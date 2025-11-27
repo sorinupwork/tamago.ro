@@ -1,3 +1,5 @@
+import { Search } from 'lucide-react';
+
 import { Card } from '@/components/ui/card';
 import AppInput from '@/components/custom/input/AppInput';
 import AppSelectInput from '@/components/custom/input/AppSelectInput';
@@ -23,7 +25,13 @@ export default function PostsFilters({
   sortBy,
   onSortChange,
 }: PostsFiltersProps) {
-  const categoryOptions = [{ value: 'all', label: 'Toate Categoriile' }];
+  const categoryOptions = [
+    { value: 'all', label: 'Toate Categoriile' },
+    { value: 'sell', label: 'Vânzare' },
+    { value: 'buy', label: 'Cumpărare' },
+    { value: 'auction', label: 'Licitație' },
+    { value: 'rent', label: 'Închiriere' },
+  ];
 
   const statusOptions = [
     { value: 'all', label: 'Toate Statusurile' },
@@ -46,6 +54,7 @@ export default function PostsFilters({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className='flex-1'
+          leftIcon={Search}
         />
         <AppSelectInput
           options={categoryOptions}

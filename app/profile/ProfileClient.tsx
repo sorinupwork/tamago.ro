@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Settings, Bell, TrendingUp, Lock, Eye } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,6 +18,8 @@ import ProgressBars from '@/components/custom/profile/ProgressBars';
 import SettingsAccordion from '@/components/custom/profile/SettingsAccordion';
 import HeaderProfile from '@/components/custom/profile/HeaderProfile';
 import PostsFilters from '@/components/custom/profile/PostsFilters';
+import FeedFilters from '@/components/custom/profile/FeedFilters';
+import StoriesFilters from '@/components/custom/profile/StoriesFilters';
 import RecentActivity from '@/components/custom/profile/RecentActivity';
 import RewardsCard from '@/components/custom/profile/RewardsCard';
 import StoriesGrid from '@/components/custom/profile/StoriesGrid';
@@ -27,10 +29,16 @@ import RewardsDialog from '@/components/custom/profile/RewardsDialog';
 import SecurityDialog from '@/components/custom/profile/SecurityDialog';
 import PrivacyDialog from '@/components/custom/profile/PrivacyDialog';
 import VerificationDialog from '@/components/custom/profile/VerificationDialog';
-import { getUserCars } from '@/actions/auto/actions';
-import { getFeedPosts } from '@/actions/social/feeds/actions';
-import { getStories } from '@/actions/social/stories/actions';
+import EditFeedDialog from '@/components/custom/profile/EditFeedDialog';
+import EditStoryDialog from '@/components/custom/profile/EditStoryDialog';
+import EditPostDialog from '@/components/custom/profile/EditPostDialog'; 
+import ConfirmDialog from '@/components/custom/dialog/ConfirmDialog';
+import { getUserCars, deletePost } from '@/actions/auto/actions';
+import { getFeedPosts, deleteFeedPost } from '@/actions/social/feeds/actions';
+import { getStories, deleteStory } from '@/actions/social/stories/actions';
 import { sendVerificationEmail, claimReward } from '@/actions/auth/actions';
+import { useDeleteAction } from '@/hooks/profile/useDeleteAction';
+import { reverseCategoryMapping } from '@/lib/categories';
 import type { User } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
 import type { Post, FeedPost, StoryPost } from '@/lib/types';
@@ -41,6 +49,7 @@ type ProfileClientProps = {
   initialFeedTotal?: number;
   initialStoriesItems?: StoryPost[];
   initialStoriesTotal?: number;
+  initialUserCars?: Post[];
   initialUserCarsTotal?: number;
   initialBadges?: string[];
   initialBio?: string;
@@ -60,6 +69,7 @@ type FeedQueryParams = {
   page: number;
   limit: number;
   type?: 'post' | 'poll';
+  search?: string;
 };
 
 const getTimeAgo = (date: Date | string) => {
@@ -80,6 +90,7 @@ export default function ProfileClient({
   initialFeedItems = [],
   initialFeedTotal = 0,
   initialStoriesItems = [],
+  initialUserCars = [],
   initialBadges = [],
   initialBio = '',
   initialFollowers = 0,
@@ -89,6 +100,7 @@ export default function ProfileClient({
   initialPrivacySettings,
 }: ProfileClientProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [emailVerified] = useState(Boolean(user?.emailVerified));
   const calculatedTotalCars = initialUserCarsTotal;
   const totalFriends = initialFollowers + initialFollowing;
@@ -233,6 +245,24 @@ export default function ProfileClient({
   const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
   const [verificationDialogOpen, setVerificationDialogOpen] = useState(false);
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteItemToConfirm, setDeleteItemToConfirm] = useState<{
+    id: string;
+    type: 'post' | 'feed' | 'story';
+    category?: string;
+  } | null>(null);
+  const { handleDelete, isLoading: isDeleting } = useDeleteAction();
+
+  // Edit dialog states
+  const [editFeedDialogOpen, setEditFeedDialogOpen] = useState(false);
+  const [editingFeedItem, setEditingFeedItem] = useState<FeedPost | null>(null);
+
+  const [editStoryDialogOpen, setEditStoryDialogOpen] = useState(false);
+  const [editingStory, setEditingStory] = useState<StoryPost | null>(null);
+
+  const [editPostDialogOpen, setEditPostDialogOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('createdAt');
@@ -330,16 +360,14 @@ export default function ProfileClient({
     }
   };
 
-  const [userCars, setUserCars] = useState<Post[] | null>(null);
-  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [userCars, setUserCars] = useState<Post[] | null>(initialUserCars.length > 0 ? initialUserCars : null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPosts, setTotalPosts] = useState(0);
+  const [totalPosts, setTotalPosts] = useState(initialUserCarsTotal);
   const POSTS_PER_PAGE = 3;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
   const handlePageChange = async (page: number) => {
     if (!user?.id || page === currentPage) return;
-    setLoadingPosts(true);
     try {
       const params = {
         userId: user.id,
@@ -357,8 +385,6 @@ export default function ProfileClient({
     } catch (err) {
       console.error(err);
       setUserCars([]);
-    } finally {
-      setLoadingPosts(false);
     }
   };
 
@@ -370,6 +396,10 @@ export default function ProfileClient({
 
   const [feedShowPosts, setFeedShowPosts] = useState(true);
   const [feedShowPolls, setFeedShowPolls] = useState(true);
+  const [feedSortBy, setFeedSortBy] = useState<string>('createdAt');
+  const [feedSearchQuery, setFeedSearchQuery] = useState<string>('');
+  const [feedSearchPending, setFeedSearchPending] = useState(false);
+
   const deriveFeedType = (posts: boolean, polls: boolean) => {
     if (posts && !polls) return 'post';
     if (!posts && polls) return 'poll';
@@ -381,12 +411,12 @@ export default function ProfileClient({
   const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
   const [clientStoriesTotal, setClientStoriesTotal] = useState(initialStoriesTotal || 0);
   const clientStoriesTotalPages = Math.max(1, Math.ceil((clientStoriesTotal || 0) / 3));
+  const [storiesSortBy, setStoriesSortBy] = useState<string>('createdAt');
 
   useEffect(() => {
     if (!user?.id) return;
     let mounted = true;
     async function load(page = 1, append = false) {
-      setLoadingPosts(true);
       try {
         const params = {
           userId: user.id,
@@ -406,8 +436,6 @@ export default function ProfileClient({
       } catch (err) {
         console.error(err);
         if (mounted) setUserCars([]);
-      } finally {
-        if (mounted) setLoadingPosts(false);
       }
     }
     load();
@@ -458,6 +486,28 @@ export default function ProfileClient({
     }
   };
 
+  const handleFeedSearch = async (query: string) => {
+    setFeedSearchQuery(query);
+    setFeedSearchPending(true);
+    try {
+      if (!user?.id) return;
+      const type = deriveFeedType(feedShowPosts, feedShowPolls);
+      const params: FeedQueryParams = { userId: user?.id, page: 1, limit: 3 };
+      if (type && type !== 'both') params.type = type;
+      if (query) {
+        (params as FeedQueryParams).search = query;
+      }
+      const res = await getFeedPosts(params);
+      setClientFeedItems(res.items);
+      setClientFeedTotal(res.total);
+      setClientFeedPage(1);
+    } catch (err) {
+      console.error('Error searching feed:', err);
+    } finally {
+      setFeedSearchPending(false);
+    }
+  };
+
   const shareProfile = () => {
     const profileUrl = `${window.location.origin}/profile/${user?.id || ''}`;
     if (navigator.share) {
@@ -472,20 +522,126 @@ export default function ProfileClient({
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    console.log('Delete not implemented yet for post:', postId);
-  };
-
-  const handleToggleActive = async (postId: string, current?: Post['status']) => {
-    console.log('Toggle not implemented yet for post:', postId, 'current status:', current);
-  };
-
-  const handleEditPost = (postId: string) => {
-    router.push(`/posts/${postId}/edit`);
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    setEditPostDialogOpen(true);
   };
 
   const handleViewPost = (post: Post) => {
-    router.push(`/categorii/auto/${post.category}/${post.id}`);
+    const romanianCategory = reverseCategoryMapping[post.category as keyof typeof reverseCategoryMapping];
+    router.push(`/categorii/auto/${romanianCategory}/${post.id}`);
+  };
+
+  const handleDeletePost = (post: Post) => {
+    setDeleteItemToConfirm({
+      id: post.id,
+      type: 'post',
+      category: post.category,
+    });
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleFeedViewItem = () => {
+    router.push('/social');
+  };
+
+  const handleFeedEditItem = (item: FeedPost) => {
+    setEditingFeedItem(item);
+    setEditFeedDialogOpen(true);
+  };
+
+  const handleFeedDeleteItem = (item: FeedPost) => {
+    setDeleteItemToConfirm({
+      id: item.id,
+      type: 'feed',
+    });
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleStoryViewItem = () => {
+    router.push('/social');
+  };
+
+  const handleStoryEditItem = (item: StoryPost) => {
+    setEditingStory(item);
+    setEditStoryDialogOpen(true);
+  };
+
+  const handleStoryDeleteItem = (item: StoryPost) => {
+    setDeleteItemToConfirm({
+      id: item.id,
+      type: 'story',
+    });
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteItemToConfirm) return;
+
+    const { id, type, category } = deleteItemToConfirm;
+
+    if (type === 'post' && category) {
+      await handleDelete(
+        () => deletePost(id, category),
+        async () => {
+          const params = {
+            userId: user.id,
+            ...(categoryFilter !== 'all' && { category: categoryFilter }),
+            ...(statusFilter !== 'all' && { status: statusFilter }),
+            sortBy,
+            ...(searchQuery && { search: searchQuery }),
+            page: currentPage,
+            limit: POSTS_PER_PAGE,
+          };
+          const data = await getUserCars(params);
+
+          if (data.posts.length === 0 && currentPage > 1) {
+            const lastPage = Math.max(1, Math.ceil(data.total / POSTS_PER_PAGE));
+            void handlePageChange(lastPage);
+          } else {
+            setUserCars(data.posts);
+            setTotalPosts(data.total);
+          }
+        }
+      );
+    } else if (type === 'feed') {
+      await handleDelete(
+        () => deleteFeedPost(id),
+        async () => {
+          const type = deriveFeedType(feedShowPosts, feedShowPolls);
+          const params: FeedQueryParams = { userId: user?.id, page: clientFeedPage, limit: 3 };
+          if (type && type !== 'both') params.type = type;
+          const res = await getFeedPosts(params);
+
+          if (res.items.length === 0 && clientFeedPage > 1) {
+            const lastPage = Math.max(1, Math.ceil(res.total / 3));
+            void handleFeedPageChange(lastPage, type !== 'both' ? type : undefined);
+          } else {
+            setClientFeedItems(res.items);
+            setClientFeedTotal(res.total);
+          }
+        }
+      );
+    } else if (type === 'story') {
+      await handleDelete(
+        () => deleteStory(id),
+        async () => {
+          const res = await getStories({ userId: user?.id, page: clientStoriesPage, limit: 3 });
+
+          if (res.items.length === 0 && clientStoriesPage > 1) {
+            const lastPage = Math.max(1, Math.ceil(res.total / 3));
+            void handleStoriesPageChange(lastPage);
+          } else {
+            setClientStoriesPage(clientStoriesPage);
+            setClientStories(res.items);
+            setClientStoriesTotal(res.total);
+          }
+        }
+      );
+    }
+
+    setDeleteConfirmOpen(false);
+    setDeleteItemToConfirm(null);
   };
 
   return (
@@ -581,36 +737,56 @@ export default function ProfileClient({
                 </div>
               </TabsContent>
 
-              <TabsContent value='feed'>
+              <TabsContent value='feed' className='space-y-6'>
+                <FeedFilters
+                  searchQuery={feedSearchQuery}
+                  onSearchChange={(value) => handleFeedSearch(value)}
+                  sortBy={feedSortBy}
+                  onSortChange={(value) => setFeedSortBy(value)}
+                  showPosts={feedShowPosts}
+                  showPolls={feedShowPolls}
+                  onFilterToggle={(which: 'posts' | 'polls', value: boolean) => {
+                    startTransition(() => {
+                      const nextShowPosts = which === 'posts' ? value : feedShowPosts;
+                      const nextShowPolls = which === 'polls' ? value : feedShowPolls;
+                      setFeedShowPosts(nextShowPosts);
+                      setFeedShowPolls(nextShowPolls);
+                      const newType = deriveFeedType(nextShowPosts, nextShowPolls);
+                      setClientFeedPage(1);
+                      void handleFeedPageChange(1, newType);
+                    });
+                  }}
+                />
+
                 <FeedGrid
-                  userId={user?.id}
                   initialItems={clientFeedItems}
-                  loadingMore={clientFeedLoading}
+                  loadingMore={clientFeedLoading || isPending || feedSearchPending}
                   currentPage={clientFeedPage}
                   totalPages={clientFeedTotalPages}
                   onPageChange={handleFeedPageChange}
                   showPosts={feedShowPosts}
                   showPolls={feedShowPolls}
-                  onFilterToggle={(which: 'posts' | 'polls', value: boolean) => {
-                    const nextShowPosts = which === 'posts' ? value : feedShowPosts;
-                    const nextShowPolls = which === 'polls' ? value : feedShowPolls;
-                    setFeedShowPosts(nextShowPosts);
-                    setFeedShowPolls(nextShowPolls);
-                    const newType = deriveFeedType(nextShowPosts, nextShowPolls);
-                    setClientFeedPage(1);
-                    void handleFeedPageChange(1, newType);
-                  }}
+                  sortBy={feedSortBy}
+                  searchQuery={feedSearchQuery}
+                  onView={handleFeedViewItem}
+                  onEdit={handleFeedEditItem}
+                  onDelete={handleFeedDeleteItem}
                 />
               </TabsContent>
 
               <TabsContent value='stories' className='space-y-6'>
+                <StoriesFilters sortBy={storiesSortBy} onSortChange={setStoriesSortBy} />
+
                 <StoriesGrid
-                  userId={user?.id}
                   initialItems={clientStories}
                   loadingMore={clientStoriesLoading}
                   currentPage={clientStoriesPage}
                   totalPages={clientStoriesTotalPages}
                   onPageChange={handleStoriesPageChange}
+                  sortBy={storiesSortBy}
+                  onView={handleStoryViewItem}
+                  onEdit={handleStoryEditItem}
+                  onDelete={handleStoryDeleteItem}
                 />
               </TabsContent>
 
@@ -631,12 +807,11 @@ export default function ProfileClient({
                     posts={userCars ?? []}
                     onEdit={handleEditPost}
                     onDelete={handleDeletePost}
-                    onToggle={handleToggleActive}
                     onView={handleViewPost}
-                    loadingMore={loadingPosts && currentPage > 1}
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
+                    loadingMore={isPending}
                   />
                 </div>
               </TabsContent>
@@ -897,6 +1072,65 @@ export default function ProfileClient({
         isEmailVerified={userData.verified.email}
         userEmail={user?.email ?? ''}
         onVerificationRequest={handleVerificationRequest}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title='Delete Confirmation'
+        description={
+          deleteItemToConfirm ? `Are you sure you want to delete this ${deleteItemToConfirm.type}? This action cannot be undone.` : ''
+        }
+        confirmText='Delete'
+        cancelText='Cancel'
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        variant='destructive'
+      />
+
+      <EditFeedDialog
+        open={editFeedDialogOpen}
+        onOpenChange={setEditFeedDialogOpen}
+        item={editingFeedItem}
+        onSuccess={async () => {
+          const type = deriveFeedType(feedShowPosts, feedShowPolls);
+          const params: FeedQueryParams = { userId: user?.id, page: clientFeedPage, limit: 3 };
+          if (type && type !== 'both') params.type = type;
+          const res = await getFeedPosts(params);
+          setClientFeedItems(res.items);
+          setClientFeedTotal(res.total);
+        }}
+      />
+
+      <EditStoryDialog
+        open={editStoryDialogOpen}
+        onOpenChange={setEditStoryDialogOpen}
+        story={editingStory}
+        onSuccess={async () => {
+          const res = await getStories({ userId: user?.id, page: clientStoriesPage, limit: 3 });
+          setClientStories(res.items);
+          setClientStoriesTotal(res.total);
+        }}
+      />
+
+      <EditPostDialog
+        open={editPostDialogOpen}
+        onOpenChange={setEditPostDialogOpen}
+        post={editingPost}
+        onSuccess={async () => {
+          const params = {
+            userId: user.id,
+            ...(categoryFilter !== 'all' && { category: categoryFilter }),
+            ...(statusFilter !== 'all' && { status: statusFilter }),
+            sortBy,
+            ...(searchQuery && { search: searchQuery }),
+            page: currentPage,
+            limit: POSTS_PER_PAGE,
+          };
+          const data = await getUserCars(params);
+          setUserCars(data.posts);
+          setTotalPosts(data.total);
+        }}
       />
     </div>
   );

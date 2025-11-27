@@ -1,6 +1,6 @@
 import { calculateDistance } from '@/lib/services';
 import type { Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
-import { getPriceNumeric, getMaxPriceNumeric } from './car-helpers';
+import { getPriceNumeric, getMaxPriceNumeric } from './helpers';
 import { defaultFilters } from './initializers';
 
 export function getFilteredCars(

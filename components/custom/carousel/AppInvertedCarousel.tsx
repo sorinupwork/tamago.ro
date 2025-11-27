@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { CarouselCard } from './CarouselCard';
-import { LuckyNumber } from '../LuckyNumber';
+import { LuckyNumber } from '../text/LuckyNumber';
 
 type Subcategory = {
   id: number;

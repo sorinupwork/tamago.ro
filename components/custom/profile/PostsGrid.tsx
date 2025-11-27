@@ -1,40 +1,52 @@
 import PostCard from './PostCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import type { Post } from '@/lib/types';
 
 export default function PostsGrid({
   posts,
   onEdit,
   onDelete,
-  onToggle,
   onView,
   currentPage,
   totalPages,
   onPageChange,
+  loadingMore = false,
 }: {
   posts: Post[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onToggle: (id: string, current?: Post['status']) => void;
+  onEdit: (post: Post) => void;
+  onDelete: (post: Post) => void;
   onView: (post: Post) => void;
-  loadingMore: boolean;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  loadingMore?: boolean;
 }) {
   return (
-    <div className='w-full'>
-      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-        {posts.map((p) => (
-          <PostCard key={p.id} post={p} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} onView={onView} />
-        ))}
-      </div>
+    <div className='w-full space-y-4'>
+      {loadingMore && posts.length === 0 ? (
+        <SkeletonLoading variant='feed' />
+      ) : (
+        <>
+          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
+            {posts.map((p) => (
+              <PostCard key={p.id} post={p} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+            ))}
+          </div>
 
-      {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
-        <div className='mt-4 flex justify-center'>
-          <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
-        </div>
-      ) : null}
+          {posts.length === 0 && (
+            <div className='text-center py-8'>
+              <p className='text-muted-foreground'>Nu sunt anunțuri postare</p>
+            </div>
+          )}
+
+          {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
+            <div className='mt-4 flex justify-center'>
+              <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+            </div>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

@@ -1,12 +1,13 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Post, RawCarDoc, CarHistoryItem, Car, CarBuy, CarSell, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
-import { mapRawCarToPost } from '@/lib/auto/car-mapper';
+import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import { mapRawCarToPost } from '@/lib/auto/helpers';
 import { auth } from '@/lib/auth/auth';
 
 type CarFetchParams = {
@@ -427,9 +428,18 @@ export async function getUserCars({
 
     const posts: Post[] = pageCars.map((carDoc) => mapRawCarToPost(carDoc, carDoc.carCategory));
 
+    // Fetch favorites count for each post
+    const favoritesCollection = db.collection('favorites');
+    const postsWithFavorites = await Promise.all(
+      posts.map(async (post) => {
+        const favoritesCount = await favoritesCollection.countDocuments({ itemId: post.id });
+        return { ...post, favoritesCount };
+      })
+    );
+
     const hasMore = page * limit < total;
 
-    return { posts, total, page, limit, hasMore };
+    return { posts: postsWithFavorites, total, page, limit, hasMore };
   } catch (error) {
     console.error('Error fetching user posts:', error);
     return { posts: [], total: 0, page, limit, hasMore: false };
@@ -567,5 +577,172 @@ export async function fetchCarsServerAction(params: {
   } catch (error) {
     console.error('[fetchCarsServerAction] ERROR:', error);
     return [];
+  }
+}
+
+export async function updatePost(
+  postId: string,
+  category: string,
+  data: (AutoSellFormData | AutoBuyFormData | AutoRentFormData | AutoAuctionFormData) & {
+    uploadedFiles: string[];
+    options?: string[];
+    history?: CarHistoryItem[];
+  }
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const categoryMappings: Record<string, string> = {
+      sell: 'sell_auto_cars',
+      buy: 'buy_auto_cars',
+      rent: 'rent_auto_cars',
+      auction: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (!collectionName) {
+      return { success: false, message: 'Invalid category' };
+    }
+
+    const collection = db.collection(collectionName);
+    const car = await collection.findOne({ _id: new ObjectId(postId) });
+
+    if (!car) {
+      return { success: false, message: 'Post not found' };
+    }
+
+    if (car.userId !== session.user.id) {
+      return { success: false, message: 'Unauthorized: You can only edit your own posts' };
+    }
+
+    // Build the shared update object - cast to any for accessing properties safely
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d = data as any;
+    
+    const sharedUpdateData: Record<string, unknown> = {
+      title: d.title,
+      description: d.description,
+      brand: d.brand,
+      year: parseInt(d.year),
+      mileage: normalizeNumberString(d.mileage),
+      fuel: d.fuel,
+      transmission: d.transmission,
+      color: d.color,
+      engineCapacity: normalizeNumberString(d.engineCapacity),
+      carType: d.carType,
+      horsePower: parseInt(d.horsePower),
+      traction: d.traction,
+      features: d.features || '',
+      images: d.uploadedFiles || [],
+      options: d.options || [],
+      history: d.history || [],
+      status: d.status,
+      currency: d.currency,
+    };
+
+    let updateData: Record<string, unknown> = sharedUpdateData;
+
+    if (category === 'sell') {
+      updateData = {
+        ...sharedUpdateData,
+        price: d.price,
+        location: d.location,
+      };
+    } else if (category === 'buy') {
+      updateData = {
+        ...sharedUpdateData,
+        minPrice: d.minPrice,
+        maxPrice: d.maxPrice,
+        location: d.location,
+        minMileage: normalizeNumberString(d.minMileage),
+        maxMileage: normalizeNumberString(d.maxMileage),
+        minYear: parseInt(d.minYear),
+        maxYear: parseInt(d.maxYear),
+        minEngineCapacity: normalizeNumberString(d.minEngineCapacity),
+        maxEngineCapacity: normalizeNumberString(d.maxEngineCapacity),
+      };
+    } else if (category === 'rent') {
+      updateData = {
+        ...sharedUpdateData,
+        price: d.price,
+        period: d.period,
+        startDate: d.startDate,
+        endDate: d.endDate,
+        withDriver: d.withDriver || false,
+        driverName: d.driverName,
+        driverContact: d.driverContact,
+        driverTelephone: d.driverTelephone,
+        location: d.location,
+      };
+    } else if (category === 'auction') {
+      updateData = {
+        ...sharedUpdateData,
+        price: d.price,
+        location: d.location,
+        endDate: d.endDate,
+      };
+    }
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(postId) },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return { success: false, message: 'Failed to update post' };
+    }
+
+    revalidatePath('/profile');
+    return { success: true, message: 'Post updated successfully' };
+  } catch (error) {
+    console.error('Error updating post:', error);
+    return { success: false, message: 'An error occurred while updating the post' };
+  }
+}
+
+export async function deletePost(postId: string, category: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const categoryMappings: Record<string, string> = {
+      sell: 'sell_auto_cars',
+      buy: 'buy_auto_cars',
+      rent: 'rent_auto_cars',
+      auction: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (!collectionName) {
+      return { success: false, message: 'Invalid category' };
+    }
+
+    const collection = db.collection(collectionName);
+    const car = await collection.findOne({ _id: new ObjectId(postId) });
+
+    if (!car) {
+      return { success: false, message: 'Post not found' };
+    }
+
+    if (car.userId !== session.user.id) {
+      return { success: false, message: 'Unauthorized: You can only delete your own posts' };
+    }
+
+    const result = await collection.deleteOne({ _id: new ObjectId(postId) });
+
+    if (result.deletedCount === 0) {
+      return { success: false, message: 'Failed to delete post' };
+    }
+
+    revalidatePath('/profile');
+    return { success: true, message: 'Post deleted successfully' };
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    return { success: false, message: 'An error occurred while deleting the post' };
   }
 }

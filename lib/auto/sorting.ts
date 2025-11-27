@@ -1,5 +1,5 @@
 import type { Car, SortCriteria } from '@/lib/types';
-import { getPriceNumeric } from './car-helpers';
+import { getPriceNumeric } from './helpers';
 
 export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
   const sorted = cars.slice();
