@@ -195,7 +195,7 @@ export default function MediaPreview({
         }
 
         return (
-          <div className='relative w-full h-[70vh] md:h-96 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center'>
+          <div className='relative w-full h-[70vh] md:h-96 overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center'>
             <div className='absolute inset-0 opacity-20'>
               <svg width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'>
                 <defs>
@@ -291,7 +291,6 @@ export default function MediaPreview({
     return item.type === 'image' ? <ImageIcon size={16} /> : <FileText size={16} />;
   };
 
-  const visiblePhotos = mediaItems.slice(0, maxPhotos);
   const remainingCount = mediaItems.length - maxPhotos;
 
   if (trigger) {
