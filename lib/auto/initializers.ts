@@ -13,7 +13,7 @@ export const defaultFilters: AutoFilterState = {
   priceRange: [0, 1000000],
   yearRange: [1900, 2025],
   mileageRange: [0, 1000000],
-  engineCapacityRange: [0, 10000],
+  engineCapacityRange: [0, 10],
   horsepowerRange: [0, 10000],
 };
 

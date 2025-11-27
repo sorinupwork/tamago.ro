@@ -4,17 +4,7 @@ import { Edit, Trash, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
-type Post = {
-  id: string;
-  title: string;
-  category: string;
-  price?: string | null;
-  currency?: string;
-  images?: string[];
-  status?: 'active' | 'sold' | 'draft';
-  views?: number;
-};
+import type { Post } from '@/lib/types';
 
 export default function PostCard({
   post,
@@ -52,7 +42,9 @@ export default function PostCard({
                 </div>
               </div>
               <div className='text-right shrink-0'>
-                <p className='font-bold text-sm'>{post.price ? `${post.price} ${post.currency || 'RON'}` : 'Preț nedefinit'}</p>
+                <p className='font-bold text-sm'>
+                  {post.category === 'buy' && 'minPrice' in post ? `${post.minPrice} - ${post.maxPrice} ${post.currency || 'RON'}` : 'price' in post && post.price ? `${post.price} ${post.currency || 'RON'}` : 'Preț nedefinit'}
+                </p>
                 <span className='text-xs text-muted-foreground'>{post.views ?? 0} vizualizări</span>
               </div>
             </div>

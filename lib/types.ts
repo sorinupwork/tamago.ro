@@ -1,92 +1,8 @@
 import { ObjectId } from 'mongodb';
 
-export type RawCarDoc = {
-  _id: ObjectId | string;
-  title?: string;
-  price?: string | number;
-  year?: string;
-  brand?: string;
-  mileage?: string;
-  fuel?: string;
-  transmission?: string;
-  location?: { lat: number; lng: number; address: string };
-  uploadedFiles?: string[];
-
-  images?: string[];
-  carType?: string;
-  color?: string;
-  engineCapacity?: string;
-  horsePower?: string;
-  horsepower?: number;
-
-  status?: string;
-  description?: string;
-  features?: string | string[];
-  period?: string;
-  startDate?: string;
-  endDate?: string;
-  currency?: string;
-  traction?: string;
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  options?: string[];
-  minPrice?: string;
-  maxPrice?: string;
-  dateAdded?: string;
-  sellerType?: string;
-  carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
-  userId?: string;
-  history?: CarHistoryItem[];
-
-  urlCategory?: string;
-  views?: number;
-};
-
-export type Car = {
-  id: string;
-  title: string;
-  price: string;
-  year: number;
-  brand: string;
-  mileage: number;
-  fuel: string;
-  transmission: string;
-  location: string;
-  images: string[];
-  color: string;
-  bodyType: string;
-  engineCapacity?: number;
-  horsepower?: number;
-  status?: string;
-  description?: string;
-  features?: string[];
-  period?: string;
-  startDate?: string;
-  endDate?: string;
-  currency?: string;
-  traction?: string;
-  withDriver?: boolean;
-  driverName?: string;
-  driverContact?: string;
-  driverTelephone?: string;
-  contactPhone: string;
-  contactEmail: string;
-  options?: string[];
-  minPrice?: string;
-  maxPrice?: string;
-  dateAdded: string;
-  sellerType: 'private' | 'firm';
-  category: 'sell' | 'buy' | 'rent' | 'auction';
-  userId?: string;
-  history?: CarHistoryItem[];
-
-  lat?: number;
-  lng?: number;
-};
+// ============================================================================
+// SHARED TYPES
+// ============================================================================
 
 export type CarHistoryItem = {
   id?: string;
@@ -96,24 +12,153 @@ export type CarHistoryItem = {
   year?: number;
 };
 
-export type Post = {
-  id: string;
-  title: string;
-  desc?: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  verified?: boolean;
-  isNew?: boolean;
-  imageUrl?: string;
-  category: string;
+export type FileObject = {
+  url: string;
+  key: string;
+  filename: string;
+  contentType?: string;
+  size: number;
+  thumbnailUrl?: string;
 };
 
-export type FeedPost = {
-  id: number;
-  user: User;
-  text: string;
-  image?: string;
-  likes: number;
+// ============================================================================
+// RAW MONGODB DOCUMENT (Database Layer)
+// ============================================================================
+
+export type RawCarDoc = {
+  _id: ObjectId | string;
+  title?: string;
+  description?: string;
+  price?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  minMileage?: number;
+  maxMileage?: number;
+  minYear?: number;
+  maxYear?: number;
+  minEngineCapacity?: number;
+  maxEngineCapacity?: number;
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+  currency?: string;
+  location?: string | { lat: number; lng: number; address: string };
+  year?: string | number;
+  brand?: string;
+  mileage?: string | number;
+  fuel?: string;
+  transmission?: string;
+  color?: string;
+  engineCapacity?: string | number;
+  carType?: string;
+  horsePower?: string | number;
+  status?: string;
+  features?: string | string[];
+  traction?: string;
+  uploadedFiles?: string[];
+  images?: string[];
+  options?: string[];
+  contactPhone?: string;
+  contactEmail?: string;
+  sellerType?: string;
+  userId?: string;
+  history?: CarHistoryItem[];
+  urlCategory?: string;
+  views?: number;
+  carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
 };
+
+// ============================================================================
+// CAR TYPES
+// ============================================================================
+
+type BaseCarProperties = {
+  id: string;
+  title: string;
+  description?: string;
+  location: string;
+  lat?: number;
+  lng?: number;
+  brand: string;
+  year: number;
+  mileage: number;
+  fuel: string;
+  transmission: string;
+  color: string;
+  bodyType: string;
+  horsePower?: number;
+  engineCapacity?: number;
+  traction?: string;
+  status?: string;
+  features?: string[];
+  images: string[];
+  options?: string[];
+  history?: CarHistoryItem[];
+  contactPhone: string;
+  contactEmail: string;
+  sellerType: 'private' | 'firm';
+  userId?: string;
+  views?: number;
+  createdAt: string;
+  currency?: string;
+};
+
+export type CarSell = BaseCarProperties & {
+  category: 'sell';
+  price: string;
+};
+
+export type CarBuy = BaseCarProperties & {
+  category: 'buy';
+  minPrice: string;
+  maxPrice: string;
+  minMileage?: number;
+  maxMileage?: number;
+  minYear?: number;
+  maxYear?: number;
+  minEngineCapacity?: number;
+  maxEngineCapacity?: number;
+};
+
+export type CarRent = BaseCarProperties & {
+  category: 'rent';
+  price: string;
+  period: string;
+  startDate: string;
+  endDate: string;
+  withDriver?: boolean;
+  driverName?: string;
+  driverContact?: string;
+  driverTelephone?: string;
+};
+
+export type CarAuction = BaseCarProperties & {
+  category: 'auction';
+  price: string;
+  endDate: string;
+  bids?: Array<{
+    userId: string;
+    amount: string;
+    timestamp: string;
+  }>;
+  currentBidder?: string;
+  currentBidAmount?: string;
+};
+
+export type Car = CarSell | CarBuy | CarRent | CarAuction;
+
+export type Post = Car & {
+  isNew?: boolean;
+  verified?: boolean;
+};
+
+// ============================================================================
+// SOCIAL FEED TYPES
+// ============================================================================
 
 export type Reaction = {
   likes: { total: number; userIds: string[] };
@@ -126,11 +171,27 @@ export type Reaction = {
   }[];
 };
 
+export type FeedPost = {
+  id: string;
+  type: 'post' | 'poll';
+  text?: string;
+  question?: string;
+  options?: string[];
+  files?: FileObject[];
+  createdAt: string;
+  tags?: string[];
+  userId?: string;
+  user: User | null;
+  reactions: Reaction;
+  votes?: number[];
+  votedUsers?: string[];
+};
+
 export type FeedItem = {
   id: string;
   type: 'post' | 'poll';
   text?: string;
-  files?: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string }[];
+  files?: FileObject[];
   tags?: string[];
   question?: string;
   options?: string[];
@@ -142,10 +203,10 @@ export type FeedItem = {
   reactions: Reaction;
 };
 
-export type StoryWithUser = {
+export type StoryPost = {
   id: string;
   caption: string;
-  files: { url: string; key: string; filename: string; contentType?: string; size: number; thumbnailUrl?: string }[];
+  files: FileObject[];
   createdAt: string;
   expiresAt: string;
   userId?: string;
@@ -153,13 +214,20 @@ export type StoryWithUser = {
   reactions: Reaction;
 };
 
-export type Subcategory = {
-  id: number;
-  title: string;
-  href: string;
-  description: string;
-  icon: React.ComponentType;
+export type StoryWithUser = StoryPost;
+
+export type Follows = {
+  id: string;
+  followerId: string;
+  followingId: string;
+  createdAt: string;
+  follower?: User;
+  following?: User;
 };
+
+// ============================================================================
+// USER & SESSION
+// ============================================================================
 
 export type User = {
   id: string;
@@ -170,7 +238,6 @@ export type User = {
   provider?: 'credentials' | 'google' | 'facebook' | 'instagram';
   avatar?: string;
   image?: string | null;
-
   coverImage?: string | null;
   emailVerified?: boolean | Date | string | null;
   createdAt?: Date | string;
@@ -184,21 +251,60 @@ export type User = {
   category?: string;
   location?: [number, number];
   address?: string;
-
   privacySettings?: {
     emailPublic: boolean;
     phonePublic: boolean;
     locationPublic: boolean;
     profileVisible: boolean;
   };
-
   videoUrl?: string;
+};
+
+export type Session = {
+  user?: User;
+  expires: string;
+  token?: string;
+};
+
+export type Favorites = {
+  id: string;
+  userId: string;
+  postId: string;
+  postType: 'car' | 'feed' | 'story';
+  createdAt: string;
+  user?: User;
+  car?: Car;
+  feedPost?: FeedPost;
+  storyPost?: StoryPost;
+};
+
+// ============================================================================
+// UI & FILTER
+// ============================================================================
+
+export type Subcategory = {
+  id: number;
+  title: string;
+  href: string;
+  description: string;
+  icon: React.ComponentType;
 };
 
 export type Message = {
   id: number;
   text: string;
   sender: 'me' | 'other';
+};
+
+export type LocationData = {
+  lat: number;
+  lng: number;
+  address: string;
+};
+
+export type LocationFilter = {
+  location: LocationData | null;
+  radius: number;
 };
 
 export type AutoFilterState = {
@@ -220,15 +326,4 @@ export type SortCriteria = {
   year: 'asc' | 'desc' | null;
   mileage: 'asc' | 'desc' | null;
   date: 'asc' | 'desc' | null;
-};
-
-export type LocationData = {
-  lat: number;
-  lng: number;
-  address: string;
-};
-
-export type LocationFilter = {
-  location: LocationData | null;
-  radius: number;
 };

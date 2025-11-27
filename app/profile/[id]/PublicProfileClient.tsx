@@ -11,19 +11,8 @@ import { toggleFollow } from '@/actions/auth/actions';
 import { getUserCars } from '@/actions/auto/actions';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
+import type { Post, FeedPost, StoryPost } from '@/lib/types';
 import sanitizeHtml from 'sanitize-html';
-
-type Post = {
-  id: string;
-  title: string;
-  category: string;
-  price?: string | null;
-  currency?: string;
-  images?: string[];
-  status?: 'active' | 'sold' | 'draft';
-  createdAt?: string;
-  views?: number;
-};
 
 type Session = {
   user: {
@@ -31,35 +20,6 @@ type Session = {
     name?: string;
     email?: string;
     image?: string | null;
-  };
-};
-
-type FeedItemLocal = {
-  id: string;
-  type: 'post' | 'poll';
-  text?: string;
-  question?: string;
-  options?: string[];
-  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string;
-  tags?: string[];
-  reactions?: {
-    likes: { total: number; userIds: string[] };
-    comments: unknown[];
-  };
-  votes?: number[];
-  votedUsers?: string[];
-};
-
-type StoryLocal = {
-  id: string;
-  caption?: string;
-  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string;
-  expiresAt: string;
-  reactions?: {
-    likes: { total: number; userIds: string[] };
-    comments: unknown[];
   };
 };
 
@@ -92,9 +52,9 @@ type User = {
 type PublicProfileClientProps = {
   session: Session | null;
   user: User;
-  initialFeedItems?: FeedItemLocal[];
+  initialFeedItems?: FeedPost[];
   initialFeedTotal?: number;
-  initialStoriesItems?: StoryLocal[];
+  initialStoriesItems?: StoryPost[];
   initialStoriesTotal?: number;
   initialPosts?: Post[];
   initialPostsTotal?: number;
@@ -115,15 +75,15 @@ export default function PublicProfileClient({
   initialIsFriend = false,
 }: PublicProfileClientProps) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isFriend, setIsFriend] = useState(initialIsFriend);
+  const [isFriend] = useState(initialIsFriend);
 
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [feeds, setFeeds] = useState<FeedItemLocal[]>(initialFeedItems);
-  const [stories, setStories] = useState<StoryLocal[]>(initialStoriesItems);
+  const [feeds, setFeeds] = useState<FeedPost[]>(initialFeedItems);
+  const [stories, setStories] = useState<StoryPost[]>(initialStoriesItems);
 
-  const [totalPosts, setTotalPosts] = useState(initialPostsTotal);
-  const [totalFeeds, setTotalFeeds] = useState(initialFeedTotal);
-  const [totalStories, setTotalStories] = useState(initialStoriesTotal);
+  const [totalPosts] = useState(initialPostsTotal);
+  const [totalFeeds] = useState(initialFeedTotal);
+  const [totalStories] = useState(initialStoriesTotal);
 
   const [postsPage, setPostsPage] = useState(1);
   const [feedsPage, setFeedsPage] = useState(1);
@@ -344,11 +304,15 @@ export default function PublicProfileClient({
                     <div className='p-4'>
                       <h3 className='font-semibold text-lg mb-2'>{post.title}</h3>
                       <p className='text-sm text-muted-foreground mb-1'>Category: {post.category}</p>
-                      {post.price && (
+                      {post.category === 'buy' && 'minPrice' in post ? (
+                        <p className='text-sm font-medium mb-1'>
+                          Price: {post.minPrice} - {post.maxPrice} {post.currency}
+                        </p>
+                      ) : 'price' in post && post.price ? (
                         <p className='text-sm font-medium mb-1'>
                           Price: {post.price} {post.currency}
                         </p>
-                      )}
+                      ) : null}
                       <p className='text-xs text-muted-foreground mb-3'>Status: {post.status}</p>
                       <Button onClick={() => handleViewPost(post)} size='sm' className='w-full'>
                         View Post

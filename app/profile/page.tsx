@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth/auth';
 import ProfileClient from './ProfileClient';
 import { getFeedPosts } from '@/actions/social/feeds/actions';
 import { getStories } from '@/actions/social/stories/actions';
+import { getUserCars } from '@/actions/auto/actions';
 import { getUserById, getFollowersCount, getFollowingCount } from '@/actions/auth/actions';
 
 export default async function Profile() {
@@ -15,12 +16,13 @@ export default async function Profile() {
 
   const userId = session?.user?.id;
   const LIMIT = 3;
-  const [feedsData, storiesData, userData, followersCount, followingCount] = await Promise.all([
+  const [feedsData, storiesData, userData, followersCount, followingCount, userCarsData] = await Promise.all([
     getFeedPosts({ userId, limit: LIMIT, page: 1 }),
     getStories({ userId, limit: LIMIT, page: 1 }),
     getUserById(userId!),
     getFollowersCount(userId!),
     getFollowingCount(userId!),
+    getUserCars({ userId: userId!, page: 1, limit: LIMIT }),
   ]);
 
   return (
@@ -30,11 +32,11 @@ export default async function Profile() {
       initialFeedTotal={feedsData.total}
       initialStoriesItems={storiesData.items}
       initialStoriesTotal={storiesData.total}
+      initialUserCarsTotal={userCarsData.total}
       initialBadges={userData?.badges || []}
       initialBio={userData?.bio || ''}
       initialFollowers={followersCount}
       initialFollowing={followingCount}
-      initialPostsTotal={feedsData.total}
       initialPrivacySettings={userData?.privacySettings}
     />
   );

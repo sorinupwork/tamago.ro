@@ -1,16 +1,6 @@
 import PostCard from './PostCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
-
-type Post = {
-  id: string;
-  title: string;
-  category: string;
-  price?: string | null;
-  currency?: string;
-  images?: string[];
-  status?: 'active' | 'sold' | 'draft';
-  views?: number;
-};
+import type { Post } from '@/lib/types';
 
 export default function PostsGrid({
   posts,

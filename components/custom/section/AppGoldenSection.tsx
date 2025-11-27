@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ShareButton from '../button/ShareButton';
 import { Post } from '@/lib/types';
+import { reverseCategoryMapping } from '@/lib/categories';
 
 type AppGoldenSectionProps = {
   title: string;
@@ -18,22 +19,38 @@ type AppGoldenSectionProps = {
 
 export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps) {
   const sanitizedDescs = useMemo(() => {
-    return posts.map((p) => sanitizeHtml(p?.desc || ''));
+    return posts.map((p) => sanitizeHtml(p?.description || ''));
   }, [posts]);
+
+  const isPostVerified = (post: Post): boolean => {
+    if (!post.userId) return false;
+    return post.verified ?? false;
+  };
+
+  const isPostNew = (post: Post): boolean => {
+    if (!post.createdAt) return false;
+    const postDate = new Date(post.createdAt);
+    const now = new Date();
+    const hoursAgo = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60);
+    return hoursAgo < 24;
+  };
 
   const renderCard = (post: Post | undefined, index: number, className: string) => {
     if (!post) return null;
+    const isVerified = isPostVerified(post);
+    const isNew = isPostNew(post);
+
     return (
       <div
         className={`relative ring-4 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg ${className}`}
       >
-        {post.verified && (
+        {isVerified && (
           <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
             <BadgeCheckIcon className='w-4 h-4 mr-1' />
             Verificat
           </Badge>
         )}
-        {post.isNew && (
+        {isNew && (
           <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
             Nou
           </Badge>
@@ -41,11 +58,13 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
         <Card
           key={post.id}
           className='h-full relative bg-cover bg-center cursor-default'
-          style={{ backgroundImage: `url(${post.imageUrl})` }}
+          style={{ backgroundImage: `url(${post.images[0]})` }}
         >
           <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
-            <ShareButton href={`/categorii/auto/${post.category}/${post.id}`} />
-            <Link href={`/categorii/auto/${post.category}/${post.id}`}>
+            <ShareButton
+              href={`/categorii/auto/${reverseCategoryMapping[post.category as keyof typeof reverseCategoryMapping]}/${post.id}`}
+            />
+            <Link href={`/categorii/auto/${reverseCategoryMapping[post.category as keyof typeof reverseCategoryMapping]}/${post.id}`}>
               <Button variant='outline' className='bg-white/80 dark:bg-black/80 text-black dark:text-white'>
                 Detalii <ArrowRightIcon className='w-4 h-4 ml-1' />
               </Button>

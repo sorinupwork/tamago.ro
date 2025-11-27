@@ -1,5 +1,6 @@
 import { calculateDistance } from '@/lib/services';
 import type { Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import { getPriceNumeric, getMaxPriceNumeric } from './car-helpers';
 import { defaultFilters } from './initializers';
 
 export function getFilteredCars(
@@ -11,43 +12,42 @@ export function getFilteredCars(
   locationFilter: LocationFilter
 ): Car[] {
   let filtered = cars.slice();
-  const parsePrice = (val?: string) => {
-    if (!val) return 0;
-    const s = String(val).trim();
-    const hasComma = s.indexOf(',') !== -1;
-    const hasDot = s.indexOf('.') !== -1;
-    try {
-      if (hasComma && hasDot) {
-        return parseFloat(s.replace(/\./g, '').replace(/,/g, '.')) || 0;
-      }
-      if (hasDot && !hasComma) {
-        const parts = s.split('.');
-        if (parts.length > 1 && parts[1].length === 3) {
-          return parseFloat(s.replace(/\./g, '')) || 0;
-        }
-        return parseFloat(s) || 0;
-      }
-      if (hasComma && !hasDot) {
-        return parseFloat(s.replace(/,/g, '.')) || 0;
-      }
-      return parseFloat(s) || 0;
-    } catch (e) {
-      return 0;
-    }
-  };
+
   filtered = filtered.filter(
     (car) => (car.engineCapacity || 0) >= filters.engineCapacityRange[0] && (car.engineCapacity || 0) <= filters.engineCapacityRange[1]
   );
+
   filtered = filtered.filter(
-    (car) => (car.horsepower || 0) >= filters.horsepowerRange[0] && (car.horsepower || 0) <= filters.horsepowerRange[1]
+    (car) => (car.horsePower || 0) >= filters.horsepowerRange[0] && (car.horsePower || 0) <= filters.horsepowerRange[1]
   );
+
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
+
   filtered = filtered.filter((car) => {
-    const priceNum = parsePrice(car.price);
-    return priceNum >= filters.priceRange[0] && priceNum <= filters.priceRange[1];
+    const minPrice = getPriceNumeric(car);
+    const maxPrice = getMaxPriceNumeric(car);
+    return !(maxPrice < filters.priceRange[0] || minPrice > filters.priceRange[1]);
   });
-  filtered = filtered.filter((car) => car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1]);
-  filtered = filtered.filter((car) => car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1]);
+
+  filtered = filtered.filter((car) => {
+    if (car.category === 'buy') {
+      const carMinYear = car.minYear || filters.yearRange[0];
+      const carMaxYear = car.maxYear || filters.yearRange[1];
+      return !(carMaxYear < filters.yearRange[0] || carMinYear > filters.yearRange[1]);
+    } else {
+      return car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1];
+    }
+  });
+
+  filtered = filtered.filter((car) => {
+    if (car.category === 'buy') {
+      const carMinMileage = car.minMileage || filters.mileageRange[0];
+      const carMaxMileage = car.maxMileage || filters.mileageRange[1];
+      return !(carMaxMileage < filters.mileageRange[0] || carMinMileage > filters.mileageRange[1]);
+    } else {
+      return car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1];
+    }
+  });
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
   if (searchQuery)
     filtered = filtered.filter(
@@ -61,14 +61,13 @@ export function getFilteredCars(
 
   const loc = locationFilter.location;
   if (loc) {
-
     filtered = filtered.filter((car) => {
       if (car.lat && car.lng) {
         const distance = calculateDistance(loc.lat, loc.lng, car.lat, car.lng);
- 
+
         return distance <= locationFilter.radius;
       }
-   
+
       return true;
     });
   }

@@ -1,4 +1,5 @@
 import type { Car, SortCriteria } from '@/lib/types';
+import { getPriceNumeric } from './car-helpers';
 
 export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
   const sorted = cars.slice();
@@ -8,15 +9,14 @@ export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
     if (sortCriteria.date) {
       result =
         sortCriteria.date === 'asc'
-          ? new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime()
-          : new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       if (result !== 0) return result;
     }
     if (sortCriteria.price) {
-      result =
-        sortCriteria.price === 'asc'
-          ? parseFloat(a.price.replace(/\./g, '')) - parseFloat(b.price.replace(/\./g, ''))
-          : parseFloat(b.price.replace(/\./g, '')) - parseFloat(a.price.replace(/\./g, ''));
+      const aPrice = getPriceNumeric(a);
+      const bPrice = getPriceNumeric(b);
+      result = sortCriteria.price === 'asc' ? aPrice - bPrice : bPrice - aPrice;
       if (result !== 0) return result;
     }
     if (sortCriteria.year) {

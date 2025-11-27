@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useTransition } from 'react';
 import Image from 'next/image';
+import { useState, useRef, useTransition } from 'react';
 import { Phone, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
@@ -34,16 +34,14 @@ import Timeline from '@/components/custom/timeline/Timeline';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { Car, User } from '@/lib/types';
 
-interface CarDetailClientProps {
+type CarDetailClientProps = {
   car: Car;
   similarCars: Car[];
   queryString: string;
-}
+};
 
-export default function CarDetailClient({ car: initialCar, similarCars, queryString }: CarDetailClientProps) {
+export default function CarDetailClient({ car, similarCars, queryString }: CarDetailClientProps) {
   const [isPending, startTransition] = useTransition();
-
-  const car = initialCar;
   const [imageSrcs, setImageSrcs] = useState<string[]>(car.images.map((img) => img || '/placeholder.svg'));
   const [bidAmount, setBidAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -88,7 +86,12 @@ export default function CarDetailClient({ car: initialCar, similarCars, queryStr
   const handleBid = () => {
     startTransition(async () => {
       const bid = parseInt(bidAmount);
-      if (isNaN(bid) || bid <= parseFloat(car.price.replace(/\./g, ''))) {
+      if (car.category !== 'auction') {
+        toast.error('Doar asta pot fi lichitate.');
+        return;
+      }
+      const currentPrice = parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.'));
+      if (isNaN(bid) || bid <= currentPrice) {
         toast.error('Suma licitației trebuie să fie mai mare decât prețul curent.');
         return;
       }
@@ -248,14 +251,7 @@ export default function CarDetailClient({ car: initialCar, similarCars, queryStr
               </div>
 
               <p className='text-4xl font-bold text-primary'>
-                {car.currency}{' '}
-                {isBuy
-                  ? car.minPrice && car.maxPrice
-                    ? `${car.minPrice} - ${car.maxPrice}`
-                    : car.price
-                  : isRent
-                    ? `${car.price}/${car.period || ''}`
-                    : car.price}
+                {car.currency} {isBuy ? `${car.minPrice} - ${car.maxPrice}` : isRent ? `${car.price}/${car.period || ''}` : car.price}
               </p>
               {isAuction && (
                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
@@ -339,7 +335,7 @@ export default function CarDetailClient({ car: initialCar, similarCars, queryStr
                   </p>
                 </div>
               )}
-              <p className='text-xs text-muted-foreground mt-4'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
+              <p className='text-xs text-muted-foreground mt-4'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
             </CardContent>
           </Card>
 
@@ -367,13 +363,19 @@ export default function CarDetailClient({ car: initialCar, similarCars, queryStr
                     placeholder='Suma licitației'
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    min={parseFloat(car.price.replace(/\./g, '')) + 1}
+                    min={car.category === 'auction' ? parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.')) + 1 : 0}
                     step={1}
                     disabled={isPending}
                   />
                   <Button
                     onClick={handleBid}
-                    disabled={!bidAmount || parseInt(bidAmount) <= parseFloat(car.price.replace(/\\./, '')) || isPending}
+                    disabled={
+                      !bidAmount ||
+                      (car.category === 'auction'
+                        ? parseInt(bidAmount) <= parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.'))
+                        : true) ||
+                      isPending
+                    }
                   >
                     Licitează
                   </Button>

@@ -6,7 +6,7 @@ type CarDetailsAccordionProps = {
   car: Car;
 };
 
-export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
+export default function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
   const statusMap = { new: 'Nou', used: 'Second hand', damaged: 'Deteriorat' };
   const statusLabel = statusMap[car.status as keyof typeof statusMap] || car.status;
   const details = [
@@ -17,7 +17,7 @@ export function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
     ...(car.year ? [{ icon: Calendar, label: 'An', value: car.year }] : []),
     ...(car.mileage ? [{ icon: Gauge, label: 'Km', value: car.mileage }] : []),
     ...(car.engineCapacity ? [{ icon: Settings, label: 'Capacitate Motor', value: `${car.engineCapacity} cc` }] : []),
-    ...(car.horsepower ? [{ icon: Zap, label: 'Putere', value: `${car.horsepower} CP` }] : []),
+    ...(car.horsePower ? [{ icon: Zap, label: 'Putere', value: `${car.horsePower} CP` }] : []),
     { icon: Settings, label: 'Transmisie', value: car.transmission },
   ];
 

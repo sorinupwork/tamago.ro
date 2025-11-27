@@ -12,42 +12,27 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { categories } from '@/lib/categories';
 import FavoriteButton from '../button/FavoriteButton';
 import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
-import { getUserById } from '@/actions/auth/actions';
-import type { Car } from '@/lib/types';
 import CarHistoryHighlights from './CarHistoryHighlights';
-import { CarDetailsAccordion } from './CarDetailsAccordion';
+import CarDetailsAccordion from './CarDetailsAccordion';
+import { getUserById } from '@/actions/auth/actions';
+import { categories, reverseCategoryMapping } from '@/lib/categories';
+import type { Car, User } from '@/lib/types';
 
 type CarCardProps = {
   car: Car;
   cardsPerPage?: number;
 };
 
-type User = {
-  id: string;
-  name?: string;
-  avatar?: string;
-  emailVerified?: boolean;
-};
-
 export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
-
-  const categoryMap = {
-    sell: 'oferta',
-    buy: 'cerere',
-    rent: 'inchiriere',
-    auction: 'licitatie',
-  };
-  const urlCategory = categoryMap[car.category as keyof typeof categoryMap] || car.category;
-
+  const urlCategory = reverseCategoryMapping[car.category as keyof typeof reverseCategoryMapping] || car.category;
   const href = `/categorii/auto/${urlCategory}/${car.id}${queryString ? '?' + queryString : ''}`;
-
   const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
     if (car.userId) {
       getUserById(car.userId).then((fetchedUser) => {
@@ -55,6 +40,7 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
           fetchedUser
             ? {
                 id: fetchedUser._id.toString(),
+                email: fetchedUser.email,
                 name: fetchedUser.name,
                 avatar: fetchedUser.image,
                 emailVerified: fetchedUser.emailVerified,
@@ -79,10 +65,8 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
   };
 
   const buttonText = getButtonText();
-
   const sanitizedDescription = useMemo(() => sanitizeHtml(car.description || ''), [car.description]);
   const categoryLabel = categories.find((cat) => cat.key === car.category)?.label || car.category;
-
   const aspectClass = cardsPerPage === 1 ? 'aspect-4/1' : cardsPerPage === 2 ? 'aspect-4/2' : 'aspect-4/3';
 
   return (
@@ -119,9 +103,7 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
               <p className='text-xl md:text-2xl font-extrabold text-green-600 mb-2'>
                 {car.currency}{' '}
                 {car.category === 'buy'
-                  ? car.minPrice && car.maxPrice
-                    ? `${car.minPrice} - ${car.maxPrice}`
-                    : car.price
+                  ? `${car.minPrice} - ${car.maxPrice}`
                   : car.category === 'rent'
                     ? `${car.price}/${car.period || 'zi'}`
                     : car.price}
@@ -206,7 +188,7 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
         )}
 
         <div className='flex justify-between items-center mt-auto pt-4'>
-          <p className='text-xs md:text-sm text-muted-foreground'>Adăugat: {new Date(car.dateAdded).toLocaleDateString('ro-RO')}</p>
+          <p className='text-xs md:text-sm text-muted-foreground'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
           <Link key={car.id} href={href} className='cursor-default'>
             <Button variant='link' className='w-auto'>
               {buttonText} <ArrowRight className='ml-2 h-4 w-4' />

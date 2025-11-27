@@ -175,7 +175,7 @@ export default function MapComponent({
                           {car.brand} - {car.year}
                         </p>
                         <p className='text-sm font-medium text-green-600'>
-                          {car.currency} {car.price}
+                          {car.currency} {car.category === 'buy' ? `${car.minPrice} - ${car.maxPrice}` : car.category === 'rent' ? `${car.price}/${car.period || 'zi'}` : car.price}
                         </p>
                         <p className='text-xs text-muted-foreground truncate'>{car.location}</p>
                       </div>

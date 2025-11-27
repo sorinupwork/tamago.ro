@@ -33,49 +33,19 @@ import { getStories } from '@/actions/social/stories/actions';
 import { sendVerificationEmail, claimReward } from '@/actions/auth/actions';
 import type { User } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
-
-type Post = {
-  id: string;
-  title: string;
-  category: string;
-  price?: string | null;
-  currency?: string;
-  images?: string[];
-  status?: 'active' | 'sold' | 'draft';
-  createdAt?: string;
-  views?: number;
-};
-
-type FeedItemLocal = {
-  id: string;
-  type: 'post' | 'poll';
-  text?: string;
-  question?: string;
-  options?: string[];
-  files?: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string;
-  tags?: string[];
-};
-
-type StoryLocal = {
-  id: string;
-  caption?: string;
-  files: { url: string; key: string; filename: string; contentType?: string; size: number }[];
-  createdAt: string;
-  expiresAt: string;
-};
+import type { Post, FeedPost, StoryPost } from '@/lib/types';
 
 type ProfileClientProps = {
   user: User;
-  initialFeedItems?: FeedItemLocal[];
+  initialFeedItems?: FeedPost[];
   initialFeedTotal?: number;
-  initialStoriesItems?: StoryLocal[];
+  initialStoriesItems?: StoryPost[];
   initialStoriesTotal?: number;
+  initialUserCarsTotal?: number;
   initialBadges?: string[];
   initialBio?: string;
   initialFollowers?: number;
   initialFollowing?: number;
-  initialPostsTotal?: number;
   initialPrivacySettings?: {
     emailPublic: boolean;
     phonePublic: boolean;
@@ -114,13 +84,13 @@ export default function ProfileClient({
   initialBio = '',
   initialFollowers = 0,
   initialFollowing = 0,
-  initialPostsTotal = 0,
+  initialUserCarsTotal = 0,
   initialStoriesTotal = 0,
   initialPrivacySettings,
 }: ProfileClientProps) {
   const router = useRouter();
   const [emailVerified] = useState(Boolean(user?.emailVerified));
-  const calculatedTotalPosts = initialPostsTotal + initialStoriesTotal;
+  const calculatedTotalCars = initialUserCarsTotal;
   const totalFriends = initialFollowers + initialFollowing;
   const verificationCount = emailVerified ? 1 : 0;
   const [privacySettings, setPrivacySettings] = useState(
@@ -139,13 +109,13 @@ export default function ProfileClient({
       (privacySettings.profileVisible ? 1 : 0)) *
     5;
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(initialPrivacySettings?.twoFactorEnabled ?? false);
-  const cappedPosts = Math.min(calculatedTotalPosts, 4);
+  const cappedCars = Math.min(calculatedTotalCars, 4);
   const cappedFriends = Math.min(totalFriends, 10);
-  const points = (cappedPosts + cappedFriends + verificationCount) * 5 + privacyPoints + (twoFactorEnabled ? 5 : 0);
+  const points = (cappedCars + cappedFriends + verificationCount) * 5 + privacyPoints + (twoFactorEnabled ? 5 : 0);
   const [userData, setUserData] = useState({
     badges: initialBadges,
     progress: {
-      posts: calculatedTotalPosts,
+      posts: calculatedTotalCars,
       friends: totalFriends,
       points: points,
       verification: verificationCount,
@@ -153,7 +123,7 @@ export default function ProfileClient({
     rewards: { freePosts: 4, premiumAccess: false },
     verified: { email: initialBadges.includes('Email Verificat'), social: initialBadges.includes('Social') },
     bio: initialBio,
-    postsCount: calculatedTotalPosts,
+    postsCount: calculatedTotalCars,
     followers: initialFollowers,
     following: initialFollowing,
     joinDate: new Date(user.createdAt || new Date()).toLocaleDateString('ro-RO'),
@@ -243,10 +213,8 @@ export default function ProfileClient({
   ];
 
   const [activities, setActivities] = useState<string[]>([]);
-
   const [activityFeedActivities, setActivityFeedActivities] = useState<string[]>([]);
 
-  // Notification settings
   const [emailVerificationNotifications, setEmailVerificationNotifications] = useState(false);
   const [socialPostNotifications, setSocialPostNotifications] = useState(false);
   const [marketplaceNotifications, setMarketplaceNotifications] = useState(false);
@@ -362,7 +330,7 @@ export default function ProfileClient({
     }
   };
 
-  const [posts, setPosts] = useState<Post[] | null>(null);
+  const [userCars, setUserCars] = useState<Post[] | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -383,18 +351,18 @@ export default function ProfileClient({
         limit: POSTS_PER_PAGE,
       };
       const data = await getUserCars(params);
-      setPosts(data.posts);
+      setUserCars(data.posts);
       setTotalPosts(data.total);
       setCurrentPage(page);
     } catch (err) {
       console.error(err);
-      setPosts([]);
+      setUserCars([]);
     } finally {
       setLoadingPosts(false);
     }
   };
 
-  const [clientFeedItems, setClientFeedItems] = useState<FeedItemLocal[]>(initialFeedItems);
+  const [clientFeedItems, setClientFeedItems] = useState<FeedPost[]>(initialFeedItems);
   const [clientFeedPage, setClientFeedPage] = useState(1);
   const [clientFeedLoading, setClientFeedLoading] = useState(false);
   const [clientFeedTotal, setClientFeedTotal] = useState(initialFeedTotal || 0);
@@ -408,7 +376,7 @@ export default function ProfileClient({
     return 'both';
   };
 
-  const [clientStories, setClientStories] = useState<StoryLocal[]>(initialStoriesItems);
+  const [clientStories, setClientStories] = useState<StoryPost[]>(initialStoriesItems);
   const [clientStoriesPage, setClientStoriesPage] = useState(1);
   const [clientStoriesLoading, setClientStoriesLoading] = useState(false);
   const [clientStoriesTotal, setClientStoriesTotal] = useState(initialStoriesTotal || 0);
@@ -431,13 +399,13 @@ export default function ProfileClient({
         };
         const data = await getUserCars(params);
         if (mounted) {
-          setPosts((prev) => (append && prev ? [...prev, ...data.posts] : data.posts));
+          setUserCars((prev) => (append && prev ? [...prev, ...data.posts] : data.posts));
           setTotalPosts(data.total);
           setCurrentPage(page);
         }
       } catch (err) {
         console.error(err);
-        if (mounted) setPosts([]);
+        if (mounted) setUserCars([]);
       } finally {
         if (mounted) setLoadingPosts(false);
       }
@@ -660,7 +628,7 @@ export default function ProfileClient({
                   />
 
                   <PostsGrid
-                    posts={posts ?? []}
+                    posts={userCars ?? []}
                     onEdit={handleEditPost}
                     onDelete={handleDeletePost}
                     onToggle={handleToggleActive}

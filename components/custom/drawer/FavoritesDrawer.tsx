@@ -25,6 +25,7 @@ import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import FavoriteButton from '../button/FavoriteButton';
 import { useSession } from '@/lib/auth/auth-client';
 import { getFavorites } from '@/actions/auth/actions';
+import { reverseCategoryMapping } from '@/lib/categories';
 
 type Item = {
   id: string;
@@ -63,13 +64,6 @@ export default function FavoritesDrawer({
   const [sort, setSort] = useState<string>('title');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
-
-  const categoryMap = {
-    sell: 'oferta',
-    buy: 'cerere',
-    rent: 'inchiriere',
-    auction: 'licitatie',
-  };
 
   const fetchFavorites = useCallback(async () => {
     if (!session) {
@@ -196,7 +190,7 @@ export default function FavoritesDrawer({
                                   size='sm'
                                   onClick={() =>
                                     window.open(
-                                      `/categorii/auto/${categoryMap[item.category as keyof typeof categoryMap] || item.category}/${item.id}`,
+                                      `/categorii/auto/${reverseCategoryMapping[item.category as keyof typeof reverseCategoryMapping] || item.category}/${item.id}`,
                                       '_blank'
                                     )
                                   }

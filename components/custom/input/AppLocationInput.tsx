@@ -37,6 +37,7 @@ type AppLocationInputProps = {
   value?: string;
   onClear?: () => void;
   label?: string;
+  showLabelDesc?: boolean;
   error?: { message?: string }[];
   required?: boolean;
   htmlFor?: string;
@@ -53,6 +54,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
   value,
   onClear,
   label,
+  showLabelDesc,
   error,
   required,
   htmlFor,
@@ -175,6 +177,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
                               max={100}
                               step={5}
                               className='w-full'
+                              showLabelDesc={showLabelDesc}
                             />
                           </div>
                           <div style={{ height: '300px', width: '100%' }}>

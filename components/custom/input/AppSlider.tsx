@@ -14,9 +14,21 @@ type AppSliderProps = {
   className?: string;
   currency?: string;
   error?: { message?: string }[];
+  showLabelDesc?: boolean;
 };
 
-const AppSlider: React.FC<AppSliderProps> = ({ label, value, onValueChange, min, max, step, className = '', currency, error }) => {
+const AppSlider: React.FC<AppSliderProps> = ({
+  label,
+  showLabelDesc = true,
+  value,
+  onValueChange,
+  min,
+  max,
+  step,
+  className = '',
+  currency,
+  error,
+}) => {
   const formatValue = (val: number) => {
     if (val == null || typeof val !== 'number' || isNaN(val)) {
       return '0';
@@ -28,14 +40,18 @@ const AppSlider: React.FC<AppSliderProps> = ({ label, value, onValueChange, min,
     <Field className={className}>
       <FieldLabel>{label}</FieldLabel>
       <Slider value={value} onValueChange={onValueChange} min={min} max={max} step={step} className='w-full' />
-      <div className='text-sm text-muted-foreground mt-1'>
-        {value.map((v, index) => (
-          <span key={index}>
-            {formatValue(v)}
-            {index < value.length - 1 && ' - '}
-          </span>
-        ))}
-      </div>
+
+      {showLabelDesc && (
+        <div className='text-sm text-muted-foreground mt-1'>
+          {value.map((v, index) => (
+            <span key={index}>
+              {formatValue(v)}
+              {index < value.length - 1 && ' - '}
+            </span>
+          ))}
+        </div>
+      )}
+
       {error && <FieldError errors={error} />}
     </Field>
   );
