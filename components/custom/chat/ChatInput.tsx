@@ -1,20 +1,20 @@
 import { Paperclip } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import ErrorAlert from '@/components/custom/error/ErrorAlert';
 
-interface ChatInputProps {
+type ChatInputProps = {
   input: string;
   setInput: (value: string) => void;
   sendMessage: () => void;
   error: string;
   setError: (value: string) => void;
-}
+};
 
 export default function ChatInput({ input, setInput, sendMessage, error, setError }: ChatInputProps) {
   return (
     <div className='p-4 border-t'>
-      {error && <ErrorAlert message={error} />}
+      {error && <p className='text-destructive'>{error}</p>}
       <div className='flex justify-center'>
         <div className='flex gap-2 w-full max-w-md'>
           <Button variant='outline' size='sm' className='h-10' aria-label='Adaugă atașament'>

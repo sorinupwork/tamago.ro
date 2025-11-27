@@ -9,24 +9,15 @@ import { toast } from 'sonner';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import MessageDrawer from '@/components/custom/drawer/MessageDrawer';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer';
+// Drawer UI primitives are used via the reusable MessageDrawer component
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import MediaPreview from '@/components/custom/media/MediaPreview';
 import MapComponent from '@/components/custom/map/MapComponent';
-import CarCard from '@/components/custom/auto/CarCard';
+import CarCard from '@/components/custom/card/CarCard';
 import AuctionBidders from '@/components/custom/section/AuctionBidders';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
@@ -44,7 +35,6 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
   const [isPending, startTransition] = useTransition();
   const [imageSrcs, setImageSrcs] = useState<string[]>(car.images.map((img) => img || '/placeholder.svg'));
   const [bidAmount, setBidAmount] = useState('');
-  const [message, setMessage] = useState('');
   const [api, setApi] = useState<CarouselApi>();
   const detailsRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -128,7 +118,6 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
         return;
       }
       toast.success('Mesaj trimis!');
-      setMessage('');
       // Add server action call here if needed
     });
   };
@@ -472,39 +461,17 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   </a>
                 </Button>
 
-                <Drawer>
-                  <DrawerTrigger asChild>
+                <MessageDrawer
+                  carTitle={car.title}
+                  onSend={handleSendMessage}
+                  disabled={isPending}
+                  trigger={
                     <Button variant='secondary'>
                       <MessageCircle className='mr-2 h-4 w-4' />
                       Mesaj
                     </Button>
-                  </DrawerTrigger>
-                  <DrawerContent>
-                    <DrawerHeader>
-                      <DrawerTitle>Trimite mesaj Vânzătorului</DrawerTitle>
-                      <DrawerDescription>Trimite un mesaj direct vânzătorului pentru întrebări despre {car.title}.</DrawerDescription>
-                    </DrawerHeader>
-                    <div className='p-4'>
-                      <Textarea
-                        placeholder='Scrie mesajul tău aici...'
-                        className='min-h-32'
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        disabled={isPending}
-                      />
-                    </div>
-                    <DrawerFooter>
-                      <Button onClick={() => handleSendMessage(message)} disabled={isPending}>
-                        Trimite Mesaj
-                      </Button>
-                      <DrawerClose asChild>
-                        <Button variant='outline' disabled={isPending}>
-                          Închide
-                        </Button>
-                      </DrawerClose>
-                    </DrawerFooter>
-                  </DrawerContent>
-                </Drawer>
+                  }
+                />
               </div>
             </CardContent>
           </Card>

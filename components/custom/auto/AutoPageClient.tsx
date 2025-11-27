@@ -14,7 +14,7 @@ import AppCombobox from '@/components/custom/input/AppCombobox';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import AutoTabs from '@/components/custom/tabs/AutoTabs';
-import CarCard from '@/components/custom/auto/CarCard';
+import CarCard from '@/components/custom/card/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { cn } from '@/lib/utils';

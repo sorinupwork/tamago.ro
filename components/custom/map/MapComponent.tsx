@@ -1,11 +1,11 @@
 'use client';
 
-import 'leaflet/dist/leaflet.css';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
 import { Moon, Sun } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
 
 import { Button } from '@/components/ui/button';
 import UserProfileCard from '@/components/custom/card/UserProfileCard';

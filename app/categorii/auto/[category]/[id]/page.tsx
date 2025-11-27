@@ -38,7 +38,7 @@ export default async function CarDetailPage({
 
   const [car, similarCars] = await Promise.all([
     getCarById(category, id),
-    getSimilarCars(category, id, 3),
+    getSimilarCars(category, id, 4),
   ]);
 
   if (!car) {

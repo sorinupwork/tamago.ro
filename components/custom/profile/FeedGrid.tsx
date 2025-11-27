@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import FeedCard from './FeedCard';
+import FeedCard from '../card/FeedCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import type { FeedPost } from '@/lib/types';

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import StoryCard from './StoryCard';
+import StoryCard from '../card/StoryCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import type { StoryPost } from '@/lib/types';

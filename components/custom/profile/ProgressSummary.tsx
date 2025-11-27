@@ -17,7 +17,7 @@ export default function ProgressSummary({ posts, friends, points, verification =
   return (
     <Accordion type='single' collapsible defaultValue={defaultValue} className='w-full'>
       <AccordionItem value='progress' className='rounded-xl border-0 bg-white/80 dark:bg-gray-800/80 shadow-md'>
-        <AccordionTrigger className='text-sm font-semibold px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-xl'>
+        <AccordionTrigger className='text-sm text-start font-semibold px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-xl'>
           <Award className='h-4 w-4 mr-2 text-secondary' />
           Progres Summary
         </AccordionTrigger>

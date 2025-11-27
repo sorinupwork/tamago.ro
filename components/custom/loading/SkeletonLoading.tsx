@@ -130,7 +130,6 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
   if (variant === 'favorite') {
     return (
       <div className={cn('p-4 space-y-4', className)}>
-        {/* Filter and Sort Buttons */}
         <div className='flex justify-between items-center gap-4'>
           <div className='flex gap-2'>
             {Array.from({ length: 5 }).map((_, index) => (
@@ -142,7 +141,6 @@ export default function SkeletonLoading({ variant, className }: SkeletonLoadingP
             <Skeleton className='h-8 w-16' />
           </div>
         </div>
-        {/* Carousel Items */}
         <div className='flex gap-4 overflow-hidden'>
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className='shrink-0 w-64'>

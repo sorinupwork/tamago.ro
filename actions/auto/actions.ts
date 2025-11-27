@@ -7,8 +7,9 @@ import { ObjectId } from 'mongodb';
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
 import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
-import { mapRawCarToPost } from '@/lib/auto/helpers';
+import { mapRawCarToPost, normalizeNumberString } from '@/lib/auto/helpers';
 import { auth } from '@/lib/auth/auth';
+import { categoryMapping } from '@/lib/categories';
 
 type CarFetchParams = {
   page?: number;
@@ -115,22 +116,6 @@ export async function getSimilarCars(category: string, excludeCarId: string, lim
   }
 }
 
-function normalizeNumberString(value: string | number | undefined): number {
-  if (!value) return 0;
-
-  const str = String(value).trim();
-  if (!str) return 0;
-
-  const lastCommaIdx = str.lastIndexOf(',');
-  const lastDotIdx = str.lastIndexOf('.');
-
-  if (lastCommaIdx > lastDotIdx) {
-    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  } else {
-    return parseFloat(str.replace(/,/g, ''));
-  }
-}
-
 async function getCarsWithOptionalPagination(collectionName: string, maybeParams?: CarFetchParams | unknown) {
   try {
     const params = (maybeParams as CarFetchParams) || undefined;
@@ -143,7 +128,7 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const page = Math.max(1, params.page || 1);
     let limit = Math.max(1, params.limit || 20);
     if (params.lat && params.lng && params.radius) {
-      limit = 100;
+      limit = 50;
     }
     const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
 
@@ -428,7 +413,6 @@ export async function getUserCars({
 
     const posts: Post[] = pageCars.map((carDoc) => mapRawCarToPost(carDoc, carDoc.carCategory));
 
-    // Fetch favorites count for each post
     const favoritesCollection = db.collection('favorites');
     const postsWithFavorites = await Promise.all(
       posts.map(async (post) => {
@@ -562,15 +546,8 @@ export async function fetchCarsServerAction(params: {
         break;
     }
 
-    const tabToCategoryMap = {
-      oferta: 'sell',
-      cerere: 'buy',
-      inchiriere: 'rent',
-      licitatie: 'auction',
-    } as const;
-
     const mappedCars: Car[] = result.items.map((doc: RawCarDoc) =>
-      mapRawCarToPost(doc, (tabToCategoryMap[activeTab as keyof typeof tabToCategoryMap] as 'sell' | 'buy' | 'rent' | 'auction') || 'sell')
+      mapRawCarToPost(doc, (categoryMapping[activeTab as keyof typeof categoryMapping] as 'sell' | 'buy' | 'rent' | 'auction') || 'sell')
     );
 
     return mappedCars;
@@ -621,7 +598,7 @@ export async function updatePost(
     // Build the shared update object - cast to any for accessing properties safely
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const d = data as any;
-    
+
     const sharedUpdateData: Record<string, unknown> = {
       title: d.title,
       description: d.description,
@@ -686,10 +663,7 @@ export async function updatePost(
       };
     }
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(postId) },
-      { $set: updateData }
-    );
+    const result = await collection.updateOne({ _id: new ObjectId(postId) }, { $set: updateData });
 
     if (result.modifiedCount === 0) {
       return { success: false, message: 'Failed to update post' };

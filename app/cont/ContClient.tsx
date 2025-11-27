@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
-import { useIsMobile } from '@/hooks/ui/use-mobile';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/custom/form/auth/LoginForm';
 import SignupForm from '@/components/custom/form/auth/SignupForm';
 import SocialMediaForm from '@/components/custom/form/auth/SocialMediaForm';
 import AuthInfo from '@/components/custom/info/AuthInfo';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 
 export default function ContClient() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'social'>('login');

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
-import { CarouselCard } from './CarouselCard';
+import { CarouselCard } from '../card/CarouselCard';
 import { LuckyNumber } from '../text/LuckyNumber';
 
 type Subcategory = {

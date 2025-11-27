@@ -1,4 +1,4 @@
-import PostCard from './PostCard';
+import PostCard from '../card/PostCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import type { Post } from '@/lib/types';

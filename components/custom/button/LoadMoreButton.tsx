@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useActionState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
 type LoadResult<T> = { items?: T[]; hasMore?: boolean } | void;
+
+type ActionState = { success?: boolean; error?: string } | null;
 
 type Props<T> = {
   onLoad?: () => Promise<void> | void;
@@ -17,6 +20,7 @@ type Props<T> = {
   label?: string;
   loadingLabel?: string;
   type?: 'button' | 'submit';
+  action?: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
 };
 
 export default function LoadMoreButton<T = unknown>({
@@ -31,10 +35,24 @@ export default function LoadMoreButton<T = unknown>({
   label = 'Load More',
   loadingLabel = 'Loading...',
   type = 'button',
+  action,
 }: Props<T>) {
   const [page, setPage] = useState<number>(initialPage);
   const [loading, setLoading] = useState(false);
-  const effectiveLoading = externalLoading || loading;
+
+  const noopAction = async () => null;
+  const [actionState, formAction, pendingAction] = useActionState(
+    (action ?? noopAction) as (prevState: ActionState, formData: FormData) => Promise<ActionState>,
+    null
+  );
+
+  useEffect(() => {
+    if (actionState?.error) {
+      toast.error(actionState.error);
+    }
+  }, [actionState]);
+
+  const effectiveLoading = externalLoading || loading || Boolean(pendingAction);
 
   const handleClick = async () => {
     if (effectiveLoading || disabled) return;
@@ -64,9 +82,9 @@ export default function LoadMoreButton<T = unknown>({
     }
   };
 
-  return (
+  const btn = (
     <Button
-      onClick={handleClick}
+      onClick={action ? undefined : handleClick}
       variant='outline'
       size='lg'
       className={`rounded-full shadow-lg bg-background hover:bg-accent transition-all duration-200 hover:scale-110 active:scale-95 ${className}`}
@@ -76,4 +94,10 @@ export default function LoadMoreButton<T = unknown>({
       {effectiveLoading ? loadingLabel : label}
     </Button>
   );
+
+  if (action && formAction) {
+    return <form action={formAction}>{btn}</form>;
+  }
+
+  return btn;
 }

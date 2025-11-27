@@ -294,7 +294,7 @@ export async function updatePrivacySettings(formData: FormData): Promise<{ succe
   try {
     const users = db.collection('user');
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
-    
+
     if (formData.has('emailPublic')) updateData['privacySettings.emailPublic'] = emailPublic;
     if (formData.has('phonePublic')) updateData['privacySettings.phonePublic'] = phonePublic;
     if (formData.has('locationPublic')) updateData['privacySettings.locationPublic'] = locationPublic;
@@ -364,10 +364,10 @@ export async function getFollowingCount(userId: string): Promise<number> {
 export async function getFollowers(userId: string): Promise<User[]> {
   const follows = db.collection('follows');
   const followerDocs = await follows.find({ followingId: new ObjectId(userId) }).toArray();
-  const followerIds = followerDocs.map(doc => doc.followerId);
+  const followerIds = followerDocs.map((doc) => doc.followerId);
   const users = db.collection('user');
   const followers = await users.find({ _id: { $in: followerIds } }).toArray();
-  return followers.map(user => ({
+  return followers.map((user) => ({
     id: user._id.toString(),
     _id: user._id.toString(),
     name: user.name || '',
@@ -398,10 +398,10 @@ export async function getFollowers(userId: string): Promise<User[]> {
 export async function getFollowing(userId: string): Promise<User[]> {
   const follows = db.collection('follows');
   const followingDocs = await follows.find({ followerId: new ObjectId(userId) }).toArray();
-  const followingIds = followingDocs.map(doc => doc.followingId);
+  const followingIds = followingDocs.map((doc) => doc.followingId);
   const users = db.collection('user');
   const following = await users.find({ _id: { $in: followingIds } }).toArray();
-  return following.map(user => ({
+  return following.map((user) => ({
     id: user._id.toString(),
     _id: user._id.toString(),
     name: user.name || '',
@@ -428,7 +428,6 @@ export async function getFollowing(userId: string): Promise<User[]> {
     },
   }));
 }
-
 
 export async function claimReward(rewardId: string): Promise<{ success: boolean; message: string }> {
   const session = await auth.api.getSession({ headers: await headers() });

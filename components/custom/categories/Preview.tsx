@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 import  SafeHtml  from '@/components/custom/text/SafeHtml';
-import CarHistoryHighlights from '@/components/custom/auto/CarHistoryHighlights';
+import CarHistoryHighlights from '@/components/custom/accordion/CarHistoryHighlights';
 import type { PreviewData } from './CategoriesClient';
 
 export default function Preview({

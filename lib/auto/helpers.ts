@@ -165,3 +165,19 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
 export function mapRawCarToCar(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent' | 'auction' = 'sell'): Car {
   return mapRawCarToPost(doc, category);
 }
+
+export function normalizeNumberString(value: string | number | undefined): number {
+  if (!value) return 0;
+
+  const str = String(value).trim();
+  if (!str) return 0;
+
+  const lastCommaIdx = str.lastIndexOf(',');
+  const lastDotIdx = str.lastIndexOf('.');
+
+  if (lastCommaIdx > lastDotIdx) {
+    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  } else {
+    return parseFloat(str.replace(/,/g, ''));
+  }
+}

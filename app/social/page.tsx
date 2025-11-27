@@ -4,7 +4,7 @@ import StoriesSection from '@/components/custom/section/StoriesSection';
 import { FeedSection } from '@/components/custom/section/FeedSection';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import QuickActions from '@/components/custom/profile/QuickActions';
+import QuickActions from '@/components/custom/dialog/QuickActions';
 import ChatTabSection from '../../components/custom/section/ChatTabSection';
 import { HelpCircle, MessageCircle, User } from 'lucide-react';
 

@@ -15,8 +15,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import FavoriteButton from '../button/FavoriteButton';
 import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
-import CarHistoryHighlights from './CarHistoryHighlights';
-import CarDetailsAccordion from './CarDetailsAccordion';
+import CarHistoryHighlights from '../accordion/CarHistoryHighlights';
+import CarDetailsAccordion from '../accordion/CarDetailsAccordion';
 import { getUserById } from '@/actions/auth/actions';
 import { categories, reverseCategoryMapping } from '@/lib/categories';
 import type { Car, User } from '@/lib/types';

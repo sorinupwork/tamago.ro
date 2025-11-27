@@ -41,7 +41,7 @@ export async function getMessages(toUserId: string): Promise<{ id: string; text:
   const fromUserId = session.user.id;
 
   const collection = db.collection('messages');
-  await collection.createIndex({ fromUserId: 1, toUserId: 1, createdAt: 1 }); // Indexes for efficient queries
+  await collection.createIndex({ fromUserId: 1, toUserId: 1, createdAt: 1 });
   const messages = await collection
     .find({
       $or: [
