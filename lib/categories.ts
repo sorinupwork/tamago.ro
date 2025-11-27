@@ -8,10 +8,16 @@ export const categories = [
 ];
 
 export const categoryMapping = {
-  vanzare: 'sell',
-  cumparare: 'buy',
+  oferta: 'sell',
+  cerere: 'buy',
   inchiriere: 'rent',
   licitatie: 'auction',
 } as const;
 
+export const reverseCategoryMapping = {
+  sell: 'oferta',
+  buy: 'cerere',
+  rent: 'inchiriere',
+  auction: 'licitatie',
+} as const;
 

@@ -16,7 +16,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { categories } from '@/lib/categories';
+import { categories, categoryMapping, reverseCategoryMapping } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 
 type CategorySidebarProps = {
@@ -25,21 +25,7 @@ type CategorySidebarProps = {
   onCategoryChange?: (category: string, subcategory?: string) => void;
 };
 
-const categoryMapping = {
-  oferta: 'sell',
-  cerere: 'buy',
-  inchiriere: 'rent',
-  licitatie: 'auction',
-} as const;
-
-const reverseMapping = {
-  sell: 'oferta',
-  buy: 'cerere',
-  rent: 'inchiriere',
-  auction: 'licitatie',
-} as const;
-
-export function CategorySidebar({
+export default function CategorySidebar({
   selectedCategory: selectedCategoryProp,
   selectedSubcategory: selectedSubcategoryProp,
   onCategoryChange,
@@ -57,7 +43,7 @@ export function CategorySidebar({
   const navigate =
     onCategoryChange ??
     ((cat: string, sub?: string) => {
-      const tipValue = reverseMapping[cat as keyof typeof reverseMapping] || cat;
+      const tipValue = reverseCategoryMapping[cat as keyof typeof reverseCategoryMapping] || cat;
       router.push(`/categorii?tip=${tipValue}${sub ? `&subcategorie=${sub}` : ''}`);
     });
 

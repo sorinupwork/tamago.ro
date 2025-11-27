@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, use } from 'react';
+import { useState, useEffect, useMemo, use, useTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { MapPin, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,14 +16,13 @@ import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import AutoTabs from '@/components/custom/tabs/AutoTabs';
 import CarCard from '@/components/custom/auto/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } from '@/actions/auto/actions';
+import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { categoryMapping } from '@/lib/categories';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
-import { reverseGeocode } from '@/lib/services';
 import {
   defaultActiveTab,
   defaultFilters,
@@ -39,11 +38,11 @@ import {
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
 
-interface AutoPageClientProps {
+type AutoPageClientProps = {
   initialResult: Promise<{ items: RawCarDoc[]; total: number; hasMore: boolean }>;
   initialPage: number;
   initialTip: string;
-}
+};
 
 export default function AutoPageClient({ initialResult, initialPage, initialTip }: AutoPageClientProps) {
   const searchParams = useSearchParams();
@@ -53,57 +52,57 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     () =>
       result.items.map((doc: RawCarDoc) => {
         return {
-        id: doc._id.toString(),
-        title: doc.title || '',
-        price: String(doc.price || '0'),
-        currency: doc.currency || 'RON',
-        period: doc.period || '',
-        startDate: doc.startDate || '',
-        endDate: doc.endDate || '',
-        year: parseInt(doc.year || '2020') || 2020,
-        brand: doc.brand || '',
-        category: (initialTip === 'vanzare'
-          ? 'sell'
-          : initialTip === 'cumparare'
-            ? 'buy'
-            : initialTip === 'inchiriere'
-              ? 'rent'
-              : 'auction') as 'sell' | 'buy' | 'rent' | 'auction',
-        mileage: parseInt(doc.mileage || '0') || 0,
-        fuel: doc.fuel || '',
-        transmission: doc.transmission || '',
-        location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-        images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
-        dateAdded: new Date().toISOString(),
-        sellerType: 'private' as const,
-        contactPhone: '123456789',
-        contactEmail: 'email@example.com',
-        bodyType: doc.carType || '',
-        color: doc.color || '',
-        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
-        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
-        status: doc.status || 'used',
-        description: doc.description,
-        features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
-        traction: doc.traction || '',
-        withDriver: doc.withDriver || false,
-        driverName: doc.driverName || '',
-        driverContact: doc.driverContact || '',
-        driverTelephone: doc.driverTelephone || '',
-        options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
-        minPrice: doc.minPrice,
-        maxPrice: doc.maxPrice,
-        userId: doc.userId ? doc.userId.toString() : '',
-        history: doc.history || [],
+          id: doc._id.toString(),
+          title: doc.title || '',
+          price: String(doc.price || '0'),
+          currency: doc.currency || 'RON',
+          period: doc.period || '',
+          startDate: doc.startDate || '',
+          endDate: doc.endDate || '',
+          year: parseInt(doc.year || '2020') || 2020,
+          brand: doc.brand || '',
+          category: (initialTip === 'oferta'
+            ? 'sell'
+            : initialTip === 'cerere'
+              ? 'buy'
+              : initialTip === 'inchiriere'
+                ? 'rent'
+                : 'auction') as 'sell' | 'buy' | 'rent' | 'auction',
+          mileage: parseInt(doc.mileage || '0') || 0,
+          fuel: doc.fuel || '',
+          transmission: doc.transmission || '',
+          location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
+          images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
+          dateAdded: new Date().toISOString(),
+          sellerType: 'private' as const,
+          contactPhone: '123456789',
+          contactEmail: 'email@example.com',
+          bodyType: doc.carType || '',
+          color: doc.color || '',
+          engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
+          horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
+          status: doc.status || 'used',
+          description: doc.description,
+          features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+          traction: doc.traction || '',
+          withDriver: doc.withDriver || false,
+          driverName: doc.driverName || '',
+          driverContact: doc.driverContact || '',
+          driverTelephone: doc.driverTelephone || '',
+          options: doc.options || [],
+          lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
+          lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
+          minPrice: doc.minPrice,
+          maxPrice: doc.maxPrice,
+          userId: doc.userId ? doc.userId.toString() : '',
+          history: doc.history || [],
         };
       }),
     [result, initialTip]
   );
+
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(initialTip as keyof typeof categoryMapping);
   const [cars, setCars] = useState<Car[]>(initialCars);
-  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<AutoFilterState>(getInitialFilters(searchParams));
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -112,17 +111,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    if (locationFilter.location && !locationFilter.location.address) {
-      reverseGeocode(locationFilter.location.lat, locationFilter.location.lng).then((fullAddress) => {
-        const address = fullAddress.length > 50 ? fullAddress.substring(0, 50) + '...' : fullAddress;
-        setLocationFilter((prev) => ({
-          ...prev,
-          location: prev.location ? { ...prev.location, address, fullAddress } : null,
-        }));
-      });
-    }
-  }, [locationFilter.location]);
+  const [isPending, startTransition] = useTransition();
 
   const currentSort = useMemo(() => {
     const key = Object.keys(sortCriteria).find((k) => sortCriteria[k as keyof SortCriteria]);
@@ -133,144 +122,16 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   }, [sortCriteria]);
 
   useEffect(() => {
-    result.items.map((doc: RawCarDoc) => ({
-      id: doc._id.toString(),
-      title: doc.title || '',
-      price: String(doc.price || '0'),
-      currency: doc.currency || 'RON',
-      period: doc.period || '',
-      startDate: doc.startDate || '',
-      endDate: doc.endDate || '',
-      year: parseInt(doc.year || '2020') || 2020,
-      brand: doc.brand || '',
-      category: initialTip === 'vanzare' ? 'sell' : initialTip === 'cumparare' ? 'buy' : initialTip === 'inchiriere' ? 'rent' : 'auction',
-      mileage: parseInt(doc.mileage || '0') || 0,
-      fuel: doc.fuel || '',
-      transmission: doc.transmission || '',
-      location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-      images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
-      dateAdded: new Date().toISOString(),
-      sellerType: 'private',
-      contactPhone: '123456789',
-      contactEmail: 'email@example.com',
-      bodyType: doc.carType || '',
-      color: doc.color || '',
-      engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
-      horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
-      status: doc.status || 'used',
-      description: doc.description,
-      features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
-      traction: doc.traction || '',
-      withDriver: doc.withDriver || false,
-      driverName: doc.driverName || '',
-      driverContact: doc.driverContact || '',
-      driverTelephone: doc.driverTelephone || '',
-      options: doc.options || [],
-      lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
-      lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
-      minPrice: doc.minPrice,
-      maxPrice: doc.maxPrice,
-      userId: doc.userId ? doc.userId.toString() : '',
-    }));
-  }, [result, initialTip]);
-
-  useEffect(() => {
-    const fetchCars = async () => {
-      setLoading(true);
-      const params = {
-        page: 1,
-        limit: 100,
-        search: searchQuery,
-        status: filters.status || undefined,
-        sortBy: Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria])
-          ? `${Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria])}_${sortCriteria[Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria]) as keyof SortCriteria]}`
-          : undefined,
-        brand: filters.brand || undefined,
-        fuel: filters.fuel.length > 0 ? filters.fuel : undefined,
-        transmission: filters.transmission.length > 0 ? filters.transmission : undefined,
-        bodyType: filters.bodyType.length > 0 ? filters.bodyType : undefined,
-        priceMin: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-        priceMax: filters.priceRange[1] < 1000000 ? filters.priceRange[1] : undefined,
-        yearMin: filters.yearRange[0] > 1900 ? filters.yearRange[0] : undefined,
-        yearMax: filters.yearRange[1] < 2025 ? filters.yearRange[1] : undefined,
-        mileageMin: filters.mileageRange[0] > 0 ? filters.mileageRange[0] : undefined,
-        mileageMax: filters.mileageRange[1] < 1000000 ? filters.mileageRange[1] : undefined,
-        engineCapacityMin: filters.engineCapacityRange[0] > 0 ? filters.engineCapacityRange[0] : undefined,
-        engineCapacityMax: filters.engineCapacityRange[1] < 10 ? filters.engineCapacityRange[1] : undefined,
-        horsepowerMin: filters.horsepowerRange[0] > 0 ? filters.horsepowerRange[0] : undefined,
-        horsepowerMax: filters.horsepowerRange[1] < 1000 ? filters.horsepowerRange[1] : undefined,
-        lat: locationFilter.location?.lat,
-        lng: locationFilter.location?.lng,
-        radius: locationFilter.radius,
-      };
-      let result;
-      switch (activeTab) {
-        case 'vanzare':
-          result = await getSellAutoCars(params);
-          break;
-        case 'cumparare':
-          result = await getBuyAutoCars(params);
-          break;
-        case 'inchiriere':
-          result = await getRentAutoCars(params);
-          break;
-        case 'licitatie':
-          result = await getAuctionAutoCars(params);
-          break;
-        default:
-          result = { items: [], total: 0, hasMore: false };
-          break;
-      }
-      const mappedCars: Car[] = result.items.map((doc: RawCarDoc) => ({
-        id: doc._id.toString(),
-        title: doc.title || '',
-        price: String(doc.price || '0'),
-        currency: doc.currency || 'RON',
-        period: doc.period || '',
-        startDate: doc.startDate || '',
-        endDate: doc.endDate || '',
-        year: parseInt(doc.year || '2020') || 2020,
-        brand: doc.brand || '',
-        category: (activeTab === 'vanzare'
-          ? 'sell'
-          : activeTab === 'cumparare'
-            ? 'buy'
-            : activeTab === 'inchiriere'
-              ? 'rent'
-              : 'auction') as 'sell' | 'buy' | 'rent' | 'auction',
-        mileage: parseInt(doc.mileage || '0') || 0,
-        fuel: doc.fuel || '',
-        transmission: doc.transmission || '',
-        location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
-        images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
-        dateAdded: new Date().toISOString(),
-        sellerType: 'private' as const,
-        contactPhone: '123456789',
-        contactEmail: 'email@example.com',
-        bodyType: doc.carType || '',
-        color: doc.color || '',
-        engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
-        horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
-        status: doc.status || 'used',
-        description: doc.description,
-        features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
-        traction: doc.traction || '',
-        withDriver: doc.withDriver || false,
-        driverName: doc.driverName || '',
-        driverContact: doc.driverContact || '',
-        driverTelephone: doc.driverTelephone || '',
-        options: doc.options || [],
-        lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
-        lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
-        minPrice: doc.minPrice,
-        maxPrice: doc.maxPrice,
-        userId: doc.userId ? doc.userId.toString() : '',
-        history: doc.history || [],
-      }));
-      setCars(mappedCars);
-      setLoading(false);
-    };
-    fetchCars();
+    startTransition(async () => {
+      const newCars = await fetchCarsServerAction({
+        activeTab,
+        searchQuery,
+        filters,
+        sortCriteria,
+        locationFilter,
+      });
+      setCars(newCars);
+    });
   }, [activeTab, searchQuery, filters, sortCriteria, locationFilter]);
 
   useEffect(() => {
@@ -638,7 +499,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
                 : 'grid-cols-3'
         )}
       >
-        {loading ? (
+        {isPending ? (
           <SkeletonLoading variant='auto' className='col-span-full' />
         ) : (
           paginatedItems.map((car) => <CarCard key={car.id} car={car} cardsPerPage={cardsPerPage} />)

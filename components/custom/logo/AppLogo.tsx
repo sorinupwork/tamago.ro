@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
-export function AppLogo() {
+export default function AppLogo() {
   return (
     <Link href='/' className='cursor-default shine'>
       <Avatar className="aspect-square rounded">

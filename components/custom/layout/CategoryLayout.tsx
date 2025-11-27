@@ -2,11 +2,12 @@
 
 import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
+
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { CategorySidebar } from '@/components/custom/sidebar/CategorySidebar';
+import CategorySidebar from '@/components/custom/sidebar/CategorySidebar';
 import LoadingIndicator from '@/components/custom/loading/LoadingIndicator';
 
-export function CategoryLayout({ children }: { children: React.ReactNode }) {
+export default function CategoryLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   if (pathname !== '/categorii') return <>{children}</>;

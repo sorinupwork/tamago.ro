@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import AppSeparator from '../separator/AppSeparator';
 import AppInvertedCarousel from '../carousel/AppInvertedCarousel';
-import { categories } from '@/lib/categories';
+import { categories, reverseCategoryMapping } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 
 export default function Showcase({ category }: { category: string }) {
@@ -25,9 +25,8 @@ export default function Showcase({ category }: { category: string }) {
     auction: { text: 'text-purple-600', icon: 'text-purple-600', arrow: 'text-purple-600' },
   };
 
-  const reverseMapping: Record<string, string> = { sell: 'oferta', buy: 'cerere', rent: 'inchiriere', auction: 'licitatie' };
   const navigateTo = (catKey: string, sub?: string) => {
-    const tip = reverseMapping[catKey] ?? catKey;
+    const tip = reverseCategoryMapping[catKey as keyof typeof reverseCategoryMapping] ?? catKey;
     const url = `/categorii?tip=${tip}${sub ? `&subcategorie=${sub}` : ''}`;
     router.push(url);
   };

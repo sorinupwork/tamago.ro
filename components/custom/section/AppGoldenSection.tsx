@@ -9,16 +9,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ShareButton from '../button/ShareButton';
-
-type Post = {
-  id: string;
-  title: string;
-  desc?: string;
-  verified?: boolean;
-  isNew?: boolean;
-  imageUrl?: string;
-  category: string;
-};
+import { Post } from '@/lib/types';
 
 type AppGoldenSectionProps = {
   title: string;
@@ -26,10 +17,9 @@ type AppGoldenSectionProps = {
 };
 
 export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps) {
-  const displayedPosts = useMemo(() => posts.slice(0, 6), [posts]);
   const sanitizedDescs = useMemo(() => {
-    return displayedPosts.map((p) => sanitizeHtml(p?.desc || ''));
-  }, [displayedPosts]);
+    return posts.map((p) => sanitizeHtml(p?.desc || ''));
+  }, [posts]);
 
   const renderCard = (post: Post | undefined, index: number, className: string) => {
     if (!post) return null;
@@ -77,12 +67,12 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <h2 className='text-2xl font-bold text-center sm:text-end text-secondary'>{title}</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-4 py-4'>
-          {renderCard(displayedPosts[5], 5, 'sm:row-start-1 sm:row-end-3 col-span-full ')}
-          {renderCard(displayedPosts[4], 4, 'sm:row-start-3 sm:row-end-6 ')}
-          {renderCard(displayedPosts[0], 0, 'sm:row-start-3 sm:row-end-5 ')}
-          {renderCard(displayedPosts[1], 1, 'relative ')}
-          {renderCard(displayedPosts[2], 2, 'relative ')}
-          {renderCard(displayedPosts[3], 3, 'col-span-full sm:col-start-2 ')}
+          {renderCard(posts[5], 5, 'sm:row-start-1 sm:row-end-3 col-span-full ')}
+          {renderCard(posts[4], 4, 'sm:row-start-3 sm:row-end-6 ')}
+          {renderCard(posts[0], 0, 'sm:row-start-3 sm:row-end-5 ')}
+          {renderCard(posts[1], 1, 'relative ')}
+          {renderCard(posts[2], 2, 'relative ')}
+          {renderCard(posts[3], 3, 'col-span-full sm:col-start-2 ')}
         </div>
       </div>
     </section>

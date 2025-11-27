@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 
 import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/components/custom/theme/ThemeProvider';
-import { AppNavigation } from '@/components/custom/navigation/AppNavigation';
-import { Footer } from '@/components/custom/footer/Footer';
+import ThemeProvider from '@/components/custom/theme/ThemeProvider';
+import AppNavigation from '@/components/custom/navigation/AppNavigation';
+import Footer from '@/components/custom/footer/Footer';
 import ChatDrawer from '@/components/custom/chat/ChatDrawer';
 import MoreInfo from '@/components/custom/info/MoreInfo';
-import { CategoryLayout } from '@/components/custom/layout/CategoryLayout';
+import CategoryLayout from '@/components/custom/layout/CategoryLayout';
 import './globals.css';
 import 'leaflet/dist/leaflet.css';
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     description: 'Noul nostru proiect va fi lansat în curând. Rămâneți la curent!',
     images: [
       {
-        url: '/tamago.png',
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'Tamago Logo',

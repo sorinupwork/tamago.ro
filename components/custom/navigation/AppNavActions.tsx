@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { Search, ShieldCheck } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '../theme/ModeToggle';
+import ModeToggle from '../theme/ModeToggle';
 import { cn } from '@/lib/utils';
 
-interface AppNavActionsProps {
+type AppNavActionsProps = {
   setOpen: (open: boolean) => void;
-}
+};
 
-export function AppNavActions({ setOpen }: AppNavActionsProps) {
+export default function AppNavActions({ setOpen }: AppNavActionsProps) {
   return (
     <div className='flex items-center gap-2'>
       <Button variant='outline' className='w-10 h-10 justify-start text-left sm:w-52' onClick={() => setOpen(true)}>

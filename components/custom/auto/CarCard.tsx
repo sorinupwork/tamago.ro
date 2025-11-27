@@ -38,8 +38,8 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
   const queryString = searchParams.toString();
 
   const categoryMap = {
-    sell: 'vanzare',
-    buy: 'cumparare',
+    sell: 'oferta',
+    buy: 'cerere',
     rent: 'inchiriere',
     auction: 'licitatie',
   };

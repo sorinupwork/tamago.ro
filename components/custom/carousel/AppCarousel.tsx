@@ -5,18 +5,11 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-
-type Category = {
-  id: number;
-  title: string;
-  description: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
+import { Subcategory } from '@/lib/types';
 
 type AppCarouselProps = {
   title: string;
-  items: Category[];
+  items: Subcategory[];
   autoplay?: boolean;
   interval?: number;
   pauseOnHover?: boolean;

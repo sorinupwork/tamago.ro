@@ -6,20 +6,10 @@ import { getGoldenSectionPosts } from '@/actions/auto/actions';
 export default async function Home() {
   const posts = await getGoldenSectionPosts();
 
-  const serializedPosts = posts.map((post) => ({
-    id: post.id,
-    title: post.title,
-    desc: post.desc,
-    verified: post.verified,
-    isNew: post.isNew,
-    imageUrl: post.imageUrl,
-    category: post.category,
-  }));
-
   return (
     <div className='flex flex-col items-center justify-center grow text-center gap-4 py-4'>
       <AppCarousel title='Categorii Populare' items={subcategories} />
-      <AppGoldenSection title='Anunțuri Verificate' posts={serializedPosts} />
+      <AppGoldenSection title='Anunțuri Verificate' posts={posts} />
     </div>
   );
 }

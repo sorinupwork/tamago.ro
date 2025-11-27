@@ -1,89 +1,12 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { Car as CarIcon } from 'lucide-react';
 import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Car, Post, RawCarDoc, CarHistoryItem } from '@/lib/types';
+import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
 import { auth } from '@/lib/auth/auth';
-
-export async function submitSellAutoForm(
-  data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
-) {
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  const userId = session?.user?.id ?? null;
-  try {
-    const validatedData = auto.sellSchema.parse(data);
-    const result = await db.collection('sell_auto_cars').insertOne({ ...validatedData, userId });
-    return { success: true, insertedId: result.insertedId.toString() };
-  } catch (error) {
-    console.error('Error submitting sell auto form:', error);
-    return { success: false, error: 'Failed to save data' };
-  }
-}
-
-export async function submitBuyAutoForm(
-  data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
-) {
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  const userId = session?.user?.id ?? null;
-  try {
-    const validatedData = auto.buySchema.parse(data);
-    const result = await db.collection('buy_auto_cars').insertOne({ ...validatedData, userId });
-    return { success: true, insertedId: result.insertedId.toString() };
-  } catch (error) {
-    console.error('Error submitting buy auto form:', error);
-    return { success: false, error: 'Failed to save data' };
-  }
-}
-
-export async function submitRentAutoForm(
-  data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
-) {
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  const userId = session?.user?.id ?? null;
-  try {
-    const validatedData = auto.rentSchema.parse(data);
-    const result = await db.collection('rent_auto_cars').insertOne({ ...validatedData, userId });
-    return { success: true, insertedId: result.insertedId.toString() };
-  } catch (error) {
-    console.error('Error submitting rent auto form:', error);
-    return { success: false, error: 'Failed to save data' };
-  }
-}
-
-export async function submitAuctionAutoForm(
-  data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
-) {
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  const userId = session?.user?.id ?? null;
-  try {
-    const validatedData = auto.auctionSchema.parse(data);
-    const result = await db.collection('auction_auto_cars').insertOne({ ...validatedData, userId });
-    return { success: true, insertedId: result.insertedId.toString() };
-  } catch (error) {
-    console.error('Error submitting auction auto form:', error);
-    return { success: false, error: 'Failed to save data' };
-  }
-}
-
-export async function getSellAutoCars(params?: CarFetchParams) {
-  return getCarsWithOptionalPagination('sell_auto_cars', params);
-}
-
-export async function getBuyAutoCars(params?: CarFetchParams) {
-  return getCarsWithOptionalPagination('buy_auto_cars', params);
-}
-
-export async function getRentAutoCars(params?: CarFetchParams) {
-  return getCarsWithOptionalPagination('rent_auto_cars', params);
-}
-
-export async function getAuctionAutoCars(params?: CarFetchParams) {
-  return getCarsWithOptionalPagination('auction_auto_cars', params);
-}
 
 type CarFetchParams = {
   page?: number;
@@ -112,6 +35,68 @@ type CarFetchParams = {
   radius?: number;
 };
 
+export async function getSellAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('sell_auto_cars', params);
+}
+
+export async function getBuyAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('buy_auto_cars', params);
+}
+
+export async function getRentAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('rent_auto_cars', params);
+}
+
+export async function getAuctionAutoCars(params?: CarFetchParams) {
+  return getCarsWithOptionalPagination('auction_auto_cars', params);
+}
+
+export async function getCarById(category: string, carId: string): Promise<RawCarDoc | null> {
+  try {
+    const categoryMappings: Record<string, string> = {
+      oferta: 'sell_auto_cars',
+      cerere: 'buy_auto_cars',
+      inchiriere: 'rent_auto_cars',
+      licitatie: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (!collectionName) return null;
+
+    const car = await db.collection(collectionName).findOne({ _id: new ObjectId(carId) });
+    return car ? JSON.parse(JSON.stringify(car)) : null;
+  } catch (error) {
+    console.error('Error fetching car by ID:', error);
+    return null;
+  }
+}
+
+export async function getSimilarCars(category: string, excludeCarId: string, limit: number = 3): Promise<RawCarDoc[]> {
+  try {
+    const categoryMappings: Record<string, string> = {
+      oferta: 'sell_auto_cars',
+      cerere: 'buy_auto_cars',
+      inchiriere: 'rent_auto_cars',
+      licitatie: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (!collectionName) return [];
+
+    const cars = await db
+      .collection(collectionName)
+      .find({ _id: { $ne: new ObjectId(excludeCarId) } })
+      .sort({ _id: -1 })
+      .limit(limit)
+      .toArray();
+
+    return JSON.parse(JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error fetching similar cars:', error);
+    return [];
+  }
+}
+
 async function getCarsWithOptionalPagination(collectionName: string, maybeParams?: CarFetchParams | unknown) {
   try {
     const params = (maybeParams as CarFetchParams) || undefined;
@@ -123,7 +108,7 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const page = Math.max(1, params.page || 1);
     let limit = Math.max(1, params.limit || 20);
     if (params.lat && params.lng && params.radius) {
-      limit = 1000;
+      limit = 100;
     }
     const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
     const filter: Record<string, unknown> = {};
@@ -186,8 +171,8 @@ export async function getGoldenSectionPosts() {
       carCategory: 'sell' | 'buy' | 'rent' | 'auction';
     };
     const categoryMappings = [
-      { collection: 'sell_auto_cars', urlCategory: 'vanzare', carCategory: 'sell' as const },
-      { collection: 'buy_auto_cars', urlCategory: 'cumparare', carCategory: 'buy' as const },
+      { collection: 'sell_auto_cars', urlCategory: 'oferta', carCategory: 'sell' as const },
+      { collection: 'buy_auto_cars', urlCategory: 'cerere', carCategory: 'buy' as const },
       { collection: 'rent_auto_cars', urlCategory: 'inchiriere', carCategory: 'rent' as const },
       { collection: 'auction_auto_cars', urlCategory: 'licitatie', carCategory: 'auction' as const },
     ];
@@ -197,7 +182,7 @@ export async function getGoldenSectionPosts() {
         .collection(collection)
         .find({})
         .sort({ _id: -1 })
-        .limit(6)
+        .limit(2)
         .toArray()
         .then((cars) => cars.map((car) => ({ ...car, urlCategory, carCategory }) as ExtendedRawCarDoc))
     );
@@ -210,54 +195,13 @@ export async function getGoldenSectionPosts() {
       const createdAt = (carDoc._id as ObjectId).getTimestamp();
       const isNew = Date.now() - createdAt.getTime() < 24 * 60 * 60 * 1000;
 
-      const mappedCar: Car = {
-        id: carDoc._id.toString(),
-        title: carDoc.title || '',
-        price: String(carDoc.price || '0'),
-        currency: carDoc.currency || 'RON',
-        period: carDoc.period || '',
-        startDate: carDoc.startDate || '',
-        endDate: carDoc.endDate || '',
-        year: parseInt(carDoc.year || '2020') || 2020,
-        brand: carDoc.brand || 'Unknown',
-        category: carDoc.carCategory,
-        mileage: parseInt(carDoc.mileage || '0') || 0,
-        fuel: carDoc.fuel || 'Petrol',
-        transmission: carDoc.transmission || 'Manual',
-        location: typeof carDoc.location === 'string' ? carDoc.location : carDoc.location?.address || '',
-        images: carDoc.uploadedFiles && carDoc.uploadedFiles.length > 0 ? carDoc.uploadedFiles : ['/placeholder.svg'],
-        dateAdded: new Date().toISOString(),
-        sellerType: 'private',
-        contactPhone: '123456789',
-        contactEmail: 'email@example.com',
-        bodyType: carDoc.carType || 'Sedan',
-        color: carDoc.color || 'Alb',
-        engineCapacity: carDoc.engineCapacity ? parseFloat(carDoc.engineCapacity) : undefined,
-        horsepower: carDoc.horsePower ? parseInt(carDoc.horsePower) : undefined,
-        status: carDoc.status || 'used',
-        description: carDoc.description,
-        features: carDoc.features ? (typeof carDoc.features === 'string' ? carDoc.features.split(',') : carDoc.features) : [],
-        traction: carDoc.traction || '',
-        withDriver: carDoc.withDriver || false,
-        driverName: carDoc.driverName || '',
-        driverContact: carDoc.driverContact || '',
-        driverTelephone: carDoc.driverTelephone || '',
-        options: carDoc.options || [],
-        lat: typeof carDoc.location === 'object' ? carDoc.location?.lat : 45.9432,
-        lng: typeof carDoc.location === 'object' ? carDoc.location?.lng : 24.9668,
-        minPrice: carDoc.minPrice,
-        maxPrice: carDoc.maxPrice,
-        userId: carDoc.userId || '',
-      };
-
       return {
         id: carDoc._id.toString(),
-        title: mappedCar.title,
-        desc: mappedCar.description || 'No description available',
-        icon: CarIcon,
+        title: carDoc.title || '',
+        desc: carDoc.description || 'No description available',
         verified: true,
         isNew,
-        imageUrl: mappedCar.images[0],
+        imageUrl: carDoc.uploadedFiles && carDoc.uploadedFiles.length > 0 ? carDoc.uploadedFiles[0] : '/placeholder.svg',
         category: carDoc.urlCategory,
       };
     });
@@ -288,8 +232,8 @@ export async function getUserCars({
 }) {
   try {
     const categoryMappings = [
-      { collection: 'sell_auto_cars', urlCategory: 'vanzare', carCategory: 'sell' as const },
-      { collection: 'buy_auto_cars', urlCategory: 'cumparare', carCategory: 'buy' as const },
+      { collection: 'sell_auto_cars', urlCategory: 'oferta', carCategory: 'sell' as const },
+      { collection: 'buy_auto_cars', urlCategory: 'cerere', carCategory: 'buy' as const },
       { collection: 'rent_auto_cars', urlCategory: 'inchiriere', carCategory: 'rent' as const },
       { collection: 'auction_auto_cars', urlCategory: 'licitatie', carCategory: 'auction' as const },
     ];
@@ -350,54 +294,14 @@ export async function getUserCars({
     const pageCars = allCars.slice(start, end);
 
     const posts: Post[] = pageCars.map((carDoc: RawCarDoc) => {
-      const mappedCar: Car = {
-        id: carDoc._id.toString(),
-        title: carDoc.title || '',
-        price: carDoc.price ? String(carDoc.price) : carDoc.minPrice && carDoc.maxPrice ? `${carDoc.minPrice}-${carDoc.maxPrice}` : '0',
-        currency: carDoc.currency || 'RON',
-        period: carDoc.period || '',
-        startDate: carDoc.startDate || '',
-        endDate: carDoc.endDate || '',
-        year: parseInt(carDoc.year || '2020') || 2020,
-        brand: carDoc.brand || 'Unknown',
-        category: carDoc.carCategory || 'sell',
-        mileage: parseInt(carDoc.mileage || '0') || 0,
-        fuel: carDoc.fuel || 'Petrol',
-        transmission: carDoc.transmission || 'Manual',
-        location: typeof carDoc.location === 'string' ? carDoc.location : carDoc.location?.address || '',
-        images: carDoc.uploadedFiles && carDoc.uploadedFiles.length > 0 ? carDoc.uploadedFiles : ['/placeholder.svg'],
-        dateAdded: new Date().toISOString(),
-        sellerType: 'private',
-        contactPhone: '123456789',
-        contactEmail: 'email@example.com',
-        bodyType: carDoc.carType || 'Sedan',
-        color: carDoc.color || 'Alb',
-        engineCapacity: carDoc.engineCapacity ? parseFloat(carDoc.engineCapacity) : undefined,
-        horsepower: carDoc.horsePower ? parseInt(carDoc.horsePower) : undefined,
-        status: carDoc.status || 'active',
-        description: carDoc.description,
-        features: carDoc.features ? (typeof carDoc.features === 'string' ? carDoc.features.split(',') : carDoc.features) : [],
-        traction: carDoc.traction || '',
-        withDriver: carDoc.withDriver || false,
-        driverName: carDoc.driverName || '',
-        driverContact: carDoc.driverContact || '',
-        driverTelephone: carDoc.driverTelephone || '',
-        options: carDoc.options || [],
-        lat: typeof carDoc.location === 'object' ? carDoc.location?.lat : 45.9432,
-        lng: typeof carDoc.location === 'object' ? carDoc.location?.lng : 24.9668,
-        minPrice: carDoc.minPrice,
-        maxPrice: carDoc.maxPrice,
-        userId: carDoc.userId || '',
-      };
-
       return {
         id: carDoc._id.toString(),
-        title: mappedCar.title,
+        title: carDoc.title || '',
         category: carDoc.urlCategory || '',
-        price: mappedCar.price || null,
-        currency: mappedCar.currency || 'RON',
-        images: mappedCar.images,
-        status: mappedCar.status as 'active' | 'sold' | 'draft',
+        price: carDoc.price || null,
+        currency: carDoc.currency || 'RON',
+        images: carDoc.images,
+        status: carDoc.status as 'active' | 'sold' | 'draft',
         views: carDoc.views || 0,
         createdAt: (carDoc._id as ObjectId).getTimestamp().toISOString(),
       };
@@ -410,4 +314,167 @@ export async function getUserCars({
     console.error('Error fetching user posts:', error);
     return { posts: [], total: 0, page, limit, hasMore: false };
   }
+}
+
+export async function submitSellAutoForm(
+  data: AutoSellFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
+  try {
+    const validatedData = auto.sellSchema.parse(data);
+    const result = await db.collection('sell_auto_cars').insertOne({ ...validatedData, userId });
+    return { success: true, insertedId: result.insertedId.toString() };
+  } catch (error) {
+    console.error('Error submitting sell auto form:', error);
+    return { success: false, error: 'Failed to save data' };
+  }
+}
+
+export async function submitBuyAutoForm(
+  data: AutoBuyFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
+  try {
+    const validatedData = auto.buySchema.parse(data);
+    const result = await db.collection('buy_auto_cars').insertOne({ ...validatedData, userId });
+    return { success: true, insertedId: result.insertedId.toString() };
+  } catch (error) {
+    console.error('Error submitting buy auto form:', error);
+    return { success: false, error: 'Failed to save data' };
+  }
+}
+
+export async function submitRentAutoForm(
+  data: AutoRentFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
+  try {
+    const validatedData = auto.rentSchema.parse(data);
+    const result = await db.collection('rent_auto_cars').insertOne({ ...validatedData, userId });
+    return { success: true, insertedId: result.insertedId.toString() };
+  } catch (error) {
+    console.error('Error submitting rent auto form:', error);
+    return { success: false, error: 'Failed to save data' };
+  }
+}
+
+export async function submitAuctionAutoForm(
+  data: AutoAuctionFormData & { uploadedFiles: string[]; options?: string[]; history?: CarHistoryItem[] }
+) {
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const userId = session?.user?.id ?? null;
+  try {
+    const validatedData = auto.auctionSchema.parse(data);
+    const result = await db.collection('auction_auto_cars').insertOne({ ...validatedData, userId });
+    return { success: true, insertedId: result.insertedId.toString() };
+  } catch (error) {
+    console.error('Error submitting auction auto form:', error);
+    return { success: false, error: 'Failed to save data' };
+  }
+}
+
+export async function fetchCarsServerAction(params: {
+  activeTab: string;
+  searchQuery: string;
+  filters: AutoFilterState;
+  sortCriteria: SortCriteria;
+  locationFilter: LocationFilter;
+}): Promise<Car[]> {
+  const { activeTab, searchQuery, filters, sortCriteria, locationFilter } = params;
+
+  const fetchParams = {
+    page: 1,
+    limit: 100,
+    search: searchQuery,
+    status: filters.status || undefined,
+    sortBy: Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria])
+      ? `${Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria])}_${sortCriteria[Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria]) as keyof SortCriteria]}`
+      : undefined,
+    brand: filters.brand || undefined,
+    fuel: filters.fuel.length > 0 ? filters.fuel : undefined,
+    transmission: filters.transmission.length > 0 ? filters.transmission : undefined,
+    bodyType: filters.bodyType.length > 0 ? filters.bodyType : undefined,
+    priceMin: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+    priceMax: filters.priceRange[1] < 1000000 ? filters.priceRange[1] : undefined,
+    yearMin: filters.yearRange[0] > 1900 ? filters.yearRange[0] : undefined,
+    yearMax: filters.yearRange[1] < 2025 ? filters.yearRange[1] : undefined,
+    mileageMin: filters.mileageRange[0] > 0 ? filters.mileageRange[0] : undefined,
+    mileageMax: filters.mileageRange[1] < 1000000 ? filters.mileageRange[1] : undefined,
+    engineCapacityMin: filters.engineCapacityRange[0] > 0 ? filters.engineCapacityRange[0] : undefined,
+    engineCapacityMax: filters.engineCapacityRange[1] < 10 ? filters.engineCapacityRange[1] : undefined,
+    horsepowerMin: filters.horsepowerRange[0] > 0 ? filters.horsepowerRange[0] : undefined,
+    horsepowerMax: filters.horsepowerRange[1] < 1000 ? filters.horsepowerRange[1] : undefined,
+    lat: locationFilter.location?.lat,
+    lng: locationFilter.location?.lng,
+    radius: locationFilter.radius,
+  };
+
+  let result;
+  switch (activeTab) {
+    case 'oferta':
+      result = await getSellAutoCars(fetchParams);
+      break;
+    case 'cerere':
+      result = await getBuyAutoCars(fetchParams);
+      break;
+    case 'inchiriere':
+      result = await getRentAutoCars(fetchParams);
+      break;
+    case 'licitatie':
+      result = await getAuctionAutoCars(fetchParams);
+      break;
+    default:
+      result = { items: [], total: 0, hasMore: false };
+      break;
+  }
+
+  const mappedCars: Car[] = result.items.map((doc: RawCarDoc) => ({
+    id: doc._id.toString(),
+    title: doc.title || '',
+    price: String(doc.price || '0'),
+    currency: doc.currency || 'RON',
+    period: doc.period || '',
+    startDate: doc.startDate || '',
+    endDate: doc.endDate || '',
+    year: parseInt(doc.year || '2020') || 2020,
+    brand: doc.brand || '',
+    category: (activeTab === 'oferta' ? 'sell' : activeTab === 'cerere' ? 'buy' : activeTab === 'inchiriere' ? 'rent' : 'auction') as
+      | 'sell'
+      | 'buy'
+      | 'rent'
+      | 'auction',
+    mileage: parseInt(doc.mileage || '0') || 0,
+    fuel: doc.fuel || '',
+    transmission: doc.transmission || '',
+    location: typeof doc.location === 'string' ? doc.location : doc.location?.address || '',
+    images: doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : ['/placeholder.svg'],
+    dateAdded: new Date().toISOString(),
+    sellerType: 'private' as const,
+    contactPhone: '123456789',
+    contactEmail: 'email@example.com',
+    bodyType: doc.carType || '',
+    color: doc.color || '',
+    engineCapacity: doc.engineCapacity ? parseFloat(doc.engineCapacity) : undefined,
+    horsepower: doc.horsePower ? parseInt(doc.horsePower) : undefined,
+    status: doc.status || 'used',
+    description: doc.description,
+    features: doc.features ? (typeof doc.features === 'string' ? doc.features.split(',') : doc.features) : [],
+    traction: doc.traction || '',
+    withDriver: doc.withDriver || false,
+    driverName: doc.driverName || '',
+    driverContact: doc.driverContact || '',
+    driverTelephone: doc.driverTelephone || '',
+    options: doc.options || [],
+    lat: typeof doc.location === 'object' ? doc.location?.lat : undefined,
+    lng: typeof doc.location === 'object' ? doc.location?.lng : undefined,
+    minPrice: doc.minPrice,
+    maxPrice: doc.maxPrice,
+    userId: doc.userId ? doc.userId.toString() : '',
+    history: doc.history || [],
+  }));
+
+  return mappedCars;
 }

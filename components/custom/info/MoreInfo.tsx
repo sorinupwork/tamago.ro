@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import { BookOpen, Users, Heart, ArrowRight, ChevronDown } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Link from 'next/link';
 
 export default function MoreInfo() {
   return (

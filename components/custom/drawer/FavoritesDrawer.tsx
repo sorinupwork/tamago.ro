@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,12 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NavigationMenuLink, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Image from 'next/image';
-import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
+import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import FavoriteButton from '../button/FavoriteButton';
 import { useSession } from '@/lib/auth/auth-client';
 import { getFavorites } from '@/actions/auth/actions';
-import FavoriteButton from '../button/FavoriteButton';
 
 type Item = {
   id: string;
@@ -43,7 +43,7 @@ type FavoritesDrawerProps = {
   onOpenSearch?: () => void;
 };
 
-export function FavoritesDrawer({
+export default function FavoritesDrawer({
   triggerIcon = (
     <div className='p-1'>
       <Heart className='w-4 h-4' />
@@ -65,8 +65,8 @@ export function FavoritesDrawer({
   const router = useRouter();
 
   const categoryMap = {
-    sell: 'vanzare',
-    buy: 'cumparare',
+    sell: 'oferta',
+    buy: 'cerere',
     rent: 'inchiriere',
     auction: 'licitatie',
   };
@@ -154,7 +154,13 @@ export function FavoritesDrawer({
                 </ScrollArea>
                 <div className='flex gap-2'>
                   {sortOptions.map((option) => (
-                    <Button key={option} variant={sort === option ? 'secondary' : 'outline'} size='sm' onClick={() => setSort(option)} disabled={!session}>
+                    <Button
+                      key={option}
+                      variant={sort === option ? 'secondary' : 'outline'}
+                      size='sm'
+                      onClick={() => setSort(option)}
+                      disabled={!session}
+                    >
                       {option === 'title' ? 'Sort by Title' : 'No Sort'}
                     </Button>
                   ))}

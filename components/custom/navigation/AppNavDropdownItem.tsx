@@ -1,9 +1,10 @@
 import * as React from 'react';
 import Link from 'next/link';
+
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 
-export function AppNavDropdownItem({
+export default function AppNavDropdownItem({
   title,
   children,
   href,

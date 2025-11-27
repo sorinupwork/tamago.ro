@@ -3,7 +3,7 @@ import { getSellAutoCars, getBuyAutoCars, getRentAutoCars, getAuctionAutoCars } 
 
 export default async function AutoPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const resolvedSearchParams = await searchParams;
-  const tip = (resolvedSearchParams.tip as string) || 'vanzare';
+  const tip = (resolvedSearchParams.tip as string) || 'oferta';
   const pagina = parseInt(resolvedSearchParams.pagina as string) || 1;
   const cautare = resolvedSearchParams.cautare as string;
   const marca = resolvedSearchParams.marca as string;
@@ -60,9 +60,9 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
 
   const initialResult = (() => {
     switch (tip) {
-      case 'vanzare':
+      case 'oferta':
         return getSellAutoCars(params);
-      case 'cumparare':
+      case 'cerere':
         return getBuyAutoCars(params);
       case 'inchiriere':
         return getRentAutoCars(params);

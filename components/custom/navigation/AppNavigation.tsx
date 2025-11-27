@@ -22,16 +22,15 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { AppNavDropdownItem } from './AppNavDropdownItem';
-import { AppLogo } from '../logo/AppLogo';
-import { AppNavActions } from './AppNavActions';
+import AppNavDropdownItem from './AppNavDropdownItem';
+import AppLogo from '../logo/AppLogo';
+import AppNavActions from './AppNavActions';
+import FavoritesDrawer from '../drawer/FavoritesDrawer';
 import { subcategories } from '@/lib/subcategories';
 import { categories } from '@/lib/categories';
-import { FavoritesDrawer } from '../drawer/FavoritesDrawer';
 
-export function AppNavigation() {
+export default function AppNavigation() {
   const [searchOpen, setSearchOpen] = useState(false);
-
   const mainCategories = categories.map((cat) => ({ title: cat.label, href: cat.href }));
 
   return (

@@ -13,7 +13,7 @@ import SellAutoForm from '@/components/custom/form/auto/SellAutoForm';
 import BuyAutoForm from '@/components/custom/form/auto/BuyAutoForm';
 import RentAutoForm from '@/components/custom/form/auto/RentAutoForm';
 import AuctionAutoForm from '@/components/custom/form/auto/AuctionAutoForm';
-import { categories } from '@/lib/categories';
+import { categories, categoryMapping } from '@/lib/categories';
 import { subcategories } from '@/lib/subcategories';
 
 export type PreviewData = {
@@ -61,13 +61,6 @@ type CategoriesClientProps = {
   initialCategory?: string;
   initialSubcategory?: string;
 };
-
-const categoryMapping = {
-  oferta: 'sell',
-  cerere: 'buy',
-  inchiriere: 'rent',
-  licitatie: 'auction',
-} as const;
 
 export default function CategoriesClient({ initialCategory, initialSubcategory }: CategoriesClientProps) {
   const searchParams = useSearchParams();

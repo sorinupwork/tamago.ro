@@ -1,7 +1,7 @@
 import { categoryMapping } from '@/lib/categories';
 import type { AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
 
-export const defaultActiveTab: keyof typeof categoryMapping = 'vanzare';
+export const defaultActiveTab: keyof typeof categoryMapping = 'oferta';
 
 export const defaultFilters: AutoFilterState = {
   status: '',

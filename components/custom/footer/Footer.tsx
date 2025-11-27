@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import { Dot } from 'lucide-react';
 
-export function Footer() {
+import { Button } from '@/components/ui/button';
+
+export default function Footer() {
   const partners = [
     { src: '/icons/facebook.svg', alt: 'Facebook', colorClass: 'text-blue-500' },
     { src: '/icons/instagram.svg', alt: 'Instagram', colorClass: 'text-purple-500' },
