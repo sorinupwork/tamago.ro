@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, use, useTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { MapPin, Search, X } from 'lucide-react';
+import { MapPin, Search, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { categoryMapping } from '@/lib/categories';
+import { carModelsByBrand, steeringWheelOptions, tractionOptions } from '@/lib/mockData';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
@@ -70,14 +71,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
 
   const [isPending, startTransition] = useTransition();
 
-  const currentSort = useMemo(() => {
-    const key = Object.keys(sortCriteria).find((k) => sortCriteria[k as keyof SortCriteria]);
-    if (key) {
-      return `${key}_${sortCriteria[key as keyof SortCriteria]}`;
-    }
-    return '';
-  }, [sortCriteria]);
-
   useEffect(() => {
     startTransition(async () => {
       setCars([]);
@@ -100,10 +93,14 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
 
     if (filters.brand !== defaultFilters.brand) params.set('marca', filters.brand);
+    if (filters.model !== defaultFilters.model) params.set('model', filters.model);
+    if (filters.steeringWheelPosition !== defaultFilters.steeringWheelPosition) params.set('volan', filters.steeringWheelPosition);
+    if (filters.priceCurrency !== defaultFilters.priceCurrency) params.set('moneda', filters.priceCurrency);
     if (filters.fuel.length > 0) filters.fuel.forEach((f) => params.append('combustibil', f));
     if (filters.transmission.length > 0) filters.transmission.forEach((t) => params.append('transmisie', t));
     if (filters.bodyType.length > 0) filters.bodyType.forEach((b) => params.append('caroserie', b));
     if (filters.color.length > 0) filters.color.forEach((c) => params.append('culoare', c));
+    if (filters.traction.length > 0) filters.traction.forEach((tr) => params.append('tractiune', tr));
     if (filters.status !== defaultFilters.status) {
       const stare = Object.keys(statusMap).find((k) => statusMap[k as keyof typeof statusMap] === filters.status) || filters.status;
       params.set('stare', stare);
@@ -146,7 +143,11 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       params.set('lng', locationFilter.location.lng.toString());
       params.set('raza', locationFilter.radius.toString());
     }
-    if (currentPage !== defaultCurrentPage) params.set('pagina', currentPage.toString());
+    if (currentPage !== defaultCurrentPage) {
+      params.set('pagina', currentPage.toString());
+    } else {
+      params.delete('pagina');
+    }
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.replace(newUrl || window.location.pathname, { scroll: false });
   }, [activeTab, filters, sortCriteria, searchQuery, locationFilter, currentPage, router]);
@@ -154,6 +155,17 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const uniqueBrands = useMemo(() => {
     const brands = [...new Set(cars.map((car) => car.brand))];
     return brands.map((brand) => ({ value: brand, label: brand }));
+  }, [cars]);
+
+  const uniqueModels = useMemo(() => {
+    if (!filters.brand) return [];
+    const models = carModelsByBrand[filters.brand as keyof typeof carModelsByBrand] || [];
+    return models;
+  }, [filters.brand]);
+
+  const uniqueColors = useMemo(() => {
+    const colors = [...new Set(cars.map((car) => car.color).filter((c) => c))];
+    return colors.map((color) => ({ value: color, label: color }));
   }, [cars]);
 
   const uniqueBodyTypes = useMemo(() => {
@@ -219,7 +231,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       } else if (key === 'horsepowerRange') {
         setFilters((prev) => ({ ...prev, horsepowerRange: defaultFilters.horsepowerRange }));
         setCurrentPage(1);
-      } else if (key === 'price' || key === 'year' || key === 'mileage') {
+      } else if (key === 'price' || key === 'year' || key === 'mileage' || key === 'date') {
         setSortCriteria((prev) => ({ ...prev, [key]: null }));
         setCurrentPage(1);
       } else if (key in filters && Array.isArray((filters as Record<string, unknown>)[key])) {
@@ -232,7 +244,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         );
         setCurrentPage(1);
       } else {
-        setFilters((prev) => ({ ...prev, [key]: '' }));
+        setFilters((prev) => ({ ...prev, [key]: defaultFilters[key as keyof AutoFilterState] }));
         setCurrentPage(1);
       }
     });
@@ -319,15 +331,29 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       </div>
 
       <div className='mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-        <AppSlider
-          label='Preț'
-          min={0}
-          max={1000000}
-          step={1000}
-          value={filters.priceRange}
-          onValueChange={(value) => handleFilterChange('priceRange', value)}
-          currency='RON'
-        />
+        <div className='flex flex-col gap-2'>
+          <AppSlider
+            label='Preț'
+            min={0}
+            max={1000000}
+            step={1000}
+            value={filters.priceRange}
+            onValueChange={(value) => handleFilterChange('priceRange', value)}
+            currency={filters.priceCurrency || 'EUR'}
+          />
+          <AppSelectInput
+            options={[
+              { value: 'EUR', label: 'EUR' },
+              { value: 'USD', label: 'USD' },
+              { value: 'RON', label: 'RON' },
+              { value: 'GBP', label: 'GBP' },
+            ]}
+            value={filters.priceCurrency}
+            onValueChange={(value) => handleFilterChange('priceCurrency', value as string)}
+            multiple={false}
+            placeholder='Monedă'
+          />
+        </div>
         <AppSlider
           label='An'
           min={1900}
@@ -380,8 +406,19 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         <AppCombobox
           options={uniqueBrands}
           value={filters.brand}
-          onValueChange={(value) => handleFilterChange('brand', value)}
+          onValueChange={(value) => {
+            handleFilterChange('brand', value);
+            handleFilterChange('model', '');
+          }}
           placeholder='Marcă'
+        />
+        <AppSelectInput
+          options={uniqueModels}
+          value={filters.model}
+          onValueChange={(value) => handleFilterChange('model', value as string)}
+          multiple={false}
+          placeholder='Model'
+          disabled={!filters.brand}
         />
         <AppSelectInput
           options={[
@@ -406,6 +443,9 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           multiple={true}
           placeholder='Transmisie'
         />
+      </div>
+
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4'>
         <AppSelectInput
           options={uniqueBodyTypes}
           value={filters.bodyType}
@@ -413,36 +453,172 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           multiple={true}
           placeholder='Tip Caroserie'
         />
+        <AppSelectInput
+          options={uniqueColors}
+          value={filters.color}
+          onValueChange={(value) => handleFilterChange('color', value as string[])}
+          multiple={true}
+          placeholder='Culoare'
+        />
+        <AppSelectInput
+          options={steeringWheelOptions}
+          value={filters.steeringWheelPosition}
+          onValueChange={(value) => handleFilterChange('steeringWheelPosition', value as string)}
+          multiple={false}
+          placeholder='Poziție Volan'
+        />
+        <AppSelectInput
+          options={tractionOptions}
+          value={filters.traction}
+          onValueChange={(value) => handleFilterChange('traction', value as string[])}
+          multiple={true}
+          placeholder='Tracțiune'
+        />
       </div>
 
-      <div className='mb-4 flex justify-center md:justify-start'>
-        <AppSelectInput
-          options={[
-            { value: 'price_asc', label: 'Preț crescător' },
-            { value: 'price_desc', label: 'Preț descrescător' },
-            { value: 'year_asc', label: 'An crescător' },
-            { value: 'year_desc', label: 'An descrescător' },
-            { value: 'mileage_asc', label: 'Kilometraj crescător' },
-            { value: 'mileage_desc', label: 'Kilometraj descrescător' },
-          ]}
-          value={currentSort}
-          onValueChange={(value) => {
-            const [key, order] = (value as string).split('_');
-            startTransition(() => {
-              setCars([]);
-              setSortCriteria((prev) => {
-                const newCriteria = { ...prev };
-                Object.keys(newCriteria).forEach((k) => (newCriteria[k as keyof SortCriteria] = null));
-                newCriteria[key as keyof SortCriteria] = order as 'asc' | 'desc';
-                return newCriteria;
-              });
-              setCurrentPage(1);
-            });
-          }}
-          multiple={false}
-          placeholder='Sortează după'
-          className='col-span-full'
-        />
+      <div className='mb-4 flex flex-col gap-4'>
+        <h3 className='text-sm font-semibold text-gray-700'>Sortare după</h3>
+        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3'>
+          {/* Price Sort */}
+          <div className='flex flex-col gap-2'>
+            <p className='text-xs font-medium text-gray-600'>Preț</p>
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                variant={sortCriteria.price === 'asc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, price: prev.price === 'asc' ? null : 'asc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronUp className='h-4 w-4' /> Cresc.
+              </Button>
+              <Button
+                size='sm'
+                variant={sortCriteria.price === 'desc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, price: prev.price === 'desc' ? null : 'desc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronDown className='h-4 w-4' /> Desc.
+              </Button>
+            </div>
+          </div>
+
+          {/* Year Sort */}
+          <div className='flex flex-col gap-2'>
+            <p className='text-xs font-medium text-gray-600'>An</p>
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                variant={sortCriteria.year === 'asc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, year: prev.year === 'asc' ? null : 'asc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronUp className='h-4 w-4' /> Cresc.
+              </Button>
+              <Button
+                size='sm'
+                variant={sortCriteria.year === 'desc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, year: prev.year === 'desc' ? null : 'desc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronDown className='h-4 w-4' /> Desc.
+              </Button>
+            </div>
+          </div>
+
+          {/* Mileage Sort */}
+          <div className='flex flex-col gap-2'>
+            <p className='text-xs font-medium text-gray-600'>Kilometraj</p>
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                variant={sortCriteria.mileage === 'asc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, mileage: prev.mileage === 'asc' ? null : 'asc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronUp className='h-4 w-4' /> Cresc.
+              </Button>
+              <Button
+                size='sm'
+                variant={sortCriteria.mileage === 'desc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, mileage: prev.mileage === 'desc' ? null : 'desc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronDown className='h-4 w-4' /> Desc.
+              </Button>
+            </div>
+          </div>
+
+          {/* Date Sort */}
+          <div className='flex flex-col gap-2'>
+            <p className='text-xs font-medium text-gray-600'>Dată</p>
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                variant={sortCriteria.date === 'asc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, date: prev.date === 'asc' ? null : 'asc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronUp className='h-4 w-4' /> Vechi
+              </Button>
+              <Button
+                size='sm'
+                variant={sortCriteria.date === 'desc' ? 'default' : 'outline'}
+                onClick={() => {
+                  startTransition(() => {
+                    setCars([]);
+                    setSortCriteria((prev) => ({ ...prev, date: prev.date === 'desc' ? null : 'desc' }));
+                    setCurrentPage(1);
+                  });
+                }}
+                className='flex-1 gap-1'
+              >
+                <ChevronDown className='h-4 w-4' /> Nou
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className='mb-4 flex flex-wrap gap-2 min-h-8'>

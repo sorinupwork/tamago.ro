@@ -49,6 +49,10 @@ export function getFilteredCars(
     }
   });
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
+  if (filters.model) filtered = filtered.filter((car) => car.model?.toLowerCase().includes(filters.model.toLowerCase()));
+  if (filters.steeringWheelPosition) filtered = filtered.filter((car) => car.steeringWheelPosition === filters.steeringWheelPosition);
+  if (filters.priceCurrency) filtered = filtered.filter((car) => car.currency === filters.priceCurrency);
+  if (filters.traction.length > 0) filtered = filtered.filter((car) => filters.traction.includes(car.traction || ''));
   if (searchQuery)
     filtered = filtered.filter(
       (car) => car.title.toLowerCase().includes(searchQuery.toLowerCase()) || car.brand.toLowerCase().includes(searchQuery.toLowerCase())
@@ -86,7 +90,21 @@ export function getAppliedFilters(
     ...filters.transmission.map((t: string) => ({ key: 'transmission', value: t, label: `Transmisie: ${t}` })),
     ...filters.bodyType.map((b: string) => ({ key: 'bodyType', value: b, label: `Caroserie: ${b}` })),
     ...filters.color.map((c: string) => ({ key: 'color', value: c, label: `Culoare: ${c}` })),
+    ...filters.traction.map((tr: string) => ({ key: 'traction', value: tr, label: `Tracțiune: ${tr}` })),
     ...(filters.brand ? [{ key: 'brand', value: filters.brand, label: `Marcă: ${filters.brand}` }] : []),
+    ...(filters.model ? [{ key: 'model', value: filters.model, label: `Model: ${filters.model}` }] : []),
+    ...(filters.steeringWheelPosition
+      ? [
+          {
+            key: 'steeringWheelPosition',
+            value: filters.steeringWheelPosition,
+            label: `Volan: ${filters.steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}`,
+          },
+        ]
+      : []),
+    ...(filters.priceCurrency && filters.priceCurrency !== 'EUR'
+      ? [{ key: 'priceCurrency', value: filters.priceCurrency, label: `Monedă: ${filters.priceCurrency}` }]
+      : []),
     ...(locationFilter.location
       ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }]
       : []),

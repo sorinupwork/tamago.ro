@@ -30,6 +30,8 @@ import {
   transmissionOptions,
   iconOptions,
   tractionOptions,
+  steeringWheelOptions,
+  carModelsByBrand,
 } from '@/lib/mockData';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
@@ -65,12 +67,15 @@ export default function AuctionAutoForm({
       mileage: '',
       year: '',
       brand: '',
+      model: '',
       color: '',
       engineCapacity: '',
       carType: undefined,
       horsePower: '',
       transmission: undefined,
       traction: undefined,
+      steeringWheelPosition: 'left',
+      contactPhone: '',
       uploadedFiles: [],
     },
   });
@@ -267,9 +272,9 @@ export default function AuctionAutoForm({
             {subcategory === 'auto' && (
               <AppSelectInput
                 options={[
-                  { value: 'Petrol', label: 'Benzină' },
+                  { value: 'Benzina', label: 'Benzină' },
                   { value: 'Diesel', label: 'Motorină' },
-                  { value: 'Hybrid', label: 'Hibrid' },
+                  { value: 'Hibrida', label: 'Hibrid' },
                   { value: 'Electric', label: 'Electric' },
                 ]}
                 value={form.watch('fuel')}
@@ -284,38 +289,68 @@ export default function AuctionAutoForm({
           </div>
 
           {subcategory === 'auto' && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0'>
               <AppSelectInput
                 options={brandOptions}
-                value={form.watch('brand')}
-                onValueChange={(v) => form.setValue('brand', v as string, { shouldValidate: true })}
-                placeholder='Introduceți marca'
+                value={form.watch('brand') || ''}
+                onValueChange={(v) => {
+                  form.setValue('brand', v as string, { shouldValidate: true });
+                  form.setValue('model', '', { shouldValidate: true });
+                }}
+                placeholder='Selectați marca'
                 className='w-full'
                 label='Marcă'
                 error={form.formState.errors.brand ? [form.formState.errors.brand] : undefined}
                 required
               />
               <AppSelectInput
+                options={form.watch('brand') && carModelsByBrand[form.watch('brand')] 
+                  ? carModelsByBrand[form.watch('brand')] 
+                  : []}
+                value={form.watch('model') || ''}
+                onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
+                placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}
+                disabled={!form.watch('brand')}
+                className='w-full'
+                label='Model'
+                error={form.formState.errors.model ? [form.formState.errors.model] : undefined}
+              />
+              <AppSelectInput
                 options={colorOptions}
-                value={form.watch('color')}
+                value={form.watch('color') || ''}
                 onValueChange={(v) => form.setValue('color', v as string, { shouldValidate: true })}
-                placeholder='Introduceți culoarea'
+                placeholder='Selectați culoarea'
                 className='w-full'
                 label='Culoare'
                 error={form.formState.errors.color ? [form.formState.errors.color] : undefined}
                 required
               />
-              <AppInput
-                type='number'
-                step='0.1'
-                placeholder='2.0'
-                value={form.watch('engineCapacity')}
-                onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldValidate: true })}
+              <AppSelectInput
+                label='Poziția Volanului'
+                options={steeringWheelOptions}
+                value={form.watch('steeringWheelPosition') || 'left'}
+                onValueChange={(v) => form.setValue('steeringWheelPosition', v as 'left' | 'right', { shouldValidate: true })}
+                placeholder='Selectați poziția volanului'
                 className='w-full'
-                label='Capacitate Cilindrică (L)'
-                error={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined}
-                required
+                error={form.formState.errors.steeringWheelPosition ? [form.formState.errors.steeringWheelPosition] : undefined}
               />
+            </div>
+          )}
+
+          {subcategory === 'auto' && (
+            <AppInput
+              type='tel'
+              placeholder='+40 7XX XXX XXX'
+              value={form.watch('contactPhone') || ''}
+              onChange={(e) => form.setValue('contactPhone', e.target.value, { shouldValidate: true })}
+              className='min-w-0 w-full'
+              label='Telefon Contact (Optional)'
+              error={form.formState.errors.contactPhone ? [form.formState.errors.contactPhone] : undefined}
+            />
+          )}
+
+          {subcategory === 'auto' && (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
               <AppSelectInput
                 options={carTypeOptions}
                 value={form.watch('carType')}

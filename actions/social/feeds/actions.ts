@@ -298,7 +298,6 @@ export async function getFeedPosts(
   if (params.userId) filter.userId = params.userId;
   if (params.type && params.type !== 'both') filter.type = params.type;
 
-  // Add search filter if search query provided
   if (params.search) {
     const searchRegex = new RegExp(params.search, 'i');
     filter.$or = [{ text: { $regex: searchRegex } }, { question: { $regex: searchRegex } }, { tags: { $in: [searchRegex] } }];

@@ -24,6 +24,7 @@ type AppSelectInputProps = {
   required?: boolean;
   htmlFor?: string;
   lift?: boolean;
+  disabled?: boolean;
 };
 
 const AppSelectInput: React.FC<AppSelectInputProps> = ({
@@ -38,6 +39,7 @@ const AppSelectInput: React.FC<AppSelectInputProps> = ({
   required,
   htmlFor,
   lift = false,
+  disabled = false,
 }) => {
   const selectComponent = multiple ? (
     <Popover>
@@ -85,7 +87,7 @@ const AppSelectInput: React.FC<AppSelectInputProps> = ({
       </PopoverContent>
     </Popover>
   ) : (
-    <Select value={value as string} onValueChange={(v) => onValueChange(v)}>
+    <Select value={value as string} onValueChange={(v) => onValueChange(v)} disabled={disabled}>
       <SelectTrigger className={`w-full ${className}`}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

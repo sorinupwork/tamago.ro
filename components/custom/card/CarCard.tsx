@@ -4,18 +4,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useEffect, useState } from 'react';
-import { ArrowRight, UserIcon, CheckCircle } from 'lucide-react';
+import { ArrowRight, ExternalLink, CheckCircle2 } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import FavoriteButton from '../button/FavoriteButton';
 import ShareButton from '../button/ShareButton';
 import QuickActionButton from '../button/QuickActionButton';
-import CarHistoryHighlights from '../accordion/CarHistoryHighlights';
 import CarDetailsAccordion from '../accordion/CarDetailsAccordion';
 import { getUserById } from '@/actions/auth/actions';
 import { categories, reverseCategoryMapping } from '@/lib/categories';
@@ -89,72 +89,102 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
         <CarouselNext className='right-2 h-10 w-10 rounded-full border-2 border-primary shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-black text-black dark:text-white' />
       </Carousel>
 
-      <CardHeader>
-        <div className='flex justify-between items-start'>
-          <div className='flex-1'>
-            <CardTitle
-              className='text-lg md:text-xl font-bold line-clamp-2 mb-2 leading-[1.2] overflow-hidden'
-              style={{ minHeight: 'calc(2 * 1.2em)' }}
-            >
-              {car.title}
-            </CardTitle>
+      <CardHeader className='pb-3'>
+        {/* Main Content: Title and Price on Left, Icons and Badge on Right */}
+        <div className='flex justify-between items-start gap-3'>
+          {/* Left Section: Title and Price - Main Focus */}
+          <div className='flex-1 min-w-0'>
+            <h3 className='text-lg md:text-xl font-bold line-clamp-2 mb-2 text-foreground'>{car.title}</h3>
 
-            <div>
-              <p className='text-xl md:text-2xl font-extrabold text-green-600 mb-2'>
-                {car.currency}{' '}
-                {car.category === 'buy'
-                  ? `${car.minPrice} - ${car.maxPrice}`
-                  : car.category === 'rent'
-                    ? `${car.price}/${car.period || 'zi'}`
-                    : car.price}
-              </p>
-            </div>
-          </div>
+            <p className='text-xl md:text-2xl font-extrabold text-primary mb-2'>
+              {car.currency}{' '}
+              {car.category === 'buy'
+                ? `${car.minPrice} - ${car.maxPrice}`
+                : car.category === 'rent'
+                  ? `${car.price}/${car.period || 'zi'}`
+                  : car.price}
+            </p>
 
-          <div className='flex flex-col gap-1'>
-            <div className='flex items-center gap-1'>
-              <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='shrink-0'>
+            {/* Right Section: Badge, Seller Icon, and Action Icons - Vertical Stack */}
+            <div className='flex items-center gap-2'>
+              {/* Category Badge - Top */}
+              <Badge variant={car.category === 'auction' ? 'destructive' : 'secondary'} className='shrink-0 text-xs'>
                 {categoryLabel}
               </Badge>
-              <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
-              <ShareButton href={href} />
-              <QuickActionButton href={href} />
-            </div>
 
-            {user && (
-              <div className='flex items-center gap-2'>
+              {/* Seller Info - Only Avatar Icon with Hover Card */}
+              {user && (
                 <HoverCard>
                   <HoverCardTrigger asChild>
-                    <Link href={`/profile/${user.id}`} className='flex items-center gap-2 text-sm text-primary hover:underline'>
-                      <UserIcon className='h-4 w-4' />
-                      {user.name || 'Utilizator'}
-                      {user.emailVerified && <CheckCircle className='h-4 w-4 text-green-500' />}
-                    </Link>
+                    <button className='flex items-center p-1.5 rounded-md hover:bg-muted transition-colors'>
+                      <div className='relative'>
+                        <Image
+                          src={user.avatar || '/placeholder-avatar.png'}
+                          alt={user.name || 'Seller'}
+                          width={28}
+                          height={28}
+                          className='rounded-full'
+                        />
+                        {user.emailVerified && (
+                          <CheckCircle2 className='absolute -bottom-0.5 -right-0.5 h-3 w-3 text-green-500 bg-white dark:bg-slate-950 rounded-full' />
+                        )}
+                      </div>
+                    </button>
                   </HoverCardTrigger>
 
-                  <HoverCardContent className='w-80'>
-                    <div className='flex items-center gap-3'>
-                      <Image
-                        src={user.avatar || '/placeholder-avatar.png'}
-                        alt={user.name || 'User'}
-                        width={40}
-                        height={40}
-                        className='rounded-full'
-                      />
-                      <div>
-                        <p className='font-semibold'>{user.name || 'Utilizator'}</p>
-                        <p className='text-sm text-muted-foreground'>Vezi profilul</p>
+                  <HoverCardContent side='left' className='w-72'>
+                    <div className='space-y-3'>
+                      {/* Header with Avatar and Name */}
+                      <div className='flex items-start gap-3'>
+                        <div className='relative'>
+                          <Image
+                            src={user.avatar || '/placeholder-avatar.png'}
+                            alt={user.name || 'Seller'}
+                            width={48}
+                            height={48}
+                            className='rounded-full'
+                          />
+                          {user.emailVerified && (
+                            <div className='absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5'>
+                              <CheckCircle2 className='h-4 w-4 text-white' />
+                            </div>
+                          )}
+                        </div>
+                        <div className='flex-1'>
+                          <p className='font-semibold'>{user.name || 'Utilizator'}</p>
+                          <p className='text-sm text-muted-foreground'>{user.email}</p>
+                        </div>
                       </div>
+
+                      {/* Verification Status */}
+                      {user.emailVerified && (
+                        <div className='flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded'>
+                          <CheckCircle2 className='h-4 w-4 text-green-600 dark:text-green-400' />
+                          <span className='text-sm font-medium text-green-700 dark:text-green-300'>Vânzător Verificat</span>
+                        </div>
+                      )}
+
+                      {/* View Profile Link */}
+                      <Link
+                        href={`/profile/${user.id}`}
+                        className='text-sm text-primary hover:underline flex items-center gap-1.5 pt-2 border-t'
+                      >
+                        Vezi profilul
+                        <ExternalLink className='h-3 w-3' />
+                      </Link>
                     </div>
                   </HoverCardContent>
                 </HoverCard>
-                {user.emailVerified && (
-                  <Badge variant='secondary' className='text-xs'>
-                    Vânzător Verificat
-                  </Badge>
-                )}
-              </div>
-            )}
+              )}
+            </div>
+          </div>
+
+          <div className='flex flex-col items-center gap-1.5'>
+            <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
+
+            <ShareButton href={href} />
+
+            <QuickActionButton href={href} />
           </div>
         </div>
       </CardHeader>
@@ -162,24 +192,46 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
       <CardDescription>
         {car.description && (
           <div
-            className='text-sm text-muted-foreground bg-muted/50 pt-2 line-clamp-3 leading-[1.4] overflow-hidden px-6'
-            style={{ minHeight: 'calc(3 * 1.2em)' }}
+            className='text-sm text-muted-foreground bg-muted/50 px-6 py-2 line-clamp-4'
             dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
           />
         )}
       </CardDescription>
 
-      <CardContent className='pt-0 flex-1 flex flex-col'>
-        <CarHistoryHighlights car={car} features={car.features} items={car.history} />
+      <CardContent className='pt-4 flex-1 flex flex-col'>
+        {/* Additional Info Badges - Only for non-spec items */}
+        <div className='flex flex-wrap gap-2 mb-4'>
+          {car.color && (
+            <Badge variant='outline' className='text-xs truncate'>
+              <span
+                className='inline-block w-2 h-2 rounded-full mr-1.5 shrink-0'
+                style={{ backgroundColor: getColorValue(car.color) }}
+              ></span>
+              <span className='truncate'>{car.color}</span>
+            </Badge>
+          )}
+          {car.traction && (
+            <Badge variant='outline' className='text-xs truncate'>
+              {car.traction}
+            </Badge>
+          )}
+          {car.steeringWheelPosition && (
+            <Badge variant='outline' className='text-xs truncate'>
+              {car.steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}
+            </Badge>
+          )}
+        </div>
 
+        {/* All Details in One Accordion - No Duplication */}
         <CarDetailsAccordion car={car} />
 
+        {/* Options Section - Only if present and not duplicated in accordion */}
         {car.options && car.options.length > 0 && (
-          <div className='mt-4'>
+          <div className='my-2'>
             <h5 className='text-sm font-semibold mb-2'>Opțiuni:</h5>
             <div className='flex flex-wrap gap-2'>
               {car.options.map((option, i) => (
-                <Badge key={i} variant='outline'>
+                <Badge key={i} variant='outline' className='text-xs truncate'>
                   {option}
                 </Badge>
               ))}
@@ -187,15 +239,35 @@ export default function CarCard({ car, cardsPerPage = 3 }: CarCardProps) {
           </div>
         )}
 
-        <div className='flex justify-between items-center mt-auto pt-4'>
-          <p className='text-xs md:text-sm text-muted-foreground'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
-          <Link key={car.id} href={href} className='cursor-default'>
-            <Button variant='link' className='w-auto'>
-              {buttonText} <ArrowRight className='ml-2 h-4 w-4' />
+        <div className='flex justify-between items-center mt-auto pt-2 border-t'>
+          <p className='text-xs text-muted-foreground'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
+          <Link href={href}>
+            <Button variant='ghost' size='sm' className='h-auto py-1 px-2 text-xs md:text-sm gap-1'>
+              {buttonText}
+              <ArrowRight className='h-3 w-3 md:h-4 md:w-4' />
             </Button>
           </Link>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function getColorValue(colorName: string): string {
+  const colorMap: Record<string, string> = {
+    Alb: '#ffffff',
+    Negru: '#000000',
+    Gri: '#808080',
+    Albastru: '#0000ff',
+    Rosu: '#ff0000',
+    Verde: '#008000',
+    Galben: '#ffff00',
+    Portocaliu: '#ffa500',
+    Violet: '#800080',
+    Maro: '#a52a2a',
+    Argintiu: '#c0c0c0',
+    Auriu: '#ffd700',
+    Alta: '#d3d3d3',
+  };
+  return colorMap[colorName] || '#d3d3d3';
 }

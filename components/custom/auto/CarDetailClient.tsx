@@ -2,7 +2,21 @@
 
 import Image from 'next/image';
 import { useState, useRef, useTransition } from 'react';
-import { Phone, MessageCircle, Clock, Car as CarIcon, type LucideIcon } from 'lucide-react';
+import {
+  Phone,
+  MessageCircle,
+  Clock,
+  Car as CarIcon,
+  Gauge,
+  Fuel,
+  Cog,
+  Zap,
+  MapPin,
+  Calendar,
+  Palette,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 import { toast } from 'sonner';
@@ -183,14 +197,14 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                 loop: false,
               }}
               orientation='vertical'
-              className='w-full h-full overflow-visible '
+              className='w-full h-full overflow-visible'
               setApi={setApi}
               onNext={handleNext}
               onPrev={handlePrev}
             >
-              <CarouselContent className='-mt-1 py-4 max-h-[650px] gap-2.5 px-6'>
+              <CarouselContent className='-mt-1 py-4 max-h-[650px] gap-4 px-6'>
                 {car.images.map((image, index) => (
-                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] shadow-md ring-2 ring-white rounded-xl'>
+                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] shadow-lg ring-2 ring-primary/20 rounded-xl overflow-hidden'>
                     <MediaPreview
                       mediaItems={car.images.map((url, i) => ({
                         type: 'image',
@@ -213,8 +227,8 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2' />
-              <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2' />
+              <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2 border-2 shadow-lg w-10 h-10' />
+              <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2 border-2 shadow-lg w-10 h-10' />
             </Carousel>
           </Card>
         </div>
@@ -222,29 +236,39 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
         <div className='space-y-6 pt-4'>
           <Card ref={detailsRef}>
             <CardHeader>
-              <div className='flex justify-between items-start'>
-                <div>
+              <div className='flex justify-between items-start gap-4'>
+                <div className='flex-1'>
                   <CardTitle className='text-3xl font-bold'>{car.title}</CardTitle>
                   <p className='text-lg text-muted-foreground'>
-                    {car.brand} - {car.year}
+                    {car.brand} {car.model ? `- ${car.model}` : ''} • {car.year}
                   </p>
                 </div>
 
-                <div className='flex items-center gap-2'>
-                  <Badge variant={isAuction ? 'destructive' : 'secondary'}>
-                    {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
+                <div className='flex flex-col items-end gap-2'>
+                  <div className='flex items-center gap-2'>
+                    <Badge variant={isAuction ? 'destructive' : 'secondary'}>
+                      {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
+                    </Badge>
+                    {isAuction && <Badge variant='outline'>Activ</Badge>}
+                    <FavoriteButton
+                      itemId={car.id}
+                      itemTitle={car.title}
+                      itemImage={car.images[0] || ''}
+                      itemCategory={car.category}
+                    />
+                  </div>
+                  <Badge variant='outline' className='text-xs'>
+                    {car.sellerType === 'private' ? '👤 Persoană Fizică' : '🏢 Firmă'}
                   </Badge>
-                  {isAuction && <Badge variant='outline'>Activ</Badge>}
-                  <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
                 </div>
               </div>
 
-              <p className='text-4xl font-bold text-primary'>
-                {car.currency} {isBuy ? `${car.minPrice} - ${car.maxPrice}` : isRent ? `${car.price}/${car.period || ''}` : car.price}
+              <p className='text-4xl font-bold text-primary mt-4'>
+                {car.currency} {isBuy ? `${car.minPrice} - ${car.maxPrice}` : isRent ? `${car.price}/${car.period || 'zi'}` : car.price}
               </p>
               {isAuction && (
-                <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
-                  <div className='flex items-center gap-2 text-sm font-medium text-red-700'>
+                <div className='bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3 mt-3'>
+                  <div className='flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-200'>
                     <Clock className='h-4 w-4' />
                     <span>
                       Timp rămas: <AppCounter auctionEndTime={auctionEndTime} />
@@ -252,79 +276,153 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   </div>
                 </div>
               )}
-              {isRent && <p className='text-sm text-muted-foreground'>Tarif pe {car.period || 'zi'}</p>}
+              {isRent && <p className='text-sm text-muted-foreground mt-2'>Tarif pe {car.period || 'zi'}</p>}
             </CardHeader>
 
             <CardContent>
-              <div className='grid grid-cols-2 gap-4 text-sm'>
-                <p>
-                  <strong>An:</strong> {car.year}
-                </p>
-                <p>
-                  <strong>Marcă:</strong> {car.brand}
-                </p>
-                <p>
-                  <strong>Kilometraj:</strong> {car.mileage.toLocaleString('en-US')} km
-                </p>
-                <p>
-                  <strong>Combustibil:</strong> {car.fuel}
-                </p>
-                <p>
-                  <strong>Transmisie:</strong> {car.transmission}
-                </p>
-                <p className='truncate'>
-                  <strong>Locație:</strong> {car.location}
-                </p>
-                <p>
-                  <strong>Tip Caroserie:</strong> {car.bodyType}
-                </p>
-                <p>
-                  <strong>Tracțiune:</strong> {car.traction || 'N/A'}
-                </p>
-                <p>
-                  <strong>Culoare:</strong> {car.color}
-                </p>
-                <p>
-                  <strong>Tip Vânzător:</strong> {car.sellerType}
-                </p>
-                {isRent && car.startDate && (
-                  <p>
-                    <strong>Data Început:</strong> {car.startDate}
-                  </p>
+              {/* Key Specifications Grid with Icons */}
+              <div className='grid grid-cols-2 gap-4 mb-6'>
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Calendar className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>An Fabricație</p>
+                    <p className='text-lg font-bold'>{car.year}</p>
+                  </div>
+                </div>
+
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Gauge className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>Kilometraj</p>
+                    <p className='text-lg font-bold'>{car.mileage.toLocaleString('en-US')} km</p>
+                  </div>
+                </div>
+
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Fuel className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>Combustibil</p>
+                    <p className='text-lg font-bold'>{car.fuel}</p>
+                  </div>
+                </div>
+
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Cog className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>Transmisie</p>
+                    <p className='text-lg font-bold'>{car.transmission}</p>
+                  </div>
+                </div>
+
+                {car.engineCapacity && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <Zap className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Cilindree</p>
+                      <p className='text-lg font-bold'>{car.engineCapacity.toFixed(1)}L</p>
+                    </div>
+                  </div>
                 )}
-                {isRent && car.endDate && (
-                  <p>
-                    <strong>Data Sfârșit:</strong> {car.endDate}
-                  </p>
+
+                {car.horsePower && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <Wrench className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Putere</p>
+                      <p className='text-lg font-bold'>{car.horsePower} CP</p>
+                    </div>
+                  </div>
                 )}
-                {car.options && car.options.length > 0 && (
-                  <div className='col-span-2'>
-                    <strong>Opțiuni:</strong>
-                    <div className='flex flex-wrap gap-1 mt-1'>
-                      {car.options.map((option, index) => (
-                        <Badge key={index} variant='outline'>
-                          {option}
-                        </Badge>
-                      ))}
+
+                {car.color && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <Palette className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Culoare</p>
+                      <div className='flex items-center gap-2 mt-0.5'>
+                        <span className='inline-block w-3 h-3 rounded-full border border-foreground' style={{ backgroundColor: getColorValue(car.color) }}></span>
+                        <p className='text-lg font-bold'>{car.color}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {car.bodyType && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <CarIcon className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Tip Caroserie</p>
+                      <p className='text-lg font-bold'>{car.bodyType}</p>
+                    </div>
+                  </div>
+                )}
+
+                {car.traction && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <Zap className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Tracțiune</p>
+                      <p className='text-lg font-bold'>{car.traction}</p>
+                    </div>
+                  </div>
+                )}
+
+                {car.steeringWheelPosition && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                    <Wrench className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Volan</p>
+                      <p className='text-lg font-bold'>{car.steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {car.location && (
+                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg col-span-2'>
+                    <MapPin className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-xs font-semibold text-muted-foreground'>Locație</p>
+                      <p className='text-lg font-bold truncate'>{car.location}</p>
                     </div>
                   </div>
                 )}
               </div>
-              {isRent && car.withDriver && (
-                <div className='mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
-                  <h4 className='font-semibold text-blue-800 dark:text-blue-200'>Șofer Inclus</h4>
-                  <p>
-                    <strong>Nume Șofer:</strong> {car.driverName}
-                  </p>
-                  <p>
-                    <strong>Contact Șofer:</strong> {car.driverContact}
-                  </p>
-                  <p>
-                    <strong>Telefon Șofer:</strong> {car.driverTelephone}
-                  </p>
+
+              {/* Options Section */}
+              {car.options && car.options.length > 0 && (
+                <div className='mb-6'>
+                  <h4 className='font-semibold mb-3'>Dotări și Opțiuni:</h4>
+                  <div className='flex flex-wrap gap-2'>
+                    {car.options.map((option, index) => (
+                      <Badge key={index} variant='secondary'>
+                        ✓ {option}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
-              <p className='text-xs text-muted-foreground mt-4'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
+
+              {/* Rental Driver Info */}
+              {isRent && car.withDriver && (
+                <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
+                  <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-3'>👨‍✈️ Șofer Inclus</h4>
+                  <div className='space-y-2 text-sm'>
+                    <p>
+                      <strong>Nume Șofer:</strong> {car.driverName}
+                    </p>
+                    <p>
+                      <strong>Contact Șofer:</strong> {car.driverContact}
+                    </p>
+                    {car.driverTelephone && (
+                      <p>
+                        <strong>Telefon Șofer:</strong> {car.driverTelephone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <p className='text-xs text-muted-foreground mt-6'>Adăugat: {new Date(car.createdAt).toLocaleDateString('ro-RO')}</p>
             </CardContent>
           </Card>
 
@@ -448,31 +546,68 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
               <CardTitle>Contactează Vânzătorul</CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
-              <div className='flex items-center gap-2'>
-                <Phone className='h-4 w-4' />
-                <span>{car.contactPhone}</span>
-              </div>
+              {car.contactPhone && (
+                <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
+                  <div className='flex items-center gap-3'>
+                    <Phone className='h-5 w-5 text-primary' />
+                    <div>
+                      <p className='text-xs font-semibold text-muted-foreground'>Telefon Contact</p>
+                      <p className='text-sm font-medium'>{car.contactPhone}</p>
+                    </div>
+                  </div>
+                  <Button asChild size='sm'>
+                    <a href={`tel:${car.contactPhone}`}>
+                      <Phone className='h-4 w-4' />
+                    </a>
+                  </Button>
+                </div>
+              )}
 
-              <div className='flex gap-2'>
-                <Button asChild>
-                  <a href={`tel:${car.contactPhone}`}>
-                    <Phone className='mr-2 h-4 w-4' />
-                    Sună
-                  </a>
-                </Button>
+              {car.contactEmail && (
+                <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
+                  <div className='flex items-center gap-3'>
+                    <MessageCircle className='h-5 w-5 text-primary' />
+                    <div>
+                      <p className='text-xs font-semibold text-muted-foreground'>Email Contact</p>
+                      <p className='text-sm font-medium truncate'>{car.contactEmail}</p>
+                    </div>
+                  </div>
+                  <Button asChild size='sm'>
+                    <a href={`mailto:${car.contactEmail}`}>
+                      <MessageCircle className='h-4 w-4' />
+                    </a>
+                  </Button>
+                </div>
+              )}
+
+              <div className='flex gap-2 flex-col sm:flex-row mt-4 pt-4 border-t'>
+                {car.contactPhone && (
+                  <Button asChild className='flex-1'>
+                    <a href={`tel:${car.contactPhone}`}>
+                      <Phone className='mr-2 h-4 w-4' />
+                      Sună Acum
+                    </a>
+                  </Button>
+                )}
 
                 <MessageDrawer
                   carTitle={car.title}
                   onSend={handleSendMessage}
                   disabled={isPending}
                   trigger={
-                    <Button variant='secondary'>
+                    <Button variant='secondary' className='flex-1'>
                       <MessageCircle className='mr-2 h-4 w-4' />
-                      Mesaj
+                      Trimite Mesaj
                     </Button>
                   }
                 />
               </div>
+
+              {!car.contactPhone && !car.contactEmail && (
+                <p className='text-sm text-muted-foreground text-center py-4'>
+                  Nu sunt disponibile date de contact. Utilizează formularul de mesaj pentru a contacta vânzătorul.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -502,4 +637,23 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
       )}
     </div>
   );
+}
+
+function getColorValue(colorName: string): string {
+  const colorMap: Record<string, string> = {
+    Alb: '#ffffff',
+    Negru: '#000000',
+    Gri: '#808080',
+    Albastru: '#0000ff',
+    Rosu: '#ff0000',
+    Verde: '#008000',
+    Galben: '#ffff00',
+    Portocaliu: '#ffa500',
+    Violet: '#800080',
+    Maro: '#a52a2a',
+    Argintiu: '#c0c0c0',
+    Auriu: '#ffd700',
+    Alta: '#d3d3d3',
+  };
+  return colorMap[colorName] || '#d3d3d3';
 }

@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 
 import CarDetailClient from '@/components/custom/auto/CarDetailClient';
 import { getCarById, getSimilarCars } from '@/actions/auto/actions';
-import type { Car } from '@/lib/types';
 
 export default async function CarDetailPage({
   params,

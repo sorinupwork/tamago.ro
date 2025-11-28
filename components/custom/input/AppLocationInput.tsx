@@ -34,6 +34,7 @@ type AppLocationInputProps = {
   filteredCars?: Car[];
   leftIcon?: LucideIcon;
   showMap?: boolean;
+  showSlider?: boolean;
   value?: string;
   onClear?: () => void;
   label?: string;
@@ -51,6 +52,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
   filteredCars = [],
   leftIcon,
   showMap = true,
+  showSlider = true,
   value,
   onClear,
   label,
@@ -166,19 +168,22 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
                                 <p>Folosește locația mea</p>
                               </TooltipContent>
                             </Tooltip>
-                            <AppSlider
-                              label={`Search Radius: ${radius} km`}
-                              value={[radius]}
-                              onValueChange={(value) => {
-                                setRadius(value[0]);
-                                if (location) onChange(location, value[0]);
-                              }}
-                              min={10}
-                              max={100}
-                              step={5}
-                              className='w-full'
-                              showLabelDesc={showLabelDesc}
-                            />
+
+                            {showSlider && (
+                              <AppSlider
+                                label={`Search Radius: ${radius} km`}
+                                value={[radius]}
+                                onValueChange={(value) => {
+                                  setRadius(value[0]);
+                                  if (location) onChange(location, value[0]);
+                                }}
+                                min={10}
+                                max={100}
+                                step={5}
+                                className='w-full'
+                                showLabelDesc={showLabelDesc}
+                              />
+                            )}
                           </div>
                           <div style={{ height: '300px', width: '100%' }}>
                             <MapComponent

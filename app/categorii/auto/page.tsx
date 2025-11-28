@@ -7,10 +7,14 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
   const pagina = parseInt(resolvedSearchParams.pagina as string) || 1;
   const cautare = resolvedSearchParams.cautare as string;
   const marca = resolvedSearchParams.marca as string;
+  const model = resolvedSearchParams.model as string;
+  const volan = resolvedSearchParams.volan as string;
+  const moneda = (resolvedSearchParams.moneda as string) || 'EUR';
   const combustibil = Array.isArray(resolvedSearchParams.combustibil) ? resolvedSearchParams.combustibil : (resolvedSearchParams.combustibil as string)?.split(',') || [];
   const transmisie = Array.isArray(resolvedSearchParams.transmisie) ? resolvedSearchParams.transmisie : (resolvedSearchParams.transmisie as string)?.split(',') || [];
   const caroserie = Array.isArray(resolvedSearchParams.caroserie) ? resolvedSearchParams.caroserie : (resolvedSearchParams.caroserie as string)?.split(',') || [];
   const culoare = Array.isArray(resolvedSearchParams.culoare) ? resolvedSearchParams.culoare : (resolvedSearchParams.culoare as string)?.split(',') || [];
+  const tractiune = Array.isArray(resolvedSearchParams.tractiune) ? resolvedSearchParams.tractiune : (resolvedSearchParams.tractiune as string)?.split(',') || [];
   const statusMapLocal = { nou: 'new', folosit: 'used', deteriorat: 'damaged' } as const;
   const status = (resolvedSearchParams.stare as string && statusMapLocal[resolvedSearchParams.stare as keyof typeof statusMapLocal]) || resolvedSearchParams.stare as string;
   const pretMin = parseInt(resolvedSearchParams.pretMin as string);
@@ -31,6 +35,7 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
   if (resolvedSearchParams.pret) sortBy = resolvedSearchParams.pret === 'asc' ? 'price_asc' : 'price_desc';
   if (resolvedSearchParams.an) sortBy = resolvedSearchParams.an === 'asc' ? 'year_asc' : 'year_desc';
   if (resolvedSearchParams.kilometraj) sortBy = resolvedSearchParams.kilometraj === 'asc' ? 'mileage_asc' : 'mileage_desc';
+  if (resolvedSearchParams.data) sortBy = resolvedSearchParams.data === 'asc' ? 'date_asc' : 'date_desc';
 
   const params = {
     page: 1,
@@ -39,10 +44,14 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
     status,
     sortBy,
     brand: marca,
+    model,
+    steeringWheelPosition: volan,
+    priceCurrency: moneda,
     fuel: combustibil,
     transmission: transmisie,
     bodyType: caroserie,
     color: culoare,
+    traction: tractiune,
     priceMin: isNaN(pretMin) ? undefined : pretMin,
     priceMax: isNaN(pretMax) ? undefined : pretMax,
     yearMin: isNaN(anMin) ? undefined : anMin,

@@ -35,10 +35,9 @@ const FUEL_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 const STATUS_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'nefolosit', label: 'Nefolosit' },
-  { value: 'folosit', label: 'Folosit' },
-  { value: 'perfect', label: 'Perfect' },
-  { value: 'remanufactured', label: 'Remanufactured' },
+  { value: 'new', label: 'Nefolosit' },
+  { value: 'used', label: 'Folosit' },
+  { value: 'damaged', label: 'Deteriorat' },
 ];
 
 const CURRENCY_OPTIONS: Array<{ value: string; label: string }> = [
@@ -59,24 +58,10 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
   const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
-
-  // Unified form state - dynamically populated based on category
   const [formData, setFormData] = useState<Record<string, string | number | boolean>>({});
 
-  // Log when formData changes
-  useEffect(() => {
-    console.log('\n=== EditPostDialog state changed ===');
-    console.log('formData:', formData);
-    console.log('filePreviews length:', filePreviews.length);
-    console.log('filePreviews:', filePreviews);
-  }, [formData, filePreviews]);
-
   const handleOpenChange = (isOpen: boolean) => {
-    console.log('\n=== EditPostDialog.handleOpenChange called ===');
-    console.log('isOpen:', isOpen);
-    
     if (!isOpen) {
-      console.log('User closed dialog - resetting form');
       setFormData({});
       setNewFiles([]);
       setFilePreviews([]);
@@ -88,19 +73,17 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
   // Prefill form when dialog opens with post data
   useEffect(() => {
     if (open && post) {
-      console.log('\n=== EditPostDialog - Dialog opened, prefilling data ===');
-      console.log('Full post object:', JSON.stringify(post, null, 2));
-      
+      const isBuy = post.category === 'buy';
+
+      // Common fields for all categories
       const newFormData: Record<string, string | number | boolean> = {
         title: post.title || '',
         description: post.description || '',
         brand: post.brand || '',
-        year: String(post.year) || '',
-        mileage: String(post.mileage) || '',
+        model: post.model || '',
         fuel: post.fuel || '',
         transmission: post.transmission || '',
         color: post.color || '',
-        engineCapacity: String(post.engineCapacity || ''),
         carType: post.bodyType || '',
         horsePower: String(post.horsePower || ''),
         traction: post.traction || '',
@@ -109,10 +92,32 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
         currency: post.currency || 'EUR',
       };
 
+      // For BUY category: only ranges in category-specific fields
+      // For others: year, mileage, engineCapacity in basic tab
+      if (!isBuy) {
+        newFormData.year = String(post.year || '');
+        newFormData.mileage = String(post.mileage || '');
+        newFormData.engineCapacity = String(post.engineCapacity || '');
+      }
+
       // Category-specific fields
       if (post.category === 'sell') {
         newFormData.price = post.price || '';
-        newFormData.location = post.location || '';
+        const sellLoc = post.location as unknown;
+        if (typeof sellLoc === 'object' && sellLoc !== null) {
+          const locObj = sellLoc as { lat?: number; lng?: number; address?: string };
+          setLocation({
+            lat: locObj.lat || 0,
+            lng: locObj.lng || 0,
+            address: locObj.address || '',
+          });
+        } else if (typeof sellLoc === 'string') {
+          setLocation({
+            lat: post.lat || 0,
+            lng: post.lng || 0,
+            address: sellLoc,
+          });
+        }
       } else if (post.category === 'buy') {
         newFormData.minPrice = post.minPrice || '';
         newFormData.maxPrice = post.maxPrice || '';
@@ -122,14 +127,13 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
         newFormData.maxYear = String(post.maxYear || '');
         newFormData.minEngineCapacity = String(post.minEngineCapacity || '');
         newFormData.maxEngineCapacity = String(post.maxEngineCapacity || '');
-        
-        // Handle location for buy category
+
         const buyLoc = post.location as unknown;
-        if (typeof buyLoc === 'object' && buyLoc) {
+        if (typeof buyLoc === 'object' && buyLoc !== null) {
           const locObj = buyLoc as { lat?: number; lng?: number; address?: string };
           setLocation({
-            lat: locObj.lat || post.lat || 0,
-            lng: locObj.lng || post.lng || 0,
+            lat: locObj.lat || 0,
+            lng: locObj.lng || 0,
             address: locObj.address || '',
           });
         } else {
@@ -148,14 +152,13 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
         newFormData.driverName = post.driverName || '';
         newFormData.driverContact = post.driverContact || '';
         newFormData.driverTelephone = post.driverTelephone || '';
-        
-        // Handle location for rent category
+
         const rentLoc = post.location as unknown;
-        if (typeof rentLoc === 'object' && rentLoc) {
+        if (typeof rentLoc === 'object' && rentLoc !== null) {
           const locObj = rentLoc as { lat?: number; lng?: number; address?: string };
           setLocation({
-            lat: locObj.lat || post.lat || 0,
-            lng: locObj.lng || post.lng || 0,
+            lat: locObj.lat || 0,
+            lng: locObj.lng || 0,
             address: locObj.address || '',
           });
         } else {
@@ -168,10 +171,15 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
       } else if (post.category === 'auction') {
         newFormData.price = post.price || '';
         newFormData.endDate = post.endDate || '';
-        newFormData.location = post.location || '';
+        const auctionLoc = post.location as unknown;
+        if (typeof auctionLoc === 'string') {
+          newFormData.location = auctionLoc;
+        } else if (typeof auctionLoc === 'object' && auctionLoc !== null) {
+          const locObj = auctionLoc as { address?: string };
+          newFormData.location = locObj.address || '';
+        }
       }
 
-      console.log('EditPostDialog - formData set:', newFormData);
       setFormData(newFormData);
       setFilePreviews(post.images || []);
       setNewFiles([]);
@@ -179,7 +187,6 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
   }, [open, post]);
 
   const handleFieldChange = (name: string, value: string | string[] | number | boolean) => {
-    // Flatten array to first value if it's an array (for AppSelectInput with multiple values)
     const finalValue = Array.isArray(value) ? value[0] : value;
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
@@ -216,6 +223,7 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
       title: formData.title,
       description: formData.description,
       brand: formData.brand,
+      model: formData.model,
       year: formData.year,
       mileage: formData.mileage,
       fuel: formData.fuel,
@@ -234,7 +242,7 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
     // Add category-specific fields
     if (post.category === 'sell') {
       submitData.price = formData.price;
-      submitData.location = formData.location;
+      submitData.location = location;
     } else if (post.category === 'buy') {
       submitData.minPrice = formData.minPrice;
       submitData.maxPrice = formData.maxPrice;
@@ -348,25 +356,63 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                 </FieldGroup>
                 <FieldGroup>
                   <AppInput
-                    label='Anul Fabricației'
-                    placeholder='YYYY'
-                    name='year'
-                    onChange={(e) => handleFieldChange('year', e.target.value)}
-                    value={String(formData.year || '')}
+                    label='Model'
+                    placeholder='Model...'
+                    name='model'
+                    onChange={(e) => handleFieldChange('model', e.target.value)}
+                    value={String(formData.model || '')}
                   />
                 </FieldGroup>
               </div>
 
+              {/* Only show these fields for SELL, RENT, and AUCTION - NOT for BUY */}
+              {!isBuy && (
+                <>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FieldGroup>
+                      <AppInput
+                        label='Anul Fabricației'
+                        placeholder='YYYY'
+                        name='year'
+                        onChange={(e) => handleFieldChange('year', e.target.value)}
+                        value={String(formData.year || '')}
+                      />
+                    </FieldGroup>
+                    <FieldGroup>
+                      <AppInput
+                        label='Kilometraj'
+                        placeholder='0'
+                        name='mileage'
+                        onChange={(e) => handleFieldChange('mileage', e.target.value)}
+                        value={String(formData.mileage || '')}
+                      />
+                    </FieldGroup>
+                  </div>
+
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FieldGroup>
+                      <AppInput
+                        label='Capacitate Cilindrică'
+                        placeholder='0.0'
+                        name='engineCapacity'
+                        onChange={(e) => handleFieldChange('engineCapacity', e.target.value)}
+                        value={String(formData.engineCapacity || '')}
+                      />
+                    </FieldGroup>
+                    <FieldGroup>
+                      <AppInput
+                        label='Putere (CP)'
+                        placeholder='0'
+                        name='horsePower'
+                        onChange={(e) => handleFieldChange('horsePower', e.target.value)}
+                        value={String(formData.horsePower || '')}
+                      />
+                    </FieldGroup>
+                  </div>
+                </>
+              )}
+
               <div className='grid grid-cols-2 gap-4'>
-                <FieldGroup>
-                  <AppInput
-                    label='Kilometraj'
-                    placeholder='0'
-                    name='mileage'
-                    onChange={(e) => handleFieldChange('mileage', e.target.value)}
-                    value={String(formData.mileage || '')}
-                  />
-                </FieldGroup>
                 <FieldGroup>
                   <AppSelectInput
                     label='Combustibil'
@@ -375,9 +421,6 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                     onValueChange={(v) => handleFieldChange('fuel', v)}
                   />
                 </FieldGroup>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
                 <FieldGroup>
                   <AppSelectInput
                     label='Transmisie'
@@ -386,24 +429,15 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                     onValueChange={(v) => handleFieldChange('transmission', v)}
                   />
                 </FieldGroup>
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
                 <FieldGroup>
                   <AppSelectInput
                     label='Culoare'
                     options={colorOptions}
                     value={String(formData.color || '')}
                     onValueChange={(v) => handleFieldChange('color', v)}
-                  />
-                </FieldGroup>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <FieldGroup>
-                  <AppInput
-                    label='Capacitate Cilindrică'
-                    placeholder='0.0'
-                    name='engineCapacity'
-                    onChange={(e) => handleFieldChange('engineCapacity', e.target.value)}
-                    value={String(formData.engineCapacity || '')}
                   />
                 </FieldGroup>
                 <FieldGroup>
@@ -416,25 +450,14 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                 </FieldGroup>
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <FieldGroup>
-                  <AppInput
-                    label='Putere (CP)'
-                    placeholder='0'
-                    name='horsePower'
-                    onChange={(e) => handleFieldChange('horsePower', e.target.value)}
-                    value={String(formData.horsePower || '')}
-                  />
-                </FieldGroup>
-                <FieldGroup>
-                  <AppSelectInput
-                    label='Tracțiune'
-                    options={tractionOptions}
-                    value={String(formData.traction || '')}
-                    onValueChange={(v) => handleFieldChange('traction', v)}
-                  />
-                </FieldGroup>
-              </div>
+              <FieldGroup>
+                <AppSelectInput
+                  label='Tracțiune'
+                  options={tractionOptions}
+                  value={String(formData.traction || '')}
+                  onValueChange={(v) => handleFieldChange('traction', v)}
+                />
+              </FieldGroup>
 
               <FieldGroup>
                 <AppTextarea
@@ -506,21 +529,24 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                       required
                     />
                   </FieldGroup>
-                  <FieldGroup>
-                    <AppInput
-                      label='Locație'
-                      placeholder='Locația mașinii...'
-                      name='location'
-                      onChange={(e) => handleFieldChange('location', e.target.value)}
-                      value={String(formData.location || '')}
-                      required
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium'>Locație</label>
+                    <AppLocationInput
+                      location={location}
+                      onChange={(loc) => setLocation(loc)}
+                      placeholder='Selectează sau caută o locație...'
+                      label=''
+                      showMap={true}
                     />
-                  </FieldGroup>
+                  </div>
                 </>
               )}
 
               {isBuy && (
                 <>
+                  <div className='space-y-2 mb-4'>
+                    <label className='text-sm font-semibold'>Intervale Preț</label>
+                  </div>
                   <div className='grid grid-cols-2 gap-4'>
                     <FieldGroup>
                       <AppInput
@@ -542,27 +568,9 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                     </FieldGroup>
                   </div>
 
-                  <div className='grid grid-cols-2 gap-4'>
-                    <FieldGroup>
-                      <AppInput
-                        label='Kilometraj Minim'
-                        placeholder='0'
-                        name='minMileage'
-                        onChange={(e) => handleFieldChange('minMileage', e.target.value)}
-                        value={String(formData.minMileage || '')}
-                      />
-                    </FieldGroup>
-                    <FieldGroup>
-                      <AppInput
-                        label='Kilometraj Maxim'
-                        placeholder='0'
-                        name='maxMileage'
-                        onChange={(e) => handleFieldChange('maxMileage', e.target.value)}
-                        value={String(formData.maxMileage || '')}
-                      />
-                    </FieldGroup>
+                  <div className='space-y-2 mb-4 mt-4'>
+                    <label className='text-sm font-semibold'>Intervale An</label>
                   </div>
-
                   <div className='grid grid-cols-2 gap-4'>
                     <FieldGroup>
                       <AppInput
@@ -584,6 +592,33 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                     </FieldGroup>
                   </div>
 
+                  <div className='space-y-2 mb-4 mt-4'>
+                    <label className='text-sm font-semibold'>Intervale Kilometraj</label>
+                  </div>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FieldGroup>
+                      <AppInput
+                        label='Kilometraj Minim'
+                        placeholder='0'
+                        name='minMileage'
+                        onChange={(e) => handleFieldChange('minMileage', e.target.value)}
+                        value={String(formData.minMileage || '')}
+                      />
+                    </FieldGroup>
+                    <FieldGroup>
+                      <AppInput
+                        label='Kilometraj Maxim'
+                        placeholder='0'
+                        name='maxMileage'
+                        onChange={(e) => handleFieldChange('maxMileage', e.target.value)}
+                        value={String(formData.maxMileage || '')}
+                      />
+                    </FieldGroup>
+                  </div>
+
+                  <div className='space-y-2 mb-4 mt-4'>
+                    <label className='text-sm font-semibold'>Intervale Capacitate Cilindrică</label>
+                  </div>
                   <div className='grid grid-cols-2 gap-4'>
                     <FieldGroup>
                       <AppInput
@@ -605,7 +640,7 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                     </FieldGroup>
                   </div>
 
-                  <div className='space-y-2'>
+                  <div className='space-y-2 mt-4'>
                     <label className='text-sm font-medium'>Locație</label>
                     <AppLocationInput
                       location={location}

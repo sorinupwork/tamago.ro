@@ -19,10 +19,14 @@ type CarFetchParams = {
   status?: string;
   sortBy?: string;
   brand?: string;
+  model?: string;
   fuel?: string[];
   transmission?: string[];
   bodyType?: string[];
   color?: string[];
+  traction?: string[];
+  steeringWheelPosition?: string;
+  priceCurrency?: string;
   priceMin?: number;
   priceMax?: number;
   yearMin?: number;
@@ -146,6 +150,12 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
 
     if (params.brand) query.brand = params.brand;
 
+    if (params.model) query.model = params.model;
+
+    if (params.steeringWheelPosition) query.steeringWheelPosition = params.steeringWheelPosition;
+
+    if (params.priceCurrency) query.currency = params.priceCurrency;
+
     if (params.fuel && params.fuel.length > 0) query.fuel = { $in: params.fuel };
 
     if (params.transmission && params.transmission.length > 0) query.transmission = { $in: params.transmission };
@@ -153,6 +163,8 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     if (params.bodyType && params.bodyType.length > 0) query.carType = { $in: params.bodyType };
 
     if (params.color && params.color.length > 0) query.color = { $in: params.color };
+
+    if (params.traction && params.traction.length > 0) query.traction = { $in: params.traction };
 
     const coll = db.collection(collectionName);
     const allDocs = await coll.find(query).toArray();
@@ -509,9 +521,14 @@ export async function fetchCarsServerAction(params: {
         ? `${Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria])}_${sortCriteria[Object.keys(sortCriteria).find((key) => sortCriteria[key as keyof SortCriteria]) as keyof SortCriteria]}`
         : undefined,
       brand: filters.brand || undefined,
+      model: filters.model || undefined,
+      steeringWheelPosition: filters.steeringWheelPosition || undefined,
+      priceCurrency: filters.priceCurrency || undefined,
       fuel: filters.fuel.length > 0 ? filters.fuel : undefined,
       transmission: filters.transmission.length > 0 ? filters.transmission : undefined,
       bodyType: filters.bodyType.length > 0 ? filters.bodyType : undefined,
+      color: filters.color.length > 0 ? filters.color : undefined,
+      traction: filters.traction.length > 0 ? filters.traction : undefined,
       priceMin: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
       priceMax: filters.priceRange[1] < 1000000 ? filters.priceRange[1] : undefined,
       yearMin: filters.yearRange[0] > 1900 ? filters.yearRange[0] : undefined,

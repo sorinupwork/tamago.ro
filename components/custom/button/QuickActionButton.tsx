@@ -31,7 +31,7 @@ export default function QuickActionButton({ href }: QuickActionButtonProps) {
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Acțiune rapidă: favorite, copiază și navighează</p>
+          <p>Acțiune rapidă: copiază și navighează</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

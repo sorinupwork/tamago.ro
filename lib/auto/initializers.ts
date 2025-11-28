@@ -6,10 +6,14 @@ export const defaultActiveTab: keyof typeof categoryMapping = 'oferta';
 export const defaultFilters: AutoFilterState = {
   status: '',
   brand: '',
+  model: '',
   fuel: [],
   transmission: [],
   bodyType: [],
   color: [],
+  traction: [],
+  steeringWheelPosition: '',
+  priceCurrency: 'EUR',
   priceRange: [0, 1000000],
   yearRange: [1900, 2025],
   mileageRange: [0, 1000000],
@@ -39,10 +43,14 @@ export const getInitialFilters = (searchParams: URLSearchParams): AutoFilterStat
   const stare = searchParams.get('stare');
   filters.status = (stare && statusMap[stare as keyof typeof statusMap]) || stare || defaultFilters.status;
   filters.brand = searchParams.get('marca') || defaultFilters.brand;
+  filters.model = searchParams.get('model') || defaultFilters.model;
   filters.fuel = searchParams.getAll('combustibil');
   filters.transmission = searchParams.getAll('transmisie');
   filters.bodyType = searchParams.getAll('caroserie');
   filters.color = searchParams.getAll('culoare');
+  filters.traction = searchParams.getAll('tractiune');
+  filters.steeringWheelPosition = searchParams.get('volan') || defaultFilters.steeringWheelPosition;
+  filters.priceCurrency = searchParams.get('moneda') || defaultFilters.priceCurrency;
   filters.priceRange = [
     parseInt(searchParams.get('pretMin') || defaultFilters.priceRange[0].toString()),
     parseInt(searchParams.get('pretMax') || defaultFilters.priceRange[1].toString()),

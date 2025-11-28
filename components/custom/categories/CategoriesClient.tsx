@@ -39,6 +39,7 @@ export type PreviewData = {
   maxYear?: string;
   status?: string;
   brand?: string;
+  model?: string;
   color?: string;
   engineCapacity?: string;
   minEngineCapacity?: string;
@@ -47,6 +48,7 @@ export type PreviewData = {
   horsePower?: string;
   transmission?: string;
   traction?: string;
+  steeringWheelPosition?: string;
   history?: { title: string; description?: string; icon?: string }[];
   features: string;
   options: string[];

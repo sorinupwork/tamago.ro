@@ -29,6 +29,8 @@ import {
   availableOptions,
   iconOptions,
   tractionOptions,
+  steeringWheelOptions,
+  carModelsByBrand,
 } from '@/lib/mockData';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
@@ -55,12 +57,15 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
       year: '',
       status: '',
       brand: '',
+      model: '',
       color: '',
       engineCapacity: '',
       carType: undefined,
       horsePower: '',
       transmission: undefined,
       traction: undefined,
+      steeringWheelPosition: 'left',
+      contactPhone: '',
       features: '',
       uploadedFiles: [],
     },
@@ -91,12 +96,14 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
       year: watchedValues.year || '',
       status: watchedValues.status || '',
       brand: watchedValues.brand || '',
+      model: watchedValues.model || '',
       color: watchedValues.color || '',
       engineCapacity: watchedValues.engineCapacity || '',
       carType: watchedValues.carType || '',
       horsePower: watchedValues.horsePower || '',
       transmission: watchedValues.transmission || '',
       traction: watchedValues.traction || '',
+      steeringWheelPosition: watchedValues.steeringWheelPosition || 'left',
       features: watchedValues.features || '',
       options,
       uploadedFiles,
@@ -114,12 +121,14 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
     watchedValues.year,
     watchedValues.features,
     watchedValues.brand,
+    watchedValues.model,
     watchedValues.color,
     watchedValues.engineCapacity,
     watchedValues.carType,
     watchedValues.horsePower,
     watchedValues.transmission,
     watchedValues.traction,
+    watchedValues.steeringWheelPosition,
     options,
     uploadedFiles,
     history,
@@ -217,6 +226,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
             className='min-w-0 w-full'
             showLabelDesc={false}
+            showSlider={false}
           />
 
           <AppTextarea
@@ -229,75 +239,29 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
             className='min-w-0 w-full wrap-break-word'
           />
 
-          <div className='flex flex-col md:grid md:grid-cols-4 items-center gap-4 min-w-0'>
-            <AppSelectInput
-              options={[
-                { value: 'Petrol', label: 'Benzină' },
-                { value: 'Diesel', label: 'Motorină' },
-                { value: 'Hybrid', label: 'Hibrid' },
-                { value: 'Electric', label: 'Electric' },
-              ]}
-              value={form.watch('fuel')}
-              onValueChange={(v) => form.setValue('fuel', v as 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric', { shouldValidate: true })}
-              placeholder='Selectați combustibil'
-              className='min-w-0 w-full'
-              label='Combustibil'
-              required
-              error={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined}
-            />
-
-            <AppInput
-              type='number'
-              step='0.01'
-              min={0.01}
-              placeholder='22.500'
-              value={form.watch('mileage')}
-              onChange={(e) => form.setValue('mileage', e.target.value, { shouldValidate: true })}
-              className='min-w-0 w-full'
-              label='Kilometraj'
-              error={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined}
-              required
-            />
-
-            <AppInput
-              type='number'
-              min={1}
-              inputMode='numeric'
-              placeholder='2020'
-              value={form.watch('year')}
-              onChange={(e) => form.setValue('year', e.target.value, { shouldValidate: true })}
-              className='min-w-0 w-full'
-              label='An Fabricație'
-              error={form.formState.errors.year ? [form.formState.errors.year] : undefined}
-              required
-            />
-
-            <AppSelectInput
-              options={[
-                { value: 'new', label: 'Nou' },
-                { value: 'used', label: 'Second Hand' },
-                { value: 'damaged', label: 'Deteriorat' },
-              ]}
-              value={form.watch('status')}
-              onValueChange={(v) => form.setValue('status', v as string, { shouldValidate: true })}
-              placeholder='Selectați status'
-              className='min-w-0 w-full'
-              label='Status'
-              required
-              error={form.formState.errors.status ? [form.formState.errors.status] : undefined}
-            />
-          </div>
-
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
             <AppSelectInput
               options={brandOptions}
               value={form.watch('brand')}
-              onValueChange={(v) => form.setValue('brand', v as string, { shouldValidate: true })}
+              onValueChange={(v) => {
+                form.setValue('brand', v as string, { shouldValidate: true });
+                form.setValue('model', '', { shouldValidate: true });
+              }}
               placeholder='Selectați marca'
               className='min-w-0 w-full'
               label='Marcă'
               error={form.formState.errors.brand ? [form.formState.errors.brand] : undefined}
               required
+            />
+            <AppSelectInput
+              options={form.watch('brand') && carModelsByBrand[form.watch('brand')] ? carModelsByBrand[form.watch('brand')] : []}
+              value={form.watch('model') || ''}
+              onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
+              placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}
+              className='min-w-0 w-full'
+              label='Model'
+              error={form.formState.errors.model ? [form.formState.errors.model] : undefined}
+              disabled={!form.watch('brand')}
             />
             <AppSelectInput
               options={colorOptions}
@@ -366,8 +330,88 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
               placeholder='Selectați tracțiunea'
               className='max-w-full'
               error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
+              required
+            />
+            <AppSelectInput
+              label='Poziția Volanului'
+              options={steeringWheelOptions}
+              value={form.watch('steeringWheelPosition')}
+              onValueChange={(v) => form.setValue('steeringWheelPosition', v as 'left' | 'right', { shouldValidate: true })}
+              placeholder='Selectați poziția volanului'
+              className='max-w-full'
+              error={form.formState.errors.steeringWheelPosition ? [form.formState.errors.steeringWheelPosition] : undefined}
+              required
             />
           </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4 min-w-0'>
+            <AppSelectInput
+              options={[
+                { value: 'Benzina', label: 'Benzină' },
+                { value: 'Diesel', label: 'Motorină' },
+                { value: 'Hibrida', label: 'Hibrid' },
+                { value: 'Electric', label: 'Electric' },
+              ]}
+              value={form.watch('fuel')}
+              onValueChange={(v) => form.setValue('fuel', v as 'Benzina' | 'Diesel' | 'Hibrida' | 'Electric', { shouldValidate: true })}
+              placeholder='Selectați combustibil'
+              className='min-w-0 w-full'
+              label='Combustibil'
+              required
+              error={form.formState.errors.fuel ? [form.formState.errors.fuel] : undefined}
+            />
+
+            <AppInput
+              type='number'
+              step='0.01'
+              min={0.01}
+              placeholder='22.500'
+              value={form.watch('mileage')}
+              onChange={(e) => form.setValue('mileage', e.target.value, { shouldValidate: true })}
+              className='min-w-0 w-full'
+              label='Kilometraj'
+              error={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined}
+              required
+            />
+
+            <AppInput
+              type='number'
+              min={1}
+              inputMode='numeric'
+              placeholder='2020'
+              value={form.watch('year')}
+              onChange={(e) => form.setValue('year', e.target.value, { shouldValidate: true })}
+              className='min-w-0 w-full'
+              label='An Fabricație'
+              error={form.formState.errors.year ? [form.formState.errors.year] : undefined}
+              required
+            />
+
+            <AppSelectInput
+              options={[
+                { value: 'new', label: 'Nou' },
+                { value: 'used', label: 'Second Hand' },
+                { value: 'damaged', label: 'Deteriorat' },
+              ]}
+              value={form.watch('status')}
+              onValueChange={(v) => form.setValue('status', v as string, { shouldValidate: true })}
+              placeholder='Selectați status'
+              className='min-w-0 w-full'
+              label='Status'
+              required
+              error={form.formState.errors.status ? [form.formState.errors.status] : undefined}
+            />
+          </div>
+
+          <AppInput
+            type='tel'
+            placeholder='+40 7XX XXX XXX'
+            value={form.watch('contactPhone')}
+            onChange={(e) => form.setValue('contactPhone', e.target.value, { shouldValidate: true })}
+            className='min-w-0 w-full'
+            label='Telefon Contact (Optional)'
+            error={form.formState.errors.contactPhone ? [form.formState.errors.contactPhone] : undefined}
+          />
 
           <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
 

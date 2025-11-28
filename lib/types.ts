@@ -49,6 +49,7 @@ export type RawCarDoc = {
   location?: string | { lat: number; lng: number; address: string };
   year?: string | number;
   brand?: string;
+  model?: string;
   mileage?: string | number;
   fuel?: string;
   transmission?: string;
@@ -59,6 +60,7 @@ export type RawCarDoc = {
   status?: string;
   features?: string | string[];
   traction?: string;
+  steeringWheelPosition?: 'left' | 'right';
   uploadedFiles?: string[];
   images?: string[];
   options?: string[];
@@ -84,6 +86,7 @@ type BaseCarProperties = {
   lat?: number;
   lng?: number;
   brand: string;
+  model?: string;
   year: number;
   mileage: number;
   fuel: string;
@@ -93,13 +96,14 @@ type BaseCarProperties = {
   horsePower?: number;
   engineCapacity?: number;
   traction?: string;
+  steeringWheelPosition?: 'left' | 'right';
   status?: string;
   features?: string[];
   images: string[];
   options?: string[];
   history?: CarHistoryItem[];
-  contactPhone: string;
-  contactEmail: string;
+  contactPhone?: string;
+  contactEmail?: string;
   sellerType: 'private' | 'firm';
   userId?: string;
   views?: number;
@@ -311,10 +315,14 @@ export type LocationFilter = {
 export type AutoFilterState = {
   status: string;
   brand: string;
+  model: string;
   fuel: string[];
   transmission: string[];
   bodyType: string[];
   color: string[];
+  traction: string[];
+  steeringWheelPosition: string;
+  priceCurrency: string;
   priceRange: number[];
   yearRange: number[];
   mileageRange: number[];

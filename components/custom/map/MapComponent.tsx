@@ -207,7 +207,7 @@ export default function MapComponent({
       ) : (
         <div className='flex items-center justify-center h-full'>Se încarcă harta...</div>
       )}
-      <div className='absolute top-4 right-4 z-1000 flex flex-col gap-2'>
+      <div className='absolute top-4 right-4 flex flex-col gap-2'>
         <Button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className='bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-2 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center'

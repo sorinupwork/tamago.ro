@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { Fuel, Car, Palette, Zap, Gauge, Power, Cog, Axe, LoaderPinwheel, Calendar } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -38,6 +39,7 @@ export default function Preview({
   driverContact,
   driverTelephone,
   brand,
+  model,
   color,
   engineCapacity,
   minEngineCapacity,
@@ -46,6 +48,7 @@ export default function Preview({
   horsePower,
   transmission,
   traction,
+  steeringWheelPosition,
   history,
 }: PreviewData) {
   return (
@@ -112,18 +115,29 @@ export default function Preview({
         <SafeHtml html={description || 'Descriere...'} className='w-full text-sm text-muted-foreground' />
 
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-          <div className='text-sm'>
-            <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
+          <div className='text-sm flex items-center gap-2'>
+            <Fuel size={16} className='text-blue-500 shrink-0' />
+            <span><strong>Combustibil:</strong> {fuel || 'Nespecificat'}</span>
           </div>
-          <div className='text-sm'>
-            <strong>Marca:</strong> {brand || 'Nespecificat'}
+          <div className='text-sm flex items-center gap-2'>
+            <Car size={16} className='text-purple-500 shrink-0' />
+            <span><strong>Marca:</strong> {brand || 'Nespecificat'}</span>
           </div>
 
-          <div className='text-sm'>
-            <strong>Culoare:</strong> {color || 'Nespecificat'}
+          {model && (
+            <div className='text-sm flex items-center gap-2'>
+              <Car size={16} className='text-purple-600 shrink-0' />
+              <span><strong>Model:</strong> {model}</span>
+            </div>
+          )}
+
+          <div className='text-sm flex items-center gap-2'>
+            <Palette size={16} className='text-pink-500 shrink-0' />
+            <span><strong>Culoare:</strong> {color || 'Nespecificat'}</span>
           </div>
-          <div className='text-sm'>
-            <strong>Capacitate Cilindrică:</strong>{' '}
+          <div className='text-sm flex items-center gap-2'>
+            <Zap size={16} className='text-yellow-500 shrink-0' />
+            <span><strong>Capacitate Cilindrică:</strong>{' '}
             {category === 'buy'
               ? minEngineCapacity && maxEngineCapacity
                 ? `${minEngineCapacity} - ${maxEngineCapacity} L`
@@ -132,26 +146,38 @@ export default function Preview({
                   : maxEngineCapacity
                     ? `Până la ${maxEngineCapacity} L`
                     : 'Nespecificat'
-              : `${engineCapacity || 'Nespecificat'} L`}
+              : `${engineCapacity || 'Nespecificat'} L`}</span>
           </div>
 
-          <div className='text-sm'>
-            <strong>Tip Mașină:</strong> {carType || 'Nespecificat'}
+          <div className='text-sm flex items-center gap-2'>
+            <Gauge size={16} className='text-orange-500 shrink-0' />
+            <span><strong>Tip Mașină:</strong> {carType || 'Nespecificat'}</span>
           </div>
-          <div className='text-sm'>
-            <strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}
-          </div>
-
-          <div className='text-sm'>
-            <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
-          </div>
-          <div className='text-sm'>
-            <strong>Tracțiune:</strong>{' '}
-            {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}
+          <div className='text-sm flex items-center gap-2'>
+            <Power size={16} className='text-red-500 shrink-0' />
+            <span><strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}</span>
           </div>
 
-          <div className='text-sm break-all overflow-wrap-break-word w-full min-w-0'>
-            <strong>Kilometraj:</strong>{' '}
+          <div className='text-sm flex items-center gap-2'>
+            <Cog size={16} className='text-gray-500 shrink-0' />
+            <span><strong>Transmisie:</strong> {transmission || 'Nespecificat'}</span>
+          </div>
+          <div className='text-sm flex items-center gap-2'>
+            <Axe size={16} className='text-brown-500 shrink-0' />
+            <span><strong>Tracțiune:</strong>{' '}
+            {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}</span>
+          </div>
+
+          {steeringWheelPosition && (
+            <div className='text-sm flex items-center gap-2'>
+              <LoaderPinwheel size={16} className='text-indigo-500 shrink-0' />
+              <span><strong>Volan:</strong> {steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}</span>
+            </div>
+          )}
+
+          <div className='text-sm flex items-center gap-2 break-all overflow-wrap-break-word w-full min-w-0'>
+            <Gauge size={16} className='text-green-500 shrink-0' />
+            <span><strong>Kilometraj:</strong>{' '}
             {category === 'buy'
               ? minMileage && maxMileage
                 ? `${minMileage} - ${maxMileage} km`
@@ -160,10 +186,11 @@ export default function Preview({
                   : maxMileage
                     ? `Până la ${maxMileage} km`
                     : 'Nespecificat'
-              : `${mileage ?? 'Nespecificat'} km`}
+              : `${mileage ?? 'Nespecificat'} km`}</span>
           </div>
-          <div className='text-sm wrap-break-word overflow-wrap-break-word'>
-            <strong>An Fabricație:</strong>{' '}
+          <div className='text-sm flex items-center gap-2 wrap-break-word overflow-wrap-break-word'>
+            <Calendar size={16} className='text-teal-500 shrink-0' />
+            <span><strong>An Fabricație:</strong>{' '}
             {category === 'buy'
               ? minYear && maxYear
                 ? `${minYear} - ${maxYear}`
@@ -172,7 +199,7 @@ export default function Preview({
                   : maxYear
                     ? `Până în ${maxYear}`
                     : 'Nespecificat'
-              : year || 'Nespecificat'}
+              : year || 'Nespecificat'}</span>
           </div>
         </div>
 

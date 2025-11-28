@@ -5,14 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 
-type AutoPriceSelectorProps<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }> = {
+type AutoPriceSelectorProps<T extends { price: string; currency: 'EUR' | 'USD' | 'RON' | 'GBP'; period?: string }> = {
   form: UseFormReturn<T>;
   showPeriod?: boolean;
   label?: string;
   className?: string;
 };
 
-export default function AutoPriceSelector<T extends { price: string; currency: 'EUR' | 'USD' | 'RON'; period?: string }>({
+export default function AutoPriceSelector<T extends { price: string; currency: 'EUR' | 'USD' | 'RON' | 'GBP'; period?: string }>({
   form,
   showPeriod = false,
   label,
@@ -53,6 +53,7 @@ export default function AutoPriceSelector<T extends { price: string; currency: '
                   <SelectItem value='EUR'>EUR</SelectItem>
                   <SelectItem value='USD'>USD</SelectItem>
                   <SelectItem value='RON'>RON</SelectItem>
+                  <SelectItem value='GBP'>GBP</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

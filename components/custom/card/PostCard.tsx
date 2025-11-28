@@ -67,8 +67,16 @@ export default function PostCard({ post, onEdit, onDelete, onView }: PostCardPro
 
           {/* Car details */}
           <div className='grid grid-cols-2 gap-2 text-xs text-muted-foreground border-t pt-2'>
-            {post.year && <div>Year: {post.year}</div>}
-            {post.mileage !== undefined && <div>Mileage: {post.mileage.toLocaleString()} km</div>}
+            {post.category === 'buy' ? (
+              (post.minYear || post.maxYear) && <div>Year: {post.minYear} - {post.maxYear}</div>
+            ) : (
+              post.year && <div>Year: {post.year}</div>
+            )}
+            {post.category === 'buy' ? (
+              (post.minMileage !== undefined || post.maxMileage !== undefined) && <div>Mileage: {post.minMileage?.toLocaleString()} - {post.maxMileage?.toLocaleString()} km</div>
+            ) : (
+              post.mileage !== undefined && <div>Mileage: {post.mileage.toLocaleString()} km</div>
+            )}
             {post.fuel && <div>Fuel: {post.fuel}</div>}
             {post.transmission && <div>Transmission: {post.transmission}</div>}
           </div>
