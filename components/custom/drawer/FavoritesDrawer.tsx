@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 import {
   Drawer,
@@ -20,9 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NavigationMenuLink, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import FavoriteButton from '../button/FavoriteButton';
+import { AuthEmptyState, CategoryEmptyState } from '@/components/custom/empty';
 import { useSession } from '@/lib/auth/auth-client';
 import { getFavorites } from '@/actions/auth/actions';
 import { reverseCategoryMapping } from '@/lib/categories';
@@ -60,9 +59,7 @@ export default function FavoritesDrawer({
   const [filters, setFilters] = useState<string[]>(['all']);
   const [sortByTitle, setSortByTitle] = useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const router = useRouter();
 
-  // Get filter options from subcategories
   const filterOptions = ['all', ...subcategories.map((cat) => cat.title)];
 
   const fetchFavorites = useCallback(async () => {
@@ -120,7 +117,7 @@ export default function FavoritesDrawer({
           </div>
         </NavigationMenuLink>
       </DrawerTrigger>
-      <DrawerContent className='max-h-[80vh]'>
+      <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
@@ -202,26 +199,22 @@ export default function FavoritesDrawer({
                   <CarouselPrevious />
                   <CarouselNext />
                 </Carousel>
+              ) : !session ? (
+                <AuthEmptyState
+                  icon={Heart}
+                  title='Conectează-te pentru a vedea favoritele'
+                  description='Trebuie să fii conectat pentru a vedea articolele favorite. Conectează-te pentru a accesa lista personalizată de favorite.'
+                  buttonLabel='Conectează-te'
+                />
               ) : (
                 <div className='min-h-[300px] flex items-center justify-center'>
-                  <Empty>
-                    <EmptyMedia>
-                      <Heart className='w-12 h-12 p-2' />
-                    </EmptyMedia>
-                    <EmptyTitle>{!session ? 'Conectează-te pentru a vedea favoritele' : 'Nu ai favorite găsite'}</EmptyTitle>
-                    <EmptyDescription>
-                      {!session
-                        ? 'Trebuie să fii conectat pentru a vedea articolele favorite. Conectează-te pentru a accesa lista personalizată de favorite.'
-                        : 'Nu ai adăugat încă favorite. Caută în colecția noastră și adaugă articole pentru acces rapid.'}
-                    </EmptyDescription>
-                    {!session ? (
-                      <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
-                    ) : (
-                      <DrawerClose asChild>
-                        <Button onClick={() => onOpenSearch?.()}>Caută articole</Button>
-                      </DrawerClose>
-                    )}
-                  </Empty>
+                  <CategoryEmptyState
+                    activeTab='sell'
+                    title='Nu ai favorite găsite'
+                    description='Nu ai adăugat încă favorite. Caută în colecția noastră și adaugă articole pentru acces rapid.'
+                    buttonLabel='Caută articole'
+                    onButtonClick={onOpenSearch}
+                  />
                 </div>
               )}
             </>
@@ -229,7 +222,7 @@ export default function FavoritesDrawer({
         </div>
         <DrawerFooter>
           <DrawerClose asChild>
-            <Button variant='outline'>Close</Button>
+            <Button variant='outline'>Închide</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

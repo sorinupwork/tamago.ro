@@ -1,13 +1,12 @@
 'use client';
 
 import { useRef } from 'react';
-import { MessageSquare } from 'lucide-react';
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../empty/Empty';
 import FeedPostCard from '@/components/custom/card/FeedPostCard';
 import ScrollToTopButton from '@/components/custom/button/ScrollToTopButton';
 import LoadMoreButton from '../button/LoadMoreButton';
+import SocialEmptyState from '@/components/custom/empty/SocialEmptyState';
 import { FeedItem } from '@/lib/types';
 
 type ActionState = { success?: boolean; error?: string } | null;
@@ -36,13 +35,7 @@ export default function ScrollableFeed({ feedItems, sessionUserId, isLoggedIn, a
           </>
         ) : (
           <div className='min-h-[400px] flex items-center justify-center'>
-            <Empty>
-              <EmptyMedia>
-                <MessageSquare className='w-12 h-12 p-2' />
-              </EmptyMedia>
-              <EmptyTitle>Nu există postări încă</EmptyTitle>
-              <EmptyDescription>Fii primul care creează o postare și începe conversația!</EmptyDescription>
-            </Empty>
+            <SocialEmptyState type='posts' />
           </div>
         )}
       </div>

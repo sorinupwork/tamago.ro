@@ -5,10 +5,10 @@ import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/custom/empty/Empty';
 import Showcase from './Showcase';
 import Preview from './Preview';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
+import FormNotReadyEmptyState from '@/components/custom/empty/FormNotReadyEmptyState';
 import SellAutoForm from '@/components/custom/form/auto/SellAutoForm';
 import BuyAutoForm from '@/components/custom/form/auto/BuyAutoForm';
 import RentAutoForm from '@/components/custom/form/auto/RentAutoForm';
@@ -121,14 +121,8 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
           return <SellAutoForm {...props} />;
       }
     } else {
-      return (
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>Formularul nu este disponibil</EmptyTitle>
-            <EmptyDescription>pentru această subcategorie.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      );
+      const subcatName = subcategories.find((s) => s.title.toLowerCase().replace(' ', '-') === selectedSubcategory)?.title;
+      return <FormNotReadyEmptyState subcategoryName={subcatName} />;
     }
   };
 

@@ -1,16 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { HomeIcon } from 'lucide-react';
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/custom/empty/Empty';
+
+import { Button } from '@/components/ui/button';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 
 export default function NotFound() {
   const router = useRouter();
@@ -23,9 +17,7 @@ export default function NotFound() {
             <HomeIcon className='size-8' />
           </EmptyMedia>
           <EmptyTitle>404 - Pagina nu a fost găsită</EmptyTitle>
-          <EmptyDescription>
-            Această pagină nu există. Verifică adresa URL sau navighează înapoi.
-          </EmptyDescription>
+          <EmptyDescription>Această pagină nu există. Verifică adresa URL sau navighează înapoi.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button onClick={() => router.push('/')} variant='secondary'>

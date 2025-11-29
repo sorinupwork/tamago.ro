@@ -8,10 +8,10 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 import AppTextarea from '@/components/custom/input/AppTextarea';
 import AppMediaUploaderInput from '@/components/custom/input/AppMediaUploaderInput';
 import AppTagsInput from '@/components/custom/input/AppTagsInput';
+import AuthEmptyState from '@/components/custom/empty/AuthEmptyState';
 import { createFeedAction } from '@/actions/social/feeds/actions';
 import { useSession } from '@/lib/auth/auth-client';
 
@@ -89,18 +89,11 @@ export default function FeedDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         {!session ? (
-          <div className='min-h-[300px] flex items-center justify-center'>
-            <Empty>
-              <EmptyMedia>
-                <FileText className='w-12 h-12 p-2' />
-              </EmptyMedia>
-              <EmptyTitle>Conectează-te pentru a crea postări</EmptyTitle>
-              <EmptyDescription>
-                Trebuie să fii conectat pentru a posta pe feed și a împărtăși gânduri. Conectează-te pentru a începe.
-              </EmptyDescription>
-              <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
-            </Empty>
-          </div>
+          <AuthEmptyState
+            icon={FileText}
+            title='Conectează-te pentru a crea postări'
+            description='Trebuie să fii conectat pentru a posta pe feed și a împărtăși gânduri. Conectează-te pentru a începe.'
+          />
         ) : (
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div>

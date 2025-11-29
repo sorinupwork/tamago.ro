@@ -17,7 +17,6 @@ import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import AutoTabs from '@/components/custom/tabs/AutoTabs';
 import CarCard from '@/components/custom/card/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import AutoEmptyState from '@/components/custom/auto/AutoEmptyState';
 import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { cn } from '@/lib/utils';
@@ -42,6 +41,7 @@ import {
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
 import { mapRawCarToPost } from '@/lib/auto/helpers';
+import CategoryEmptyState from '@/components/custom/empty/CategoryEmptyState';
 
 type AutoPageClientProps = {
   initialResult: Promise<{ items: RawCarDoc[]; total: number; hasMore: boolean }>;
@@ -615,13 +615,20 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         {isPending ? (
           <SkeletonLoading variant='auto' className='col-span-full' />
         ) : paginatedItems.length === 0 ? (
-          <AutoEmptyState activeTab={activeTab} />
+          <CategoryEmptyState
+            activeTab={activeTab}
+            title='Nicio mașină disponibilă'
+            description='Nu am găsit mașini care să corespundă criteriilor tale. Încearcă să modifici filtrele sau adaugă un nou anunț.'
+            buttonLabel='Adaugă anunț'
+          />
         ) : (
           paginatedItems.map((car) => <CarCard key={car.id} car={car} cardsPerPage={cardsPerPage} />)
         )}
       </div>
 
-      {!isPending && paginatedItems.length > 0 && <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />}
+      {!isPending && paginatedItems.length > 0 && (
+        <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />
+      )}
     </div>
   );
 }

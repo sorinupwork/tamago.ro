@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 import AppMediaUploaderInput from '@/components/custom/input/AppMediaUploaderInput';
 import AppTextarea from '@/components/custom/input/AppTextarea';
+import AuthEmptyState from '@/components/custom/empty/AuthEmptyState';
 import { createStoryAction } from '@/actions/social/stories/actions';
 import { useSession } from '@/lib/auth/auth-client';
 
@@ -82,18 +82,11 @@ export default function StoryDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         {!session ? (
-          <div className='min-h-[300px] flex items-center justify-center'>
-            <Empty>
-              <EmptyMedia>
-                <Camera className='w-12 h-12 p-2' />
-              </EmptyMedia>
-              <EmptyTitle>Conectează-te pentru a adăuga povești</EmptyTitle>
-              <EmptyDescription>
-                Trebuie să fii conectat pentru a posta povești și a împărtăși conținut. Conectează-te pentru a începe.
-              </EmptyDescription>
-              <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
-            </Empty>
-          </div>
+          <AuthEmptyState
+            icon={Camera}
+            title='Conectează-te pentru a adăuga povești'
+            description='Trebuie să fii conectat pentru a posta povești și a împărtăși conținut. Conectează-te pentru a începe.'
+          />
         ) : (
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div>

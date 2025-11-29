@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import StoryCard from '../card/StoryCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import AppPagination from '@/components/custom/pagination/AppPagination';
+import { SocialEmptyState } from '@/components/custom/empty';
 import type { StoryPost } from '@/lib/types';
 
 type StoriesGridProps = {
@@ -62,12 +63,10 @@ export default function StoriesGrid({
       </div>
 
       {sorted.length === 0 && (
-        <div className='text-center py-8'>
-          <p className='text-muted-foreground'>Nu sunt povești</p>
-        </div>
+        <SocialEmptyState type='stories' />
       )}
 
-      {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
+      {sorted.length > 0 && typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
         <div className='mt-4 flex justify-center'>
           <AppPagination currentPage={currentPage || 1} totalPages={totalPages || 1} onPageChange={onPageChange} />
         </div>

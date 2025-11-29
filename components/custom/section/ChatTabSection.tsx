@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/custom/empty/Empty';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import AppChatFilter from '@/components/custom/chat/AppChatFilter';
 import AppChatBox from '@/components/custom/chat/AppChatBox';
 import { User as UserType, Message } from '@/lib/types';

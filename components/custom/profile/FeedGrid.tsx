@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import FeedCard from '../card/FeedCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { SocialEmptyState } from '@/components/custom/empty';
 import type { FeedPost } from '@/lib/types';
 
 type FeedGridProps = {
@@ -45,14 +46,12 @@ export default function FeedGrid({
   const itemsToRender = useMemo(() => {
     let arr = feedItems.slice();
 
-    // Filter by type (posts/polls)
     arr = arr.filter((item) => {
       if (item.type === 'post' && !showPosts) return false;
       if (item.type === 'poll' && !showPolls) return false;
       return true;
     });
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       arr = arr.filter((item) => {
@@ -63,7 +62,6 @@ export default function FeedGrid({
       });
     }
 
-    // Sort
     switch (sortBy) {
       case 'likes':
         arr.sort((a, b) => (b.reactions?.likes?.total ?? 0) - (a.reactions?.likes?.total ?? 0));
@@ -72,7 +70,7 @@ export default function FeedGrid({
         arr.sort((a, b) => (b.reactions?.comments?.length ?? 0) - (a.reactions?.comments?.length ?? 0));
         break;
       case 'views':
-        // Assuming we might add views in future, for now treat as likes
+        // we might add views in future, for now treat as likes
         arr.sort((a, b) => (b.reactions?.likes?.total ?? 0) - (a.reactions?.likes?.total ?? 0));
         break;
       case 'createdAt':
@@ -102,12 +100,10 @@ export default function FeedGrid({
           </div>
 
           {itemsToRender.length === 0 && (
-            <div className='text-center py-8'>
-              <p className='text-muted-foreground'>Nu sunt articole în feed</p>
-            </div>
+            <SocialEmptyState type='posts' />
           )}
 
-          {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
+          {itemsToRender.length > 0 && typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
             <div className='mt-4 flex justify-center'>
               <AppPagination currentPage={currentPage || 1} totalPages={totalPages || 1} onPageChange={onPageChange} />
             </div>

@@ -1,6 +1,7 @@
 import PostCard from '../card/PostCard';
 import AppPagination from '@/components/custom/pagination/AppPagination';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import { CategoryEmptyState } from '@/components/custom/empty';
 import type { Post } from '@/lib/types';
 
 export default function PostsGrid({
@@ -35,12 +36,10 @@ export default function PostsGrid({
           </div>
 
           {posts.length === 0 && (
-            <div className='text-center py-8'>
-              <p className='text-muted-foreground'>Nu sunt anunțuri postare</p>
-            </div>
+            <CategoryEmptyState activeTab='sell' title='Nu sunt anunțuri postare' description='Nu ai postat niciun anunț încă. Creează-ți primul anunț și conectează-te cu cumpărători!' />
           )}
 
-          {typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
+          {posts.length > 0 && typeof totalPages === 'number' && typeof currentPage === 'number' && onPageChange ? (
             <div className='mt-4 flex justify-center'>
               <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
             </div>

@@ -253,7 +253,6 @@ export default function ProfileClient({
   } | null>(null);
   const { handleDelete, isLoading: isDeleting } = useDeleteAction();
 
-  // Edit dialog states
   const [editFeedDialogOpen, setEditFeedDialogOpen] = useState(false);
   const [editingFeedItem, setEditingFeedItem] = useState<FeedPost | null>(null);
 

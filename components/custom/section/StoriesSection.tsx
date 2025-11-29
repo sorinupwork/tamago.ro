@@ -2,10 +2,10 @@ import { Camera } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../empty/Empty';
 import StoryItem from '@/components/custom/card/StoryItem';
 import { getStories } from '@/actions/social/stories/actions';
 import { User } from '@/lib/types';
+import { SocialEmptyState } from '../empty';
 
 type StoriesSectionProps = {
   mode?: 'stories' | 'users';
@@ -44,13 +44,7 @@ export default async function StoriesSection({ mode = 'stories', title = 'Storie
               })
             ) : (
               <div className='min-h-[120px] flex items-center justify-center w-full'>
-                <Empty>
-                  <EmptyMedia>
-                    <Camera className='w-12 h-12 p-2' />
-                  </EmptyMedia>
-                  <EmptyTitle>Nu există povești încă</EmptyTitle>
-                  <EmptyDescription>Fii primul care împărtășește o poveste și angajează comunitatea!</EmptyDescription>
-                </Empty>
+               <SocialEmptyState type='stories' />
               </div>
             )}
           </div>

@@ -4,7 +4,7 @@ import { Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { User } from '@/lib/types';
-import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../empty/Empty';
+import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '../../ui/empty';
 import StoryItem from '@/components/custom/card/StoryItem';
 
 type Props = {
@@ -14,9 +14,6 @@ type Props = {
 };
 
 export default function AuctionBidders({ users = [], title = 'Participanți Licitație' }: Props) {
-  // NOTE: auction bidders are NOT story-driven — consume the provided users and don't fetch stories here.
-  const bidders = users;
-
   return (
     <Card className='flex flex-col transition-all duration-300 hover:shadow-lg w-full max-w-full px-2'>
       <CardHeader>
@@ -28,11 +25,8 @@ export default function AuctionBidders({ users = [], title = 'Participanți Lici
       <CardContent className='flex-1 min-w-0'>
         <ScrollArea className='w-full min-w-0 whitespace-nowrap' orientation='horizontal'>
           <div className='flex space-x-4 p-4 min-h-[120px]'>
-            {bidders.length > 0 ? (
-              bidders.map((user, idx) => (
-                // pass empty stories list; StoryItem will show avatar/preview if any were present
-                <StoryItem key={`bidder-${idx}`} user={user} stories={[]} />
-              ))
+            {users.length > 0 ? (
+              users.map((user, idx) => <StoryItem key={`bidder-${idx}`} user={user} stories={[]} />)
             ) : (
               <div className='min-h-[120px] flex items-center justify-center w-full'>
                 <Empty>

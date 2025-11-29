@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import AppInput from '@/components/custom/input/AppInput';
+import AuthEmptyState from '@/components/custom/empty/AuthEmptyState';
 import { createPollAction } from '@/actions/social/feeds/actions';
 import { useSession } from '@/lib/auth/auth-client';
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/custom/empty/Empty';
 
 type Props = {
   open: boolean;
@@ -80,18 +80,11 @@ export default function PollDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         {!session ? (
-          <div className='min-h-[300px] flex items-center justify-center'>
-            <Empty>
-              <EmptyMedia>
-                <BarChart className='w-12 h-12 p-2' />
-              </EmptyMedia>
-              <EmptyTitle>Conectează-te pentru a crea sondaje</EmptyTitle>
-              <EmptyDescription>
-                Trebuie să fii conectat pentru a crea sondaje și a angaja comunitatea. Conectează-te pentru a începe.
-              </EmptyDescription>
-              <Button onClick={() => router.push('/cont')}>Conectează-te</Button>
-            </Empty>
-          </div>
+          <AuthEmptyState
+            icon={BarChart}
+            title='Conectează-te pentru a crea sondaje'
+            description='Trebuie să fii conectat pentru a crea sondaje și a angaja comunitatea. Conectează-te pentru a începe.'
+          />
         ) : (
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div>
