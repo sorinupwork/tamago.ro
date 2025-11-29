@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, use, useTransition, useRef } from 'react';
+import { useState, useEffect, useMemo, use, useRef, useTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { MapPin, Search, X } from 'lucide-react';
 import { debounce } from 'lodash';
@@ -17,14 +17,11 @@ import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import AutoTabs from '@/components/custom/tabs/AutoTabs';
 import CarCard from '@/components/custom/card/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
-import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { categoryMapping } from '@/lib/categories';
 import { steeringWheelOptions, tractionOptions, carTypeOptions, colorOptions } from '@/lib/mockData';
-import { getSortedCars } from '@/lib/auto/sorting';
-import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
 import {
   defaultActiveTab,
@@ -42,6 +39,7 @@ import {
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
 import { mapRawCarToPost } from '@/lib/auto/helpers';
 import CategoryEmptyState from '@/components/custom/empty/CategoryEmptyState';
+import { getAppliedFilters } from '@/lib/auto/filters';
 
 type AutoPageClientProps = {
   initialResult: Promise<{ items: RawCarDoc[]; total: number; hasMore: boolean }>;
@@ -52,18 +50,10 @@ type AutoPageClientProps = {
 export default function AutoPageClient({ initialResult, initialPage, initialTip }: AutoPageClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const result = use(initialResult);
 
-  const initialCars = useMemo(
-    () =>
-      result.items.map((doc: RawCarDoc) =>
-        mapRawCarToPost(doc, (categoryMapping[initialTip as keyof typeof categoryMapping] as 'sell' | 'buy' | 'rent' | 'auction') || 'sell')
-      ),
-    [result, initialTip]
-  );
-
   const [activeTab, setActiveTab] = useState<keyof typeof categoryMapping>(initialTip as keyof typeof categoryMapping);
-  const [cars, setCars] = useState<Car[]>(initialCars);
   const [filters, setFilters] = useState<AutoFilterState>(getInitialFilters(searchParams));
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -72,8 +62,15 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
+
+  const cars = useMemo(
+    () =>
+      result.items.map((doc: RawCarDoc) =>
+        mapRawCarToPost(doc, (categoryMapping[activeTab as keyof typeof categoryMapping] as 'sell' | 'buy' | 'rent' | 'auction') || 'sell')
+      ),
+    [result, activeTab]
+  );
   const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null);
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
     debouncedSearchRef.current = debounce((query: string) => {
@@ -113,29 +110,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     };
     loadModels();
   }, [filters.brand]);
-
-  const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    startTransition(async () => {
-      setCars([]);
-      const newCars = await fetchCarsServerAction({
-        activeTab,
-        searchQuery: debouncedSearchQuery,
-        filters,
-        sortCriteria,
-        locationFilter,
-      });
-      startTransition(() => {
-        setCars(newCars);
-      });
-    });
-  }, [activeTab, debouncedSearchQuery, filters, sortCriteria, locationFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -198,98 +172,74 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       params.delete('pagina');
     }
     const newUrl = params.toString() ? `?${params.toString()}` : '';
-    router.replace(newUrl || window.location.pathname, { scroll: false });
+    startTransition(() => {
+      router.push(newUrl || window.location.pathname);
+    });
   }, [activeTab, filters, sortCriteria, debouncedSearchQuery, locationFilter, currentPage, router]);
 
-  const uniqueBrands = brands;
-
-  const uniqueModels = models;
-
-  const uniqueColors = colorOptions;
-
-  const uniqueBodyTypes = carTypeOptions;
-
-  const filteredCars = useMemo(() => {
-    const filtered = getFilteredCars(cars, filters, debouncedSearchQuery, activeTab, categoryMapping, locationFilter);
-    return getSortedCars(filtered, sortCriteria);
-  }, [cars, filters, sortCriteria, debouncedSearchQuery, activeTab, locationFilter]);
-
-  const { totalPages, paginatedItems } = paginateArray(filteredCars, currentPage);
-
+  const { totalPages, paginatedItems } = paginateArray(cars, currentPage);
   const cardsPerPage = Math.min(Math.max(paginatedItems.length, 1), 3);
 
   const handleFilterChange = (key: keyof AutoFilterState, value: string | number[] | string[]) => {
-    startTransition(() => {
-      setCars([]);
-      setFilters((prev) => ({ ...prev, [key]: value }) as AutoFilterState);
-      setCurrentPage(1);
-    });
+    setFilters((prev) => ({ ...prev, [key]: value }) as AutoFilterState);
+    setCurrentPage(1);
   };
 
   const handleLocationChange = (location: LocationData | null, radius: number) => {
-    startTransition(() => {
-      setCars([]);
-      setLocationFilter({ location, radius });
-      setCurrentPage(1);
-    });
+    setLocationFilter({ location, radius });
+    setCurrentPage(1);
   };
 
   const removeFilter = (key: string, value: string) => {
-    startTransition(() => {
-      setCars([]);
-      if (key === 'searchQuery') {
-        setSearchQuery(defaultSearchQuery);
-        setDebouncedSearchQuery(defaultSearchQuery);
-        setCurrentPage(1);
-      } else if (key === 'location') {
-        setLocationFilter(defaultLocationFilter);
-        setResetKey((prev) => prev + 1);
-        setCurrentPage(1);
-      } else if (key === 'priceRange') {
-        setFilters((prev) => ({ ...prev, priceRange: defaultFilters.priceRange }));
-        setCurrentPage(1);
-      } else if (key === 'yearRange') {
-        setFilters((prev) => ({ ...prev, yearRange: defaultFilters.yearRange }));
-        setCurrentPage(1);
-      } else if (key === 'mileageRange') {
-        setFilters((prev) => ({ ...prev, mileageRange: defaultFilters.mileageRange }));
-        setCurrentPage(1);
-      } else if (key === 'engineCapacityRange') {
-        setFilters((prev) => ({ ...prev, engineCapacityRange: defaultFilters.engineCapacityRange }));
-        setCurrentPage(1);
-      } else if (key === 'horsepowerRange') {
-        setFilters((prev) => ({ ...prev, horsepowerRange: defaultFilters.horsepowerRange }));
-        setCurrentPage(1);
-      } else if (key === 'price' || key === 'year' || key === 'mileage' || key === 'date') {
-        setSortCriteria((prev) => ({ ...prev, [key]: null }));
-        setCurrentPage(1);
-      } else if (key in filters && Array.isArray((filters as Record<string, unknown>)[key])) {
-        setFilters(
-          (prev) =>
-            ({
-              ...prev,
-              [key]: ((prev as Record<string, unknown>)[key] as string[]).filter((item) => item !== value),
-            }) as AutoFilterState
-        );
-        setCurrentPage(1);
-      } else {
-        setFilters((prev) => ({ ...prev, [key]: defaultFilters[key as keyof AutoFilterState] }));
-        setCurrentPage(1);
-      }
-    });
+    if (key === 'searchQuery') {
+      setSearchQuery(defaultSearchQuery);
+      setDebouncedSearchQuery(defaultSearchQuery);
+      setCurrentPage(1);
+    } else if (key === 'location') {
+      setLocationFilter(defaultLocationFilter);
+      setResetKey((prev) => prev + 1);
+      setCurrentPage(1);
+    } else if (key === 'priceRange') {
+      setFilters((prev) => ({ ...prev, priceRange: defaultFilters.priceRange }));
+      setCurrentPage(1);
+    } else if (key === 'yearRange') {
+      setFilters((prev) => ({ ...prev, yearRange: defaultFilters.yearRange }));
+      setCurrentPage(1);
+    } else if (key === 'mileageRange') {
+      setFilters((prev) => ({ ...prev, mileageRange: defaultFilters.mileageRange }));
+      setCurrentPage(1);
+    } else if (key === 'engineCapacityRange') {
+      setFilters((prev) => ({ ...prev, engineCapacityRange: defaultFilters.engineCapacityRange }));
+      setCurrentPage(1);
+    } else if (key === 'horsepowerRange') {
+      setFilters((prev) => ({ ...prev, horsepowerRange: defaultFilters.horsepowerRange }));
+      setCurrentPage(1);
+    } else if (key === 'price' || key === 'year' || key === 'mileage' || key === 'date') {
+      setSortCriteria((prev) => ({ ...prev, [key]: null }));
+      setCurrentPage(1);
+    } else if (key in filters && Array.isArray((filters as Record<string, unknown>)[key])) {
+      setFilters(
+        (prev) =>
+          ({
+            ...prev,
+            [key]: ((prev as Record<string, unknown>)[key] as string[]).filter((item) => item !== value),
+          }) as AutoFilterState
+      );
+      setCurrentPage(1);
+    } else {
+      setFilters((prev) => ({ ...prev, [key]: defaultFilters[key as keyof AutoFilterState] }));
+      setCurrentPage(1);
+    }
   };
 
   const resetAllFilters = () => {
-    startTransition(() => {
-      setCars([]);
-      setFilters(defaultFilters);
-      setSortCriteria(defaultSortCriteria);
-      setSearchQuery(defaultSearchQuery);
-      setDebouncedSearchQuery(defaultSearchQuery);
-      setLocationFilter(defaultLocationFilter);
-      setCurrentPage(defaultCurrentPage);
-      setResetKey((prev) => prev + 1);
-    });
+    setFilters(defaultFilters);
+    setSortCriteria(defaultSortCriteria);
+    setSearchQuery(defaultSearchQuery);
+    setDebouncedSearchQuery(defaultSearchQuery);
+    setLocationFilter(defaultLocationFilter);
+    setCurrentPage(defaultCurrentPage);
+    setResetKey((prev) => prev + 1);
   };
 
   const saveSearch = async () => {
@@ -303,19 +253,24 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     }
   };
 
-  const appliedFilters = getAppliedFilters(filters, sortCriteria, debouncedSearchQuery, locationFilter).filter((filter) => {
-    if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
-    if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
-    if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
-    if (filter.key === 'engineCapacityRange')
-      return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
-    if (filter.key === 'horsepowerRange') return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
-    if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
-    if (filter.key === 'searchQuery') return debouncedSearchQuery !== defaultSearchQuery;
-    if (filter.key in sortCriteria)
-      return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
-    return true;
-  });
+  const appliedFilters = useMemo(
+    () =>
+      getAppliedFilters(filters, sortCriteria, debouncedSearchQuery, locationFilter).filter((filter) => {
+        if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
+        if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
+        if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
+        if (filter.key === 'engineCapacityRange')
+          return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
+        if (filter.key === 'horsepowerRange')
+          return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
+        if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
+        if (filter.key === 'searchQuery') return debouncedSearchQuery !== defaultSearchQuery;
+        if (filter.key in sortCriteria)
+          return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
+        return true;
+      }),
+    [filters, sortCriteria, debouncedSearchQuery, locationFilter]
+  );
 
   return (
     <div className='container mx-auto max-w-7xl p-2'>
@@ -330,11 +285,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         <AutoTabs
           activeTab={activeTab}
           onChange={(t) => {
-            startTransition(() => {
-              setCars([]);
-              setActiveTab(t);
-              setCurrentPage(1);
-            });
+            setActiveTab(t);
+            setCurrentPage(1);
           }}
         />
       </div>
@@ -353,7 +305,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           onChange={handleLocationChange}
           placeholder='Locație'
           className='flex-1'
-          filteredCars={filteredCars}
+          filteredCars={cars}
           leftIcon={MapPin}
           showLabelDesc={false}
         />
@@ -361,29 +313,15 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       </div>
 
       <div className='mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-        <div className='flex flex-col gap-2'>
-          <AppSlider
-            label='Preț'
-            min={0}
-            max={1000000}
-            step={1000}
-            value={filters.priceRange}
-            onValueChange={(value) => handleFilterChange('priceRange', value)}
-            currency={filters.priceCurrency || 'EUR'}
-          />
-          <AppSelectInput
-            options={[
-              { value: 'EUR', label: 'EUR' },
-              { value: 'USD', label: 'USD' },
-              { value: 'RON', label: 'RON' },
-              { value: 'GBP', label: 'GBP' },
-            ]}
-            value={filters.priceCurrency}
-            onValueChange={(value) => handleFilterChange('priceCurrency', value as string[])}
-            multiple={true}
-            placeholder='Monedă'
-          />
-        </div>
+        <AppSlider
+          label='Preț'
+          min={0}
+          max={1000000}
+          step={10000}
+          value={filters.priceRange}
+          onValueChange={(value) => handleFilterChange('priceRange', value)}
+          currency='€'
+        />
         <AppSlider
           label='An'
           min={1900}
@@ -434,7 +372,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           placeholder='Stare'
         />
         <AppCombobox
-          options={uniqueBrands}
+          options={brands}
           value={filters.brand}
           onValueChange={(value) => {
             handleFilterChange('brand', value);
@@ -443,7 +381,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           placeholder='Marcă'
         />
         <AppSelectInput
-          options={uniqueModels}
+          options={models}
           value={filters.model}
           onValueChange={(value) => handleFilterChange('model', value as string)}
           multiple={false}
@@ -477,14 +415,14 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
 
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4'>
         <AppSelectInput
-          options={uniqueBodyTypes}
+          options={carTypeOptions}
           value={filters.bodyType}
           onValueChange={(value) => handleFilterChange('bodyType', value as string[])}
           multiple={true}
           placeholder='Tip Caroserie'
         />
         <AppSelectInput
-          options={uniqueColors}
+          options={colorOptions}
           value={filters.color}
           onValueChange={(value) => handleFilterChange('color', value as string[])}
           multiple={true}
@@ -516,11 +454,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.price || 'none'}
             onValueChange={(value) => {
-              startTransition(() => {
-                setCars([]);
-                setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }));
-                setCurrentPage(1);
-              });
+              setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }));
+              setCurrentPage(1);
             }}
             label='Preț'
           />
@@ -532,11 +467,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.year || 'none'}
             onValueChange={(value) => {
-              startTransition(() => {
-                setCars([]);
-                setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }));
-                setCurrentPage(1);
-              });
+              setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }));
+              setCurrentPage(1);
             }}
             label='An'
           />
@@ -548,11 +480,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.mileage || 'none'}
             onValueChange={(value) => {
-              startTransition(() => {
-                setCars([]);
-                setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }));
-                setCurrentPage(1);
-              });
+              setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }));
+              setCurrentPage(1);
             }}
             label='Kilometraj'
           />
@@ -564,11 +493,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.date || 'none'}
             onValueChange={(value) => {
-              startTransition(() => {
-                setCars([]);
-                setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }));
-                setCurrentPage(1);
-              });
+              setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }));
+              setCurrentPage(1);
             }}
             label='Dată'
           />
