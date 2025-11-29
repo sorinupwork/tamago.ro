@@ -5,6 +5,27 @@ export type NominatimResult = {
   lon: string;
 };
 
+// CarQuery API types
+export type CarMake = {
+  make_id: string;
+  make_display: string;
+  make_is_common: string;
+  make_country: string;
+};
+
+export type CarModel = {
+  model_name: string;
+  model_make_id: string;
+};
+
+type MakesResponse = {
+  Makes: CarMake[];
+};
+
+type ModelsResponse = {
+  Models: CarModel[];
+};
+
 // Geocode address using Nominatim (restricted to Romania)
 export const geocodeAddress = async (query: string): Promise<NominatimResult[]> => {
   if (!query) return [];
@@ -66,5 +87,58 @@ export const snapToRoad = async (lat: number, lng: number): Promise<{ lat: numbe
   } catch (error) {
     console.error('OSRM snap error:', error);
     return { lat, lng };
+  }
+};
+
+// JSONP helper function
+function jsonp(url: string): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const callbackName = 'jsonp_callback_' + Math.random().toString(36).slice(2, 11);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any)[callbackName] = (data: unknown) => {
+      resolve(data);
+      document.head.removeChild(script);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any)[callbackName];
+    };
+    script.src = url.replace('callback=?', `callback=${callbackName}`);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+// Fetch car makes from CarQuery API
+export const fetchCarMakes = async (): Promise<{ value: string; label: string }[]> => {
+  try {
+    const data = await jsonp('https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getMakes&year=2020') as MakesResponse;
+    if (data.Makes && Array.isArray(data.Makes)) {
+      return (data.Makes as CarMake[]).map((make) => ({
+        value: make.make_id,
+        label: make.make_display,
+      })).sort((a, b) => a.label.localeCompare(b.label));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching car makes:', error);
+    return [];
+  }
+};
+
+// Fetch car models for a specific make from CarQuery API
+export const fetchCarModels = async (makeId: string): Promise<{ value: string; label: string }[]> => {
+  if (!makeId) return [];
+  try {
+    const data = await jsonp(`https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getModels&make=${makeId}`) as ModelsResponse;
+    if (data.Models && Array.isArray(data.Models)) {
+      return (data.Models as CarModel[]).map((model) => ({
+        value: model.model_name,
+        label: model.model_name,
+      })).sort((a, b) => a.label.localeCompare(b.label));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching car models:', error);
+    return [];
   }
 };

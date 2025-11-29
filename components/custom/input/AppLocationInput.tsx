@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import AppCombobox from '@/components/custom/input/AppCombobox';
 import AppSlider from '@/components/custom/input/AppSlider';
+import LoadingDots from '@/components/custom/loading/LoadingDots';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -66,10 +67,17 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
   const [radius, setRadius] = useState(50); // Default 50km
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const debouncedOnInputChange = useMemo(
     () =>
       debounce(async (query: string) => {
+        if (!query) {
+          setSuggestions([]);
+          setIsLoading(false);
+          return;
+        }
+        setIsLoading(true);
         const raw = await geocodeAddress(query);
         const formatted = raw.map((item: NominatimResult) => ({
           value: item.place_id.toString(),
@@ -77,6 +85,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
           data: item,
         }));
         setSuggestions(formatted);
+        setIsLoading(false);
       }, 300),
     []
   );
@@ -143,6 +152,7 @@ const AppLocationInput: React.FC<AppLocationInputProps> = ({
                     displayValue={value || location?.address || ''}
                     onValueChange={handleSelect}
                     onInputChange={debouncedOnInputChange}
+                    isLoading={isLoading}
                     placeholder={placeholder}
                     className='w-full'
                     leftIcon={leftIcon}

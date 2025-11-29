@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, use, useTransition } from 'react';
+import { useState, useEffect, useMemo, use, useTransition, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { MapPin, Search, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { MapPin, Search, X } from 'lucide-react';
+import { debounce } from 'lodash';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,11 @@ import AutoTabs from '@/components/custom/tabs/AutoTabs';
 import CarCard from '@/components/custom/card/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
 import { fetchCarsServerAction } from '@/actions/auto/actions';
+import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { categoryMapping } from '@/lib/categories';
-import { carModelsByBrand, steeringWheelOptions, tractionOptions } from '@/lib/mockData';
+import { steeringWheelOptions, tractionOptions, carTypeOptions, colorOptions } from '@/lib/mockData';
 import { getSortedCars } from '@/lib/auto/sorting';
 import { getFilteredCars, getAppliedFilters } from '@/lib/auto/filters';
 import { paginateArray } from '@/lib/auto/pagination';
@@ -38,7 +40,7 @@ import {
   statusMap,
 } from '@/lib/auto/initializers';
 import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
-import { mapRawCarToPost } from '@/lib/auto/helpers'; 
+import { mapRawCarToPost } from '@/lib/auto/helpers';
 
 type AutoPageClientProps = {
   initialResult: Promise<{ items: RawCarDoc[]; total: number; hasMore: boolean }>;
@@ -65,9 +67,53 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>(getInitialSortCriteria(searchParams));
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [searchQuery, setSearchQuery] = useState(getInitialSearchQuery(searchParams));
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(getInitialSearchQuery(searchParams));
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
+  
+  const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null);
+
+  // Setup debounced search
+  useEffect(() => {
+    debouncedSearchRef.current = debounce((query: string) => {
+      setDebouncedSearchQuery(query);
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      debouncedSearchRef.current?.cancel();
+    };
+  }, []);
+
+  // Handle search input changes with debounce
+  const handleSearchInputChange = (value: string) => {
+    setSearchQuery(value);
+    debouncedSearchRef.current?.(value);
+  };
+
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
+  const [models, setModels] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      const fetchedBrands = await fetchCarMakes();
+      setBrands(fetchedBrands);
+    };
+    loadBrands();
+  }, []);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (filters.brand) {
+        const fetchedModels = await fetchCarModels(filters.brand);
+        setModels(fetchedModels);
+      } else {
+        setModels([]);
+      }
+    };
+    loadModels();
+  }, [filters.brand]);
 
   const [isPending, startTransition] = useTransition();
 
@@ -76,17 +122,16 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       setCars([]);
       const newCars = await fetchCarsServerAction({
         activeTab,
-        searchQuery,
+        searchQuery: debouncedSearchQuery,
         filters,
         sortCriteria,
         locationFilter,
       });
       startTransition(() => {
         setCars(newCars);
-        setCurrentPage(1);
       });
     });
-  }, [activeTab, searchQuery, filters, sortCriteria, locationFilter]);
+  }, [activeTab, debouncedSearchQuery, filters, sortCriteria, locationFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -95,7 +140,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     if (filters.brand !== defaultFilters.brand) params.set('marca', filters.brand);
     if (filters.model !== defaultFilters.model) params.set('model', filters.model);
     if (filters.steeringWheelPosition !== defaultFilters.steeringWheelPosition) params.set('volan', filters.steeringWheelPosition);
-    if (filters.priceCurrency !== defaultFilters.priceCurrency) params.set('moneda', filters.priceCurrency);
+    if (filters.priceCurrency.length > 0) filters.priceCurrency.forEach((c) => params.append('moneda', c));
     if (filters.fuel.length > 0) filters.fuel.forEach((f) => params.append('combustibil', f));
     if (filters.transmission.length > 0) filters.transmission.forEach((t) => params.append('transmisie', t));
     if (filters.bodyType.length > 0) filters.bodyType.forEach((b) => params.append('caroserie', b));
@@ -137,7 +182,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     if (sortCriteria.mileage) params.set('kilometraj', sortCriteria.mileage);
     if (sortCriteria.date) params.set('data', sortCriteria.date);
 
-    if (searchQuery !== defaultSearchQuery) params.set('cautare', searchQuery);
+    if (debouncedSearchQuery !== defaultSearchQuery) params.set('cautare', debouncedSearchQuery);
     if (locationFilter.location) {
       params.set('lat', locationFilter.location.lat.toString());
       params.set('lng', locationFilter.location.lng.toString());
@@ -150,33 +195,20 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     }
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.replace(newUrl || window.location.pathname, { scroll: false });
-  }, [activeTab, filters, sortCriteria, searchQuery, locationFilter, currentPage, router]);
+  }, [activeTab, filters, sortCriteria, debouncedSearchQuery, locationFilter, currentPage, router]);
 
-  const uniqueBrands = useMemo(() => {
-    const brands = [...new Set(cars.map((car) => car.brand))];
-    return brands.map((brand) => ({ value: brand, label: brand }));
-  }, [cars]);
+  const uniqueBrands = brands;
 
-  const uniqueModels = useMemo(() => {
-    if (!filters.brand) return [];
-    const models = carModelsByBrand[filters.brand as keyof typeof carModelsByBrand] || [];
-    return models;
-  }, [filters.brand]);
+  const uniqueModels = models;
 
-  const uniqueColors = useMemo(() => {
-    const colors = [...new Set(cars.map((car) => car.color).filter((c) => c))];
-    return colors.map((color) => ({ value: color, label: color }));
-  }, [cars]);
+  const uniqueColors = colorOptions;
 
-  const uniqueBodyTypes = useMemo(() => {
-    const types = [...new Set(cars.map((car) => car.bodyType))];
-    return types.map((type) => ({ value: type, label: type }));
-  }, [cars]);
+  const uniqueBodyTypes = carTypeOptions;
 
   const filteredCars = useMemo(() => {
-    const filtered = getFilteredCars(cars, filters, searchQuery, activeTab, categoryMapping, locationFilter);
+    const filtered = getFilteredCars(cars, filters, debouncedSearchQuery, activeTab, categoryMapping, locationFilter);
     return getSortedCars(filtered, sortCriteria);
-  }, [cars, filters, sortCriteria, searchQuery, activeTab, locationFilter]);
+  }, [cars, filters, sortCriteria, debouncedSearchQuery, activeTab, locationFilter]);
 
   const { totalPages, paginatedItems } = paginateArray(filteredCars, currentPage);
 
@@ -211,6 +243,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       setCars([]);
       if (key === 'searchQuery') {
         setSearchQuery(defaultSearchQuery);
+        setDebouncedSearchQuery(defaultSearchQuery);
         setCurrentPage(1);
       } else if (key === 'location') {
         setLocationFilter(defaultLocationFilter);
@@ -256,6 +289,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       setFilters(defaultFilters);
       setSortCriteria(defaultSortCriteria);
       setSearchQuery(defaultSearchQuery);
+      setDebouncedSearchQuery(defaultSearchQuery);
       setLocationFilter(defaultLocationFilter);
       setCurrentPage(defaultCurrentPage);
       setResetKey((prev) => prev + 1);
@@ -273,7 +307,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     }
   };
 
-  const appliedFilters = getAppliedFilters(filters, sortCriteria, searchQuery, locationFilter).filter((filter) => {
+  const appliedFilters = getAppliedFilters(filters, sortCriteria, debouncedSearchQuery, locationFilter).filter((filter) => {
     if (filter.key === 'priceRange') return JSON.stringify(filters.priceRange) !== JSON.stringify(defaultFilters.priceRange);
     if (filter.key === 'yearRange') return JSON.stringify(filters.yearRange) !== JSON.stringify(defaultFilters.yearRange);
     if (filter.key === 'mileageRange') return JSON.stringify(filters.mileageRange) !== JSON.stringify(defaultFilters.mileageRange);
@@ -281,7 +315,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       return JSON.stringify(filters.engineCapacityRange) !== JSON.stringify(defaultFilters.engineCapacityRange);
     if (filter.key === 'horsepowerRange') return JSON.stringify(filters.horsepowerRange) !== JSON.stringify(defaultFilters.horsepowerRange);
     if (filter.key === 'location') return JSON.stringify(locationFilter) !== JSON.stringify(defaultLocationFilter);
-    if (filter.key === 'searchQuery') return searchQuery !== defaultSearchQuery;
+    if (filter.key === 'searchQuery') return debouncedSearchQuery !== defaultSearchQuery;
     if (filter.key in sortCriteria)
       return sortCriteria[filter.key as keyof SortCriteria] !== defaultSortCriteria[filter.key as keyof SortCriteria];
     return true;
@@ -313,7 +347,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         <AppInput
           placeholder='Caută mașini (marcă, model...)'
           value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(e) => handleSearchInputChange(e.target.value)}
           className='flex-1'
           leftIcon={Search}
         />
@@ -349,8 +383,8 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
               { value: 'GBP', label: 'GBP' },
             ]}
             value={filters.priceCurrency}
-            onValueChange={(value) => handleFilterChange('priceCurrency', value as string)}
-            multiple={false}
+            onValueChange={(value) => handleFilterChange('priceCurrency', value as string[])}
+            multiple={true}
             placeholder='Monedă'
           />
         </div>
@@ -477,147 +511,71 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       </div>
 
       <div className='mb-4 flex flex-col gap-4'>
-        <h3 className='text-sm font-semibold text-gray-700'>Sortare după</h3>
         <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3'>
-          {/* Price Sort */}
-          <div className='flex flex-col gap-2'>
-            <p className='text-xs font-medium text-gray-600'>Preț</p>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                variant={sortCriteria.price === 'asc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, price: prev.price === 'asc' ? null : 'asc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronUp className='h-4 w-4' /> Cresc.
-              </Button>
-              <Button
-                size='sm'
-                variant={sortCriteria.price === 'desc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, price: prev.price === 'desc' ? null : 'desc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronDown className='h-4 w-4' /> Desc.
-              </Button>
-            </div>
-          </div>
-
-          {/* Year Sort */}
-          <div className='flex flex-col gap-2'>
-            <p className='text-xs font-medium text-gray-600'>An</p>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                variant={sortCriteria.year === 'asc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, year: prev.year === 'asc' ? null : 'asc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronUp className='h-4 w-4' /> Cresc.
-              </Button>
-              <Button
-                size='sm'
-                variant={sortCriteria.year === 'desc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, year: prev.year === 'desc' ? null : 'desc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronDown className='h-4 w-4' /> Desc.
-              </Button>
-            </div>
-          </div>
-
-          {/* Mileage Sort */}
-          <div className='flex flex-col gap-2'>
-            <p className='text-xs font-medium text-gray-600'>Kilometraj</p>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                variant={sortCriteria.mileage === 'asc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, mileage: prev.mileage === 'asc' ? null : 'asc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronUp className='h-4 w-4' /> Cresc.
-              </Button>
-              <Button
-                size='sm'
-                variant={sortCriteria.mileage === 'desc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, mileage: prev.mileage === 'desc' ? null : 'desc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronDown className='h-4 w-4' /> Desc.
-              </Button>
-            </div>
-          </div>
-
-          {/* Date Sort */}
-          <div className='flex flex-col gap-2'>
-            <p className='text-xs font-medium text-gray-600'>Dată</p>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                variant={sortCriteria.date === 'asc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, date: prev.date === 'asc' ? null : 'asc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronUp className='h-4 w-4' /> Vechi
-              </Button>
-              <Button
-                size='sm'
-                variant={sortCriteria.date === 'desc' ? 'default' : 'outline'}
-                onClick={() => {
-                  startTransition(() => {
-                    setCars([]);
-                    setSortCriteria((prev) => ({ ...prev, date: prev.date === 'desc' ? null : 'desc' }));
-                    setCurrentPage(1);
-                  });
-                }}
-                className='flex-1 gap-1'
-              >
-                <ChevronDown className='h-4 w-4' /> Nou
-              </Button>
-            </div>
-          </div>
+          <AppSelectInput
+            options={[
+              { value: 'none', label: 'Fără sortare' },
+              { value: 'asc', label: 'Crescător' },
+              { value: 'desc', label: 'Descrescător' },
+            ]}
+            value={sortCriteria.price || 'none'}
+            onValueChange={(value) => {
+              startTransition(() => {
+                setCars([]);
+                setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }));
+                setCurrentPage(1);
+              });
+            }}
+            label='Preț'
+          />
+          <AppSelectInput
+            options={[
+              { value: 'none', label: 'Fără sortare' },
+              { value: 'asc', label: 'Crescător' },
+              { value: 'desc', label: 'Descrescător' },
+            ]}
+            value={sortCriteria.year || 'none'}
+            onValueChange={(value) => {
+              startTransition(() => {
+                setCars([]);
+                setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }));
+                setCurrentPage(1);
+              });
+            }}
+            label='An'
+          />
+          <AppSelectInput
+            options={[
+              { value: 'none', label: 'Fără sortare' },
+              { value: 'asc', label: 'Crescător' },
+              { value: 'desc', label: 'Descrescător' },
+            ]}
+            value={sortCriteria.mileage || 'none'}
+            onValueChange={(value) => {
+              startTransition(() => {
+                setCars([]);
+                setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }));
+                setCurrentPage(1);
+              });
+            }}
+            label='Kilometraj'
+          />
+          <AppSelectInput
+            options={[
+              { value: 'none', label: 'Fără sortare' },
+              { value: 'asc', label: 'Vechi' },
+              { value: 'desc', label: 'Nou' },
+            ]}
+            value={sortCriteria.date || 'none'}
+            onValueChange={(value) => {
+              startTransition(() => {
+                setCars([]);
+                setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }));
+                setCurrentPage(1);
+              });
+            }}
+            label='Dată'
+          />
         </div>
       </div>
 

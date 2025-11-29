@@ -26,7 +26,7 @@ type CarFetchParams = {
   color?: string[];
   traction?: string[];
   steeringWheelPosition?: string;
-  priceCurrency?: string;
+  priceCurrency?: string[];
   priceMin?: number;
   priceMax?: number;
   yearMin?: number;
@@ -148,13 +148,13 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
       query.$or = [{ title: { $regex: params.search, $options: 'i' } }, { description: { $regex: params.search, $options: 'i' } }];
     }
 
-    if (params.brand) query.brand = params.brand;
+    if (params.brand) query.brand = { $regex: new RegExp(`^${params.brand}$`, 'i') };
 
-    if (params.model) query.model = params.model;
+    if (params.model) query.model = { $regex: new RegExp(`^${params.model}$`, 'i') };
 
     if (params.steeringWheelPosition) query.steeringWheelPosition = params.steeringWheelPosition;
 
-    if (params.priceCurrency) query.currency = params.priceCurrency;
+    if (params.priceCurrency && params.priceCurrency.length > 0) query.currency = { $in: params.priceCurrency };
 
     if (params.fuel && params.fuel.length > 0) query.fuel = { $in: params.fuel };
 
@@ -523,7 +523,7 @@ export async function fetchCarsServerAction(params: {
       brand: filters.brand || undefined,
       model: filters.model || undefined,
       steeringWheelPosition: filters.steeringWheelPosition || undefined,
-      priceCurrency: filters.priceCurrency || undefined,
+      priceCurrency: filters.priceCurrency.length > 0 ? filters.priceCurrency : undefined,
       fuel: filters.fuel.length > 0 ? filters.fuel : undefined,
       transmission: filters.transmission.length > 0 ? filters.transmission : undefined,
       bodyType: filters.bodyType.length > 0 ? filters.bodyType : undefined,

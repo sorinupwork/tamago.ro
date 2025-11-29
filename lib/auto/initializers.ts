@@ -13,7 +13,7 @@ export const defaultFilters: AutoFilterState = {
   color: [],
   traction: [],
   steeringWheelPosition: '',
-  priceCurrency: 'EUR',
+  priceCurrency: [],
   priceRange: [0, 1000000],
   yearRange: [1900, 2025],
   mileageRange: [0, 1000000],
@@ -50,7 +50,7 @@ export const getInitialFilters = (searchParams: URLSearchParams): AutoFilterStat
   filters.color = searchParams.getAll('culoare');
   filters.traction = searchParams.getAll('tractiune');
   filters.steeringWheelPosition = searchParams.get('volan') || defaultFilters.steeringWheelPosition;
-  filters.priceCurrency = searchParams.get('moneda') || defaultFilters.priceCurrency;
+  filters.priceCurrency = searchParams.getAll('moneda');
   filters.priceRange = [
     parseInt(searchParams.get('pretMin') || defaultFilters.priceRange[0].toString()),
     parseInt(searchParams.get('pretMax') || defaultFilters.priceRange[1].toString()),

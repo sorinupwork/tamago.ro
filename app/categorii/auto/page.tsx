@@ -9,7 +9,7 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
   const marca = resolvedSearchParams.marca as string;
   const model = resolvedSearchParams.model as string;
   const volan = resolvedSearchParams.volan as string;
-  const moneda = (resolvedSearchParams.moneda as string) || 'EUR';
+  const moneda = Array.isArray(resolvedSearchParams.moneda) ? resolvedSearchParams.moneda : (resolvedSearchParams.moneda as string)?.split(',') || [];
   const combustibil = Array.isArray(resolvedSearchParams.combustibil) ? resolvedSearchParams.combustibil : (resolvedSearchParams.combustibil as string)?.split(',') || [];
   const transmisie = Array.isArray(resolvedSearchParams.transmisie) ? resolvedSearchParams.transmisie : (resolvedSearchParams.transmisie as string)?.split(',') || [];
   const caroserie = Array.isArray(resolvedSearchParams.caroserie) ? resolvedSearchParams.caroserie : (resolvedSearchParams.caroserie as string)?.split(',') || [];

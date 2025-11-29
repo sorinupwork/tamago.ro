@@ -322,7 +322,7 @@ export type AutoFilterState = {
   color: string[];
   traction: string[];
   steeringWheelPosition: string;
-  priceCurrency: string;
+  priceCurrency: string[];
   priceRange: number[];
   yearRange: number[];
   mileageRange: number[];

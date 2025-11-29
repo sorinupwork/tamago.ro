@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import LoadingDots from '@/components/custom/loading/LoadingDots';
 import { cn } from '@/lib/utils';
 
 type Option = {
@@ -19,7 +20,7 @@ type AppComboboxProps = {
   options: Option[];
   value: string;
   onValueChange: (value: string) => void;
-  onInputChange?: (query: string) => void;
+  onInputChange?: (query: string) => void | Promise<void>;
   placeholder?: string;
   className?: string;
   additionalContent?: React.ReactNode;
@@ -29,6 +30,7 @@ type AppComboboxProps = {
   leftIcon?: LucideIcon;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  isLoading?: boolean;
 };
 
 const AppCombobox: React.FC<AppComboboxProps> = ({
@@ -45,6 +47,7 @@ const AppCombobox: React.FC<AppComboboxProps> = ({
   leftIcon: LeftIcon,
   open,
   onOpenChange,
+  isLoading = false,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open !== undefined ? open : internalOpen;
@@ -91,30 +94,40 @@ const AppCombobox: React.FC<AppComboboxProps> = ({
                 <X className='h-4 w-4' />
               </Button>
             )}
-            <Command shouldFilter={false}>
-              <CommandInput placeholder='Caută...' onValueChange={onInputChange} />
+            <Command>
+              <CommandInput 
+                placeholder='Caută...' 
+                onValueChange={onInputChange}
+              />
               <CommandList>
-                <CommandEmpty>Nu s-a găsit nimic.</CommandEmpty>
-                <CommandGroup>
-                  {options.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.label}
-                      className={cn('mb-1', value === option.value && 'bg-accent')}
-                      onSelect={() => {
-                        if (value === option.value) {
-                          onValueChange('');
-                        } else {
-                          onValueChange(option.value);
-                        }
-                        handleOpenChange(false);
-                      }}
-                    >
-                      <Check className={cn('mr-2 h-4 w-4', value === option.value ? 'opacity-100' : 'opacity-0')} />
-                      {option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {isLoading ? (
+                  <div className='flex items-center justify-center py-6'>
+                    <LoadingDots size='sm' />
+                  </div>
+                ) : options.length === 0 ? (
+                  <CommandEmpty>Nu s-a găsit nimic.</CommandEmpty>
+                ) : (
+                  <CommandGroup>
+                    {options.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.label}
+                        className={cn('mb-1', value === option.value && 'bg-accent')}
+                        onSelect={() => {
+                          if (value === option.value) {
+                            onValueChange('');
+                          } else {
+                            onValueChange(option.value);
+                          }
+                          handleOpenChange(false);
+                        }}
+                      >
+                        <Check className={cn('mr-2 h-4 w-4', value === option.value ? 'opacity-100' : 'opacity-0')} />
+                        {option.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
             {additionalContent}

@@ -51,7 +51,7 @@ export function getFilteredCars(
   if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
   if (filters.model) filtered = filtered.filter((car) => car.model?.toLowerCase().includes(filters.model.toLowerCase()));
   if (filters.steeringWheelPosition) filtered = filtered.filter((car) => car.steeringWheelPosition === filters.steeringWheelPosition);
-  if (filters.priceCurrency) filtered = filtered.filter((car) => car.currency === filters.priceCurrency);
+  if (filters.priceCurrency.length > 0) filtered = filtered.filter((car) => filters.priceCurrency.includes(car.currency || ''));
   if (filters.traction.length > 0) filtered = filtered.filter((car) => filters.traction.includes(car.traction || ''));
   if (searchQuery)
     filtered = filtered.filter(
@@ -102,8 +102,8 @@ export function getAppliedFilters(
           },
         ]
       : []),
-    ...(filters.priceCurrency && filters.priceCurrency !== 'EUR'
-      ? [{ key: 'priceCurrency', value: filters.priceCurrency, label: `Monedă: ${filters.priceCurrency}` }]
+    ...(filters.priceCurrency.length > 0
+      ? filters.priceCurrency.map((c: string) => ({ key: 'priceCurrency', value: c, label: `Monedă: ${c}` }))
       : []),
     ...(locationFilter.location
       ? [{ key: 'location', value: locationFilter.location.address, label: `Locație: ${locationFilter.location.address}` }]
