@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import sanitizeHtml from 'sanitize-html';
 import { MessageSquare, ThumbsUp, Share, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ChangeEvent } from 'react';
@@ -16,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import UserProfileCard from './UserProfileCard';
 import AppInput from '@/components/custom/input/AppInput';
+import SafeHtml from '@/components/custom/text/SafeHtml';
 import { addLikeAction, addCommentAction, addReplyAction, voteOnPollAction } from '@/actions/social/feeds/actions';
 import { FeedItem } from '@/lib/types';
 
@@ -128,7 +128,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
                 ))}
               </div>
             )}
-            <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.text || '') }} className='mt-2' />
+            <SafeHtml html={item.text} className='mt-2' />
           </>
         ) : (
           <>

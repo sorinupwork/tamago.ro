@@ -50,12 +50,6 @@ export default function MarketplaceContactSection({
       return 0;
     });
 
-  const getWeatherTips = (temp: number) => {
-    if (temp < 10) return 'Dress warmly and stay hydrated!';
-    if (temp > 25) return 'Stay cool, wear sunscreen!';
-    return 'Enjoy the pleasant weather!';
-  };
-
   return (
     <section className={cn(`transition-all duration-300 rounded-lg text-center ${className}`)}>
       {horizontalLayout ? (
@@ -85,17 +79,7 @@ export default function MarketplaceContactSection({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className='flex-1'>
-                  <WeatherWidget />
-                </CardContent>
-              </Card>
-              <Card className='transition-all duration-200 hover:shadow-lg mt-4'>
-                <CardHeader>
-                  <CardTitle className='flex items-center justify-center gap-2'>
-                    <p>Weather Tips</p>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
+                  <WeatherWidget showTips={true} />
                 </CardContent>
               </Card>
             </div>
@@ -179,18 +163,7 @@ export default function MarketplaceContactSection({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <WeatherWidget />
-                  </CardContent>
-                </Card>
-
-                <Card className='transition-all duration-200 hover:shadow-lg'>
-                  <CardHeader>
-                    <CardTitle className='flex items-center justify-center gap-2'>
-                      <p>Weather Tips</p>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className='text-sm text-muted-foreground'>{getWeatherTips(20)}</p>
+                    <WeatherWidget showTips={true} />
                   </CardContent>
                 </Card>
               </div>

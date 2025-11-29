@@ -5,7 +5,22 @@ export type NominatimResult = {
   lon: string;
 };
 
-// CarQuery API types
+export type WeatherData = {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  timezone_abbreviation: string;
+  elevation: number;
+  current_weather: {
+    time: string;
+    temperature: number;
+    windspeed: number;
+    winddirection: number;
+    is_day: number;
+    weathercode: number;
+  };
+};
+
 export type CarMake = {
   make_id: string;
   make_display: string;
@@ -111,12 +126,14 @@ function jsonp(url: string): Promise<unknown> {
 // Fetch car makes from CarQuery API
 export const fetchCarMakes = async (): Promise<{ value: string; label: string }[]> => {
   try {
-    const data = await jsonp('https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getMakes&year=2020') as MakesResponse;
+    const data = (await jsonp('https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getMakes&year=2020')) as MakesResponse;
     if (data.Makes && Array.isArray(data.Makes)) {
-      return (data.Makes as CarMake[]).map((make) => ({
-        value: make.make_id,
-        label: make.make_display,
-      })).sort((a, b) => a.label.localeCompare(b.label));
+      return (data.Makes as CarMake[])
+        .map((make) => ({
+          value: make.make_id,
+          label: make.make_display,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
     }
     return [];
   } catch (error) {
@@ -129,16 +146,38 @@ export const fetchCarMakes = async (): Promise<{ value: string; label: string }[
 export const fetchCarModels = async (makeId: string): Promise<{ value: string; label: string }[]> => {
   if (!makeId) return [];
   try {
-    const data = await jsonp(`https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getModels&make=${makeId}`) as ModelsResponse;
+    const data = (await jsonp(`https://www.carqueryapi.com/api/0.3/?callback=?&cmd=getModels&make=${makeId}`)) as ModelsResponse;
     if (data.Models && Array.isArray(data.Models)) {
-      return (data.Models as CarModel[]).map((model) => ({
-        value: model.model_name,
-        label: model.model_name,
-      })).sort((a, b) => a.label.localeCompare(b.label));
+      return (data.Models as CarModel[])
+        .map((model) => ({
+          value: model.model_name,
+          label: model.model_name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
     }
     return [];
   } catch (error) {
     console.error('Error fetching car models:', error);
     return [];
+  }
+};
+
+// Fetch current weather from Open-Meteo API (free, open source)
+// Requires latitude and longitude to be provided
+export const fetchWeatherData = async (lat: number, lng: number): Promise<WeatherData | null> => {
+  try {
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&timezone=auto`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch weather data');
+    }
+
+    const data: WeatherData = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
   }
 };
