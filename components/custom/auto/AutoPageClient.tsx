@@ -36,7 +36,7 @@ import {
   getInitialLocationFilter,
   statusMap,
 } from '@/lib/auto/initializers';
-import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, Car, RawCarDoc } from '@/lib/types';
+import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, RawCarDoc } from '@/lib/types';
 import { mapRawCarToPost } from '@/lib/auto/helpers';
 import CategoryEmptyState from '@/components/custom/empty/CategoryEmptyState';
 import { getAppliedFilters } from '@/lib/auto/filters';
