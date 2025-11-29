@@ -77,8 +77,7 @@ export default function FeedPostCard({ item, sessionUserId, isLoggedIn }: Props)
     <Card className='transition-all duration-300 hover:shadow-lg'>
       <CardHeader className='flex flex-row items-center justify-between gap-2'>
         <div className='flex items-center gap-2'>
-          <UserProfileCard user={item.user} />
-          <span className='font-semibold'>{item.user?.name || 'Unknown'}</span>
+          <UserProfileCard user={item.user} showName={true} />
         </div>
 
         <DropdownMenu>

@@ -59,9 +59,8 @@ export default function CarHistoryHighlights({ car, features, items }: CarHistor
 
   return (
     <Collapsible className='w-full group'>
-      <div className='relative mb-4'>
+      <div className='relative mt-4'>
         <CollapsibleTrigger className='text-sm font-semibold text-left justify-start flex-1 mb-2 flex items-center'>
-          <Calendar className='h-4 w-4 mr-2 inline-block' />
           Vezi Mai Multe Istoric
           <ChevronDown className='ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180' />
         </CollapsibleTrigger>

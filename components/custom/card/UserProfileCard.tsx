@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPin, Star } from 'lucide-react';
+import { CheckCircle2, ExternalLink } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { User } from '@/lib/types';
+import Image from 'next/image';
+import Link from 'next/link';
 
 type Props = {
   user?: User | null;
@@ -21,45 +23,27 @@ type Props = {
 
 function UserProfileContent({ user }: { user?: User | null }) {
   if (!user) return null;
-  const joined = user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'N/A';
 
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex items-start gap-3'>
         <Avatar>
-          <AvatarImage src={user.image || '/avatars/default.jpg'} />
+          <AvatarImage src={user.image || user.avatar} />
           <AvatarFallback>{user.name?.[0] || '?'}</AvatarFallback>
         </Avatar>
+
         <div className='flex-1'>
-          <h4 className='text-sm font-semibold'>{user.name || 'Unknown'}</h4>
+          <div className='flex items-center gap-2'>
+            <h4 className='text-sm font-semibold'>{user.name || 'Unknown'}</h4>
+            {user.emailVerified && <CheckCircle2 className=' h-3 w-3 text-green-500 bg-white dark:bg-slate-950 rounded-full' />}
+          </div>
           <p className='text-sm text-muted-foreground truncate'>{user.status}</p>
-          <p className='text-sm text-muted-foreground truncate'>{user.email}</p>
-          <p className='text-sm text-muted-foreground truncate'>Joined: {joined}</p>
           <div className='mt-2 flex flex-wrap gap-2'>
-            <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full'>{user.category}</span>
-            <span className='text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded-full flex items-center gap-1'>
-              <Star className='w-3 h-3' /> Top Seller
-            </span>
+            <Link href={`/profile/${user.id}`} className='text-sm text-primary hover:underline flex items-center gap-1.5 pt-2 border-t'>
+              Vezi profilul
+              <ExternalLink className='h-3 w-3' />
+            </Link>
           </div>
-        </div>
-      </div>
-
-      <div className='flex items-center justify-between gap-3'>
-        <div className='flex-1'>
-          <div className='flex items-center justify-between text-xs mb-1'>
-            <span className='text-muted-foreground'>Profile</span>
-            <span className='font-medium'>78%</span>
-          </div>
-          <div className='w-full bg-muted/20 h-2 rounded overflow-hidden'>
-            <div className='h-2 bg-primary' style={{ width: '78%' }} />
-          </div>
-        </div>
-
-        <div className='flex flex-col items-end text-xs text-muted-foreground'>
-          <span className='flex items-center gap-1'>
-            <MapPin className='w-3 h-3' /> Nearby
-          </span>
-          <span>5km</span>
         </div>
       </div>
     </div>
@@ -68,12 +52,12 @@ function UserProfileContent({ user }: { user?: User | null }) {
 
 export default function UserProfileCard({
   user,
-  className = '',
-  interactive = true,
-  contentOnly = false,
-  size = 'md',
   showName = false,
+  size = 'md',
+  className = '',
+  contentOnly = false,
   storyPreview,
+  interactive = true,
 }: Props) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -93,21 +77,19 @@ export default function UserProfileCard({
 
   if (storyPreview) {
     const cardEl = (
-      // keep the same DOM + classes across server & client (fallback + stable overlay)
       <div className={`relative ${sizeClass} rounded-lg overflow-hidden bg-gray-200 cursor-default ${className}`}>
-        {/* use a plain img for external thumbnails/fallbacks to avoid Next/Image domain/hydration issues */}
-        <img
-          src={storyPreview || user?.avatar || '/avatars/default.jpg'}
+        <Image
+          fill
+          src={storyPreview || user?.image || user?.avatar || '/avatars/default.jpg'}
           alt='Story preview'
-          className='absolute inset-0 w-full h-full object-cover'
+          className='w-full h-full object-cover'
         />
 
-        {/* stable overlay: include gradient and fallback solid overlay to avoid mismatches */}
         <div className='absolute inset-0 bg-linear-to-t from-black/50 to-transparent bg-black bg-opacity-20 opacity-20' />
 
         <div className={`absolute top-2 left-2 ${avatarSize} rounded-full border-2 border-white overflow-hidden`}>
           <Avatar className='w-full h-full'>
-            <AvatarImage src={user?.avatar || '/avatars/default.jpg'} />
+            <AvatarImage src={user?.image || user?.avatar} />
             <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
           </Avatar>
         </div>
@@ -136,7 +118,7 @@ export default function UserProfileCard({
         className={`cursor-${interactive ? 'pointer' : 'default'}`}
       >
         <Avatar className={size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-16 h-16' : 'w-12 h-12'}>
-          <AvatarImage src={user?.avatar || '/avatars/default.jpg'} />
+          <AvatarImage src={user?.image || user?.avatar} />
           <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
         </Avatar>
       </div>

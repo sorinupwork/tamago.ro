@@ -202,9 +202,9 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
               onNext={handleNext}
               onPrev={handlePrev}
             >
-              <CarouselContent className='-mt-1 py-4 max-h-[650px] gap-4 px-6'>
+              <CarouselContent className='mt-0 h-[650px] space-y-4' containerClassName='p-1'>
                 {car.images.map((image, index) => (
-                  <CarouselItem key={index} className='relative basis-1/2 min-h-[325px] shadow-lg ring-2 ring-primary/20 rounded-xl overflow-hidden'>
+                  <CarouselItem key={index} className='pt-1 relative basis-1/2 border-2 rounded-xl'>
                     <MediaPreview
                       mediaItems={car.images.map((url, i) => ({
                         type: 'image',
@@ -217,7 +217,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                           fill
                           src={imageSrcs[index]}
                           alt={`${car.title} ${index + 1}`}
-                          className='object-cover rounded-xl'
+                          className='object-cover rounded-xl w-full h-full'
                           placeholder='blur'
                           blurDataURL='/placeholder.svg'
                           onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
@@ -227,8 +227,8 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2 border-2 shadow-lg w-10 h-10' />
-              <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2 border-2 shadow-lg w-10 h-10' />
+              <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2 border-2 shadow-lg' />
+              <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2 border-2 shadow-lg' />
             </Carousel>
           </Card>
         </div>
@@ -250,12 +250,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                       {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
                     </Badge>
                     {isAuction && <Badge variant='outline'>Activ</Badge>}
-                    <FavoriteButton
-                      itemId={car.id}
-                      itemTitle={car.title}
-                      itemImage={car.images[0] || ''}
-                      itemCategory={car.category}
-                    />
+                    <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
                   </div>
                   <Badge variant='outline' className='text-xs'>
                     {car.sellerType === 'private' ? '👤 Persoană Fizică' : '🏢 Firmă'}
@@ -280,7 +275,6 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
             </CardHeader>
 
             <CardContent>
-              {/* Key Specifications Grid with Icons */}
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
                   <Calendar className='h-5 w-5 text-primary mt-0.5 shrink-0' />
@@ -340,7 +334,10 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     <div className='min-w-0'>
                       <p className='text-xs font-semibold text-muted-foreground'>Culoare</p>
                       <div className='flex items-center gap-2 mt-0.5'>
-                        <span className='inline-block w-3 h-3 rounded-full border border-foreground' style={{ backgroundColor: getColorValue(car.color) }}></span>
+                        <span
+                          className='inline-block w-3 h-3 rounded-full border border-foreground'
+                          style={{ backgroundColor: getColorValue(car.color) }}
+                        ></span>
                         <p className='text-lg font-bold'>{car.color}</p>
                       </div>
                     </div>
@@ -624,7 +621,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                 <CarouselContent containerClassName='gap-4 overflow-visible'>
                   {similarCars.map((c) => (
                     <CarouselItem key={c.id} className='basis-1/1 md:basis-1/2 lg:basis-1/3'>
-                      <CarCard car={c} />
+                      <CarCard car={c} watchDrag={false} />
                     </CarouselItem>
                   ))}
                 </CarouselContent>

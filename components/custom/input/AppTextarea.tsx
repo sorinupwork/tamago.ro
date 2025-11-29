@@ -69,9 +69,7 @@ export default function AppTextarea({
           {Icon && <Icon className='h-4 w-4 mr-2' />} {label}
         </FieldLabel>
       )}
-      {subLabel && (
-        <div className='text-xs text-muted-foreground'>{subLabel}</div>
-      )}
+      {subLabel && <div className='text-xs text-muted-foreground'>{subLabel}</div>}
       {name && <input type='hidden' name={name} value={value ?? ''} />}
       <div className='rsw-root w-full min-w-0 wrap-break-word overflow-hidden'>
         <EditorProvider>

@@ -51,8 +51,8 @@ export default function AppNavigation() {
                     <ul className='grid gap-2 min-w-3xs md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
                       <AppNavDropdownItem
                         href='/'
-                        className='row-span-3 min-h-24 md:min-h-72 shine'
-                        linkClassName='bg-[url("/logo.png")] bg-contain bg-center backdrop-blur-sm bg-black/30 dark:bg-black/40 flex h-full w-full flex-col justify-center items-center rounded-md no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md'
+                        className='row-span-3 min-h-24 md:min-h-64 shine'
+                        linkClassName='bg-[url("/logo.png")] bg-cover lg:bg-contain bg-center backdrop-blur-sm bg-black/30 dark:bg-black/40 flex h-full w-full flex-col justify-center items-center rounded-md no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md'
                       />
 
                       <div>

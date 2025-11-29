@@ -210,7 +210,10 @@ body {
     text-shadow: 0 0 0 currentColor;
   }
   50% {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+    text-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
   }
   100% {
     text-shadow: 0 0 0 currentColor;
@@ -225,7 +228,7 @@ body {
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
   }
- 
+
   .dark {
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
@@ -256,7 +259,7 @@ body {
 
 /* React Simple WYSIWYG Dark Mode Styles */
 .dark .rsw-toolbar {
-  background-color: #374151;
+  background-color: #262321;
 }
 
 .dark .rsw-btn {
@@ -265,9 +268,9 @@ body {
 }
 
 .dark .rsw-btn:hover {
-  background-color: #374151;
+  background-color: #2d2a28;
 }
 
 .dark .rsw-btn[data-active='true'] {
-  background-color: #1f2937;
+  background-color: #2d2a28;
 }
