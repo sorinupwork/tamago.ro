@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Dot } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -26,19 +25,16 @@ export default function Footer() {
           <div className='space-y-2 md:space-y-4 flex flex-col items-center'>
             <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
               <Link href='/termeni-conditii' className='flex items-center'>
-                <Dot className='mr-2 ' />
                 <span className='underline-offset-4 hover:underline '>Termeni și condiții</span>
               </Link>
             </Button>
             <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
               <Link href='/politica-confidentialitate' className='flex items-center'>
-                <Dot className='mr-2' />
                 <span className='underline-offset-4 hover:underline'>Confidențialitate</span>
               </Link>
             </Button>
             <Button variant='link' size='sm' className='hover:scale-103 transition-transform text-secondary' asChild>
               <Link href='/politica-cookies' className='flex items-center'>
-                <Dot className='mr-2' />
                 <span className='underline-offset-4 hover:underline'>Politica cookies</span>
               </Link>
             </Button>

@@ -75,10 +75,11 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     createdAt = (doc._id as ObjectId).getTimestamp().toISOString();
   }
 
-  const location = typeof doc.location === 'string' ? doc.location : doc.location?.address || '';
-
-  const lat = typeof doc.location === 'object' ? doc.location?.lat : undefined;
-  const lng = typeof doc.location === 'object' ? doc.location?.lng : undefined;
+  // Location is now always an object with {lat, lng, address}
+  const locationObj = typeof doc.location === 'object' ? doc.location : { lat: 44.4268, lng: 26.1025, address: doc.location || 'Unknown' };
+  const location = locationObj.address;
+  const lat = locationObj.lat;
+  const lng = locationObj.lng;
 
   const baseProps = {
     id,
@@ -94,7 +95,7 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     transmission: doc.transmission || '',
     color: doc.color || '',
     bodyType: doc.carType || '',
-    engineCapacity: parseNumberSafely(doc.engineCapacity) / 1000,
+    engineCapacity: parseNumberSafely(doc.engineCapacity),
     horsePower: parseNumberSafely(doc.horsePower),
     traction: doc.traction,
     status: doc.status,

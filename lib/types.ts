@@ -46,7 +46,7 @@ export type RawCarDoc = {
   driverContact?: string;
   driverTelephone?: string;
   currency?: string;
-  location?: string | { lat: number; lng: number; address: string };
+  location?: { lat: number; lng: number; address: string };
   year?: string | number;
   brand?: string;
   model?: string;

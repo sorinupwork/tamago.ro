@@ -28,7 +28,7 @@ export type PreviewData = {
   startDate?: string;
   endDate?: string;
   currency?: string;
-  location: string;
+  location: string | { lat: number; lng: number; address: string };
   description: string;
   fuel: string;
   mileage?: string;

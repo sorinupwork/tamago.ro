@@ -6,9 +6,19 @@ import { Fuel, Car, Palette, Zap, Gauge, Power, Cog, Axe, LoaderPinwheel, Calend
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
-import  SafeHtml  from '@/components/custom/text/SafeHtml';
+import SafeHtml from '@/components/custom/text/SafeHtml';
 import CarHistoryHighlights from '@/components/custom/accordion/CarHistoryHighlights';
 import type { PreviewData } from './CategoriesClient';
+
+const STATUS_MAP: Record<string, string> = {
+  new: 'Nou',
+  used: 'Second Hand',
+  damaged: 'Deteriorat',
+};
+
+const getStatusLabel = (statusValue: string): string => {
+  return STATUS_MAP[statusValue] || statusValue;
+};
 
 export default function Preview({
   title,
@@ -81,15 +91,15 @@ export default function Preview({
                   }`
                 : `${price} ${currency || ''}`}
         </p>
-        <p className='text-sm text-muted-foreground'>Locație: {location || 'Necunoscută'}</p>
-        {category === 'sell' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
-        {category === 'rent' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
+        <p className='text-sm text-muted-foreground'>Locație: {typeof location === 'string' ? location : location?.address || 'Necunoscută'}</p>
+        {category === 'sell' && status && <p className='text-sm text-muted-foreground'>Status: {getStatusLabel(status)}</p>}
+        {category === 'rent' && status && <p className='text-sm text-muted-foreground'>Status: {getStatusLabel(status)}</p>}
         {category === 'rent' && startDate && endDate && (
           <p className='text-sm text-muted-foreground'>
             Perioada: {startDate} - {endDate}
           </p>
         )}
-        {category === 'auction' && status && <p className='text-sm text-muted-foreground'>Status: {status}</p>}
+        {category === 'auction' && status && <p className='text-sm text-muted-foreground'>Status: {getStatusLabel(status)}</p>}
         {category === 'auction' && endDate && <p className='text-sm text-muted-foreground'>Data sfârșit: {endDate}</p>}
 
         {uploadedFiles.length > 0 && (
@@ -117,89 +127,113 @@ export default function Preview({
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
           <div className='text-sm flex items-center gap-2'>
             <Fuel size={16} className='text-blue-500 shrink-0' />
-            <span><strong>Combustibil:</strong> {fuel || 'Nespecificat'}</span>
+            <span>
+              <strong>Combustibil:</strong> {fuel || 'Nespecificat'}
+            </span>
           </div>
           <div className='text-sm flex items-center gap-2'>
             <Car size={16} className='text-purple-500 shrink-0' />
-            <span><strong>Marca:</strong> {brand || 'Nespecificat'}</span>
+            <span>
+              <strong>Marca:</strong> {brand || 'Nespecificat'}
+            </span>
           </div>
 
           {model && (
             <div className='text-sm flex items-center gap-2'>
               <Car size={16} className='text-purple-600 shrink-0' />
-              <span><strong>Model:</strong> {model}</span>
+              <span>
+                <strong>Model:</strong> {model}
+              </span>
             </div>
           )}
 
           <div className='text-sm flex items-center gap-2'>
             <Palette size={16} className='text-pink-500 shrink-0' />
-            <span><strong>Culoare:</strong> {color || 'Nespecificat'}</span>
+            <span>
+              <strong>Culoare:</strong> {color || 'Nespecificat'}
+            </span>
           </div>
           <div className='text-sm flex items-center gap-2'>
             <Zap size={16} className='text-yellow-500 shrink-0' />
-            <span><strong>Capacitate Cilindrică:</strong>{' '}
-            {category === 'buy'
-              ? minEngineCapacity && maxEngineCapacity
-                ? `${minEngineCapacity} - ${maxEngineCapacity} L`
-                : minEngineCapacity
-                  ? `De la ${minEngineCapacity} L`
-                  : maxEngineCapacity
-                    ? `Până la ${maxEngineCapacity} L`
-                    : 'Nespecificat'
-              : `${engineCapacity || 'Nespecificat'} L`}</span>
+            <span>
+              <strong>Capacitate Cilindrică:</strong>{' '}
+              {category === 'buy'
+                ? minEngineCapacity && maxEngineCapacity
+                  ? `${minEngineCapacity} - ${maxEngineCapacity} L`
+                  : minEngineCapacity
+                    ? `De la ${minEngineCapacity} L`
+                    : maxEngineCapacity
+                      ? `Până la ${maxEngineCapacity} L`
+                      : 'Nespecificat'
+                : `${engineCapacity || 'Nespecificat'} L`}
+            </span>
           </div>
 
           <div className='text-sm flex items-center gap-2'>
             <Gauge size={16} className='text-orange-500 shrink-0' />
-            <span><strong>Tip Mașină:</strong> {carType || 'Nespecificat'}</span>
+            <span>
+              <strong>Tip Mașină:</strong> {carType || 'Nespecificat'}
+            </span>
           </div>
           <div className='text-sm flex items-center gap-2'>
             <Power size={16} className='text-red-500 shrink-0' />
-            <span><strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}</span>
+            <span>
+              <strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}
+            </span>
           </div>
 
           <div className='text-sm flex items-center gap-2'>
             <Cog size={16} className='text-gray-500 shrink-0' />
-            <span><strong>Transmisie:</strong> {transmission || 'Nespecificat'}</span>
+            <span>
+              <strong>Transmisie:</strong> {transmission || 'Nespecificat'}
+            </span>
           </div>
           <div className='text-sm flex items-center gap-2'>
             <Axe size={16} className='text-brown-500 shrink-0' />
-            <span><strong>Tracțiune:</strong>{' '}
-            {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}</span>
+            <span>
+              <strong>Tracțiune:</strong>{' '}
+              {traction ? (traction === 'integrala' ? 'Integrala (4x4)' : traction === 'fata' ? 'Față' : 'Spate') : 'Nespecificat'}
+            </span>
           </div>
 
           {steeringWheelPosition && (
             <div className='text-sm flex items-center gap-2'>
               <LoaderPinwheel size={16} className='text-indigo-500 shrink-0' />
-              <span><strong>Volan:</strong> {steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}</span>
+              <span>
+                <strong>Volan:</strong> {steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}
+              </span>
             </div>
           )}
 
           <div className='text-sm flex items-center gap-2 break-all overflow-wrap-break-word w-full min-w-0'>
             <Gauge size={16} className='text-green-500 shrink-0' />
-            <span><strong>Kilometraj:</strong>{' '}
-            {category === 'buy'
-              ? minMileage && maxMileage
-                ? `${minMileage} - ${maxMileage} km`
-                : minMileage
-                  ? `De la ${minMileage} km`
-                  : maxMileage
-                    ? `Până la ${maxMileage} km`
-                    : 'Nespecificat'
-              : `${mileage ?? 'Nespecificat'} km`}</span>
+            <span>
+              <strong>Kilometraj:</strong>{' '}
+              {category === 'buy'
+                ? minMileage && maxMileage
+                  ? `${minMileage} - ${maxMileage} km`
+                  : minMileage
+                    ? `De la ${minMileage} km`
+                    : maxMileage
+                      ? `Până la ${maxMileage} km`
+                      : 'Nespecificat'
+                : `${mileage ?? 'Nespecificat'} km`}
+            </span>
           </div>
           <div className='text-sm flex items-center gap-2 wrap-break-word overflow-wrap-break-word'>
             <Calendar size={16} className='text-teal-500 shrink-0' />
-            <span><strong>An Fabricație:</strong>{' '}
-            {category === 'buy'
-              ? minYear && maxYear
-                ? `${minYear} - ${maxYear}`
-                : minYear
-                  ? `Din ${minYear}`
-                  : maxYear
-                    ? `Până în ${maxYear}`
-                    : 'Nespecificat'
-              : year || 'Nespecificat'}</span>
+            <span>
+              <strong>An Fabricație:</strong>{' '}
+              {category === 'buy'
+                ? minYear && maxYear
+                  ? `${minYear} - ${maxYear}`
+                  : minYear
+                    ? `Din ${minYear}`
+                    : maxYear
+                      ? `Până în ${maxYear}`
+                      : 'Nespecificat'
+                : year || 'Nespecificat'}
+            </span>
           </div>
         </div>
 

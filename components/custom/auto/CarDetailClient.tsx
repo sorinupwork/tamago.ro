@@ -36,7 +36,9 @@ import AuctionBidders from '@/components/custom/section/AuctionBidders';
 import AppCounter from '@/components/custom/counter/AppCounter';
 import FavoriteButton from '@/components/custom/button/FavoriteButton';
 import Timeline from '@/components/custom/timeline/Timeline';
+import UserProfileCard from '@/components/custom/card/UserProfileCard';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { cn } from '@/lib/utils';
 import type { Car, User } from '@/lib/types';
 
 type CarDetailClientProps = {
@@ -174,6 +176,9 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
         })
       : carTimelineItems;
 
+     
+      
+
   return (
     <div className='container mx-auto max-w-7xl'>
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 px-4'>
@@ -202,30 +207,36 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
               onNext={handleNext}
               onPrev={handlePrev}
             >
-              <CarouselContent className='mt-0 h-[650px] space-y-4' containerClassName='p-1'>
-                {car.images.map((image, index) => (
-                  <CarouselItem key={index} className='pt-1 relative basis-1/2 border-2 rounded-xl'>
-                    <MediaPreview
-                      mediaItems={car.images.map((url, i) => ({
-                        type: 'image',
-                        url,
-                        alt: `${car.title} ${i + 1}`,
-                      }))}
-                      initialIndex={index}
-                      trigger={
-                        <Image
-                          fill
-                          src={imageSrcs[index]}
-                          alt={`${car.title} ${index + 1}`}
-                          className='object-cover rounded-xl w-full h-full'
-                          placeholder='blur'
-                          blurDataURL='/placeholder.svg'
-                          onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
-                        />
-                      }
-                    />
-                  </CarouselItem>
-                ))}
+              <CarouselContent 
+                className={cn('mt-0 space-y-4', car.images.length === 1 ? 'h-[650px]' : 'h-[650px]')} 
+                containerClassName='p-1'
+              >
+                {car.images.map((image, index) => {
+                  const basisClass = car.images.length === 1 ? 'basis-full' : 'basis-1/2';
+                  return (
+                    <CarouselItem key={index} className={cn('pt-1 relative border-2 rounded-xl', basisClass)}>
+                      <MediaPreview
+                        mediaItems={car.images.map((url, i) => ({
+                          type: 'image',
+                          url,
+                          alt: `${car.title} ${i + 1}`,
+                        }))}
+                        initialIndex={index}
+                        trigger={
+                          <Image
+                            fill
+                            src={imageSrcs[index]}
+                            alt={`${car.title} ${index + 1}`}
+                            className='object-cover rounded-xl w-full h-full'
+                            placeholder='blur'
+                            blurDataURL='/placeholder.svg'
+                            onError={() => setImageSrcs((prev) => prev.map((s, i) => (i === index ? '/placeholder.svg' : s)))}
+                          />
+                        }
+                      />
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <CarouselPrevious className='absolute left-0 top-1/2 -translate-y-1/2 border-2 shadow-lg' />
               <CarouselNext className='absolute left-full top-1/2 -translate-y-1/2 border-2 shadow-lg' />
@@ -252,9 +263,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     {isAuction && <Badge variant='outline'>Activ</Badge>}
                     <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
                   </div>
-                  <Badge variant='outline' className='text-xs'>
-                    {car.sellerType === 'private' ? '👤 Persoană Fizică' : '🏢 Firmă'}
-                  </Badge>
+                  {car.userId && <UserProfileCard user={{ id: car.userId, name: '', email: '' } as User} size='sm' showName={true} />}
                 </div>
               </div>
 
@@ -313,7 +322,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     <Zap className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                     <div className='min-w-0'>
                       <p className='text-xs font-semibold text-muted-foreground'>Cilindree</p>
-                      <p className='text-lg font-bold'>{car.engineCapacity.toFixed(1)}L</p>
+                      <p className='text-lg font-bold'>{(typeof car.engineCapacity === 'string' ? parseFloat(car.engineCapacity) : car.engineCapacity).toFixed(1)}L</p>
                     </div>
                   </div>
                 )}
@@ -379,7 +388,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     <MapPin className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                     <div className='min-w-0'>
                       <p className='text-xs font-semibold text-muted-foreground'>Locație</p>
-                      <p className='text-lg font-bold truncate'>{car.location}</p>
+                      <p className='text-lg font-bold truncate'>{typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address}</p>
                     </div>
                   </div>
                 )}

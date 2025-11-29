@@ -86,12 +86,12 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
       <div className='w-full mx-auto max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-7xl'>
         <h2 className='text-2xl font-bold text-center sm:text-end text-secondary'>{posts.length > 0 ? title : ''}</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 sm:grid-rows-5 gap-4 py-4'>
-          {renderCard(posts[5], 5, 'sm:row-start-1 sm:row-end-3 col-span-full ')}
-          {renderCard(posts[4], 4, 'sm:row-start-3 sm:row-end-6 ')}
-          {renderCard(posts[0], 0, 'sm:row-start-3 sm:row-end-5 ')}
-          {renderCard(posts[1], 1, 'relative ')}
-          {renderCard(posts[2], 2, 'relative ')}
-          {renderCard(posts[3], 3, 'col-span-full sm:col-start-2 ')}
+          {renderCard(posts[0], 0, 'sm:row-start-1 sm:row-end-3 col-span-full ')}
+          {renderCard(posts[1], 1, 'sm:row-start-3 sm:row-end-6 ')}
+          {renderCard(posts[2], 2, 'sm:row-start-3 sm:row-end-5 ')}
+          {renderCard(posts[3], 3, 'relative ')}
+          {renderCard(posts[4], 4, 'relative ')}
+          {renderCard(posts[5], 5, 'col-span-full sm:col-start-2 ')}
         </div>
       </div>
     </section>

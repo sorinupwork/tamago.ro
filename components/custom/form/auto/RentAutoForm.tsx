@@ -26,7 +26,6 @@ import { auto, AutoRentFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import type { CarHistoryItem } from '@/lib/types';
 import {
-  brandOptions,
   colorOptions,
   carTypeOptions,
   transmissionOptions,
@@ -34,8 +33,8 @@ import {
   iconOptions,
   tractionOptions,
   steeringWheelOptions,
-  carModelsByBrand,
 } from '@/lib/mockData';
+import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
 
@@ -54,6 +53,8 @@ export default function RentAutoForm({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [driverOpen, setDriverOpen] = useState(false);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
+  const [models, setModels] = useState<{ value: string; label: string }[]>([]);
 
   const form = useForm<AutoRentFormData>({
     resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
@@ -171,6 +172,26 @@ export default function RentAutoForm({
   useEffect(() => {
     onPreviewUpdate(previewData);
   }, [previewData, onPreviewUpdate]);
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      const fetchedBrands = await fetchCarMakes();
+      setBrands(fetchedBrands);
+    };
+    loadBrands();
+  }, []);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (watchedValues.brand) {
+        const fetchedModels = await fetchCarModels(watchedValues.brand);
+        setModels(fetchedModels);
+      } else {
+        setModels([]);
+      }
+    };
+    loadModels();
+  }, [watchedValues.brand]);
 
   const onSubmit: SubmitHandler<AutoRentFormData> = async (data) => {
     if (isSubmitting) return;
@@ -336,7 +357,7 @@ export default function RentAutoForm({
 
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0'>
             <AppSelectInput
-              options={brandOptions}
+              options={brands}
               value={form.watch('brand')}
               onValueChange={(v) => {
                 form.setValue('brand', v as string, { shouldValidate: true });
@@ -349,9 +370,7 @@ export default function RentAutoForm({
               required
             />
             <AppSelectInput
-              options={form.watch('brand') && carModelsByBrand[form.watch('brand')] 
-                ? carModelsByBrand[form.watch('brand')] 
-                : []}
+              options={models}
               value={form.watch('model') || ''}
               onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
               placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}

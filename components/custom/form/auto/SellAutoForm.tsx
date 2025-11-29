@@ -22,7 +22,6 @@ import { auto, AutoSellFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import type { CarHistoryItem } from '@/lib/types';
 import {
-  brandOptions,
   colorOptions,
   carTypeOptions,
   transmissionOptions,
@@ -30,8 +29,8 @@ import {
   iconOptions,
   tractionOptions,
   steeringWheelOptions,
-  carModelsByBrand,
 } from '@/lib/mockData';
+import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
 
@@ -43,6 +42,9 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
+  const [models, setModels] = useState<{ value: string; label: string }[]>([]);
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
 
   const form = useForm<AutoSellFormData>({
     resolver: zodResolver(auto.sellSchema) as Resolver<AutoSellFormData>,
@@ -50,7 +52,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
       title: '',
       price: '',
       currency: 'EUR',
-      location: '',
+      location: { lat: 0, lng: 0, address: '' },
       description: '',
       fuel: '',
       mileage: '',
@@ -73,6 +75,26 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
 
   const watchedValues = useWatch({ control: form.control });
 
+  useEffect(() => {
+    const loadBrands = async () => {
+      const fetchedBrands = await fetchCarMakes();
+      setBrands(fetchedBrands);
+    };
+    loadBrands();
+  }, []);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (watchedValues.brand) {
+        const fetchedModels = await fetchCarModels(watchedValues.brand);
+        setModels(fetchedModels);
+      } else {
+        setModels([]);
+      }
+    };
+    loadModels();
+  }, [watchedValues.brand]);
+
   const iconSelectOptions = iconOptions.map((o) => ({ ...o, icon: iconMap[o.value] || undefined }));
 
   const handleFilesChange = (newFiles: File[]) => {
@@ -89,7 +111,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
       title: watchedValues.title || '',
       price: watchedValues.price || '',
       currency: watchedValues.currency || 'EUR',
-      location: watchedValues.location || '',
+      location: (watchedValues.location as { lat: number; lng: number; address: string } | undefined)?.address || '',
       description: watchedValues.description || '',
       fuel: watchedValues.fuel || '',
       mileage: watchedValues.mileage || '',
@@ -172,7 +194,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
         urls = await uploadPromise;
       }
 
-      const result = await submitSellAutoForm({ ...data, uploadedFiles: urls, options, history });
+      const result = await submitSellAutoForm({ ...data, location: location || data.location, uploadedFiles: urls, options, history });
 
       if (result.success) {
         toast.success('Formular trimis cu succes!');
@@ -182,6 +204,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
         setFiles([]);
         setUploaderKey((k) => k + 1);
         setHistory([]);
+        setLocation(null);
       } else {
         toast.error('Eroare la trimiterea formularului.');
       }
@@ -214,13 +237,19 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
           </div>
 
           <AppLocationInput
-            location={null}
-            value={form.watch('location')}
-            onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+            location={location}
+            value={location?.address || ''}
+            onChange={(loc) => {
+              setLocation(loc);
+              form.setValue('location', loc, { shouldValidate: true });
+            }}
             placeholder='Introduceți locația'
             leftIcon={MapPin}
             showMap={true}
-            onClear={() => form.setValue('location', '')}
+            onClear={() => {
+              setLocation(null);
+              form.setValue('location', { lat: 0, lng: 0, address: '' }, { shouldValidate: true });
+            }}
             label='Locație'
             required
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
@@ -241,7 +270,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
 
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0'>
             <AppSelectInput
-              options={brandOptions}
+              options={brands}
               value={form.watch('brand')}
               onValueChange={(v) => {
                 form.setValue('brand', v as string, { shouldValidate: true });
@@ -254,7 +283,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
               required
             />
             <AppSelectInput
-              options={form.watch('brand') && carModelsByBrand[form.watch('brand')] ? carModelsByBrand[form.watch('brand')] : []}
+              options={models}
               value={form.watch('model') || ''}
               onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
               placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}

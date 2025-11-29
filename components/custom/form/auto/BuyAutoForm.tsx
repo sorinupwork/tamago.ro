@@ -23,7 +23,6 @@ import { auto, AutoBuyFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import type { CarHistoryItem } from '@/lib/types';
 import {
-  brandOptions,
   colorOptions,
   carTypeOptions,
   transmissionOptions,
@@ -31,8 +30,8 @@ import {
   iconOptions,
   tractionOptions,
   steeringWheelOptions,
-  carModelsByBrand,
 } from '@/lib/mockData';
+import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
 
@@ -50,6 +49,8 @@ export default function BuyAutoForm({
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
+  const [models, setModels] = useState<{ value: string; label: string }[]>([]);
 
   const form = useForm<AutoBuyFormData>({
     resolver: zodResolver(auto.buySchema) as Resolver<AutoBuyFormData>,
@@ -127,6 +128,26 @@ export default function BuyAutoForm({
     parseFloat(form.watch('minEngineCapacity') || '0.1'),
     parseFloat(form.watch('maxEngineCapacity') || '5.0'),
   ];
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      const fetchedBrands = await fetchCarMakes();
+      setBrands(fetchedBrands);
+    };
+    loadBrands();
+  }, []);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (watchedValues.brand) {
+        const fetchedModels = await fetchCarModels(watchedValues.brand);
+        setModels(fetchedModels);
+      } else {
+        setModels([]);
+      }
+    };
+    loadModels();
+  }, [watchedValues.brand]);
 
   useEffect(() => {
     onPreviewUpdate({
@@ -368,7 +389,7 @@ export default function BuyAutoForm({
 
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             <AppSelectInput
-              options={brandOptions}
+              options={brands}
               value={form.watch('brand') || ''}
               onValueChange={(v) => {
                 form.setValue('brand', v as string, { shouldValidate: true });
@@ -381,9 +402,7 @@ export default function BuyAutoForm({
               required
             />
             <AppSelectInput
-              options={form.watch('brand') && carModelsByBrand[form.watch('brand')] 
-                ? carModelsByBrand[form.watch('brand')] 
-                : []}
+              options={models}
               value={form.watch('model') || ''}
               onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
               placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}

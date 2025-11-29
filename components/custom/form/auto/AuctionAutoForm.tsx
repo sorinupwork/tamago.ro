@@ -23,7 +23,6 @@ import { auto, AutoAuctionFormData } from '@/lib/validations';
 import type { PreviewData } from '@/components/custom/categories/CategoriesClient';
 import type { CarHistoryItem } from '@/lib/types';
 import {
-  brandOptions,
   colorOptions,
   carTypeOptions,
   availableOptions,
@@ -31,8 +30,8 @@ import {
   iconOptions,
   tractionOptions,
   steeringWheelOptions,
-  carModelsByBrand,
 } from '@/lib/mockData';
+import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { iconMap } from '@/lib/icons';
 import CarHighlightsForm from './CarHighlightsForm';
 
@@ -50,6 +49,9 @@ export default function AuctionAutoForm({
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [history, setHistory] = useState<CarHistoryItem[]>([]);
+  const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
+  const [models, setModels] = useState<{ value: string; label: string }[]>([]);
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
 
   const form = useForm<AutoAuctionFormData>({
     resolver: zodResolver(auto.auctionSchema) as Resolver<AutoAuctionFormData>,
@@ -59,7 +61,7 @@ export default function AuctionAutoForm({
       description: '',
       price: '',
       currency: 'EUR',
-      location: '',
+      location: { lat: 0, lng: 0, address: '' },
       features: '',
       endDate: '',
       fuel: '',
@@ -98,7 +100,7 @@ export default function AuctionAutoForm({
       description: watchedValues.description || '',
       price: watchedValues.price || '',
       currency: watchedValues.currency || 'EUR',
-      location: watchedValues.location || '',
+      location: (watchedValues.location as { lat: number; lng: number; address: string } | undefined)?.address || '',
       category: 'auction',
       uploadedFiles,
       fuel: watchedValues.fuel || '',
@@ -143,6 +145,26 @@ export default function AuctionAutoForm({
     onPreviewUpdate,
   ]);
 
+  useEffect(() => {
+    const loadBrands = async () => {
+      const fetchedBrands = await fetchCarMakes();
+      setBrands(fetchedBrands);
+    };
+    loadBrands();
+  }, []);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (watchedValues.brand) {
+        const fetchedModels = await fetchCarModels(watchedValues.brand);
+        setModels(fetchedModels);
+      } else {
+        setModels([]);
+      }
+    };
+    loadModels();
+  }, [watchedValues.brand]);
+
   const onSubmit: SubmitHandler<AutoAuctionFormData> = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -180,7 +202,7 @@ export default function AuctionAutoForm({
         urls = await uploadPromise;
       }
 
-      const result = await submitAuctionAutoForm({ ...data, uploadedFiles: urls, options, history });
+      const result = await submitAuctionAutoForm({ ...data, location: location || data.location, uploadedFiles: urls, options, history });
 
       if (result.success) {
         toast.success('Formular trimis cu succes!');
@@ -190,6 +212,7 @@ export default function AuctionAutoForm({
         setFiles([]);
         setUploaderKey((k) => k + 1);
         setHistory([]);
+        setLocation(null);
       } else {
         toast.error('Eroare la trimiterea formularului.');
       }
@@ -220,13 +243,19 @@ export default function AuctionAutoForm({
           </div>
 
           <AppLocationInput
-            location={null}
-            value={form.watch('location')}
-            onChange={(loc) => form.setValue('location', loc?.address || '', { shouldValidate: true })}
+            location={location}
+            value={location?.address || ''}
+            onChange={(loc) => {
+              setLocation(loc);
+              form.setValue('location', loc, { shouldValidate: true });
+            }}
             placeholder='Introduceți locația'
             className='w-full'
             showMap={true}
-            onClear={() => form.setValue('location', '')}
+            onClear={() => {
+              setLocation(null);
+              form.setValue('location', { lat: 0, lng: 0, address: '' }, { shouldValidate: true });
+            }}
             label='Locație'
             error={form.formState.errors.location ? [form.formState.errors.location] : undefined}
             required
@@ -291,7 +320,7 @@ export default function AuctionAutoForm({
           {subcategory === 'auto' && (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0'>
               <AppSelectInput
-                options={brandOptions}
+                options={brands}
                 value={form.watch('brand') || ''}
                 onValueChange={(v) => {
                   form.setValue('brand', v as string, { shouldValidate: true });
@@ -304,9 +333,7 @@ export default function AuctionAutoForm({
                 required
               />
               <AppSelectInput
-                options={form.watch('brand') && carModelsByBrand[form.watch('brand')] 
-                  ? carModelsByBrand[form.watch('brand')] 
-                  : []}
+                options={models}
                 value={form.watch('model') || ''}
                 onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
                 placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}

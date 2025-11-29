@@ -26,7 +26,7 @@ export default function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
   ];
 
   const previewDetails = [
-    { icon: MapPin, label: 'Locație', value: car.location },
+    { icon: MapPin, label: 'Locație', value: typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address },
     ...(car.year ? [{ icon: Calendar, label: 'An', value: car.year }] : []),
     { icon: Fuel, label: 'Combustibil', value: car.fuel },
     ...(car.mileage ? [{ icon: Gauge, label: 'Km', value: car.mileage }] : []),

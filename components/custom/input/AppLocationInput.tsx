@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import AppCombobox from '@/components/custom/input/AppCombobox';
 import AppSlider from '@/components/custom/input/AppSlider';
-import LoadingDots from '@/components/custom/loading/LoadingDots';
 import { geocodeAddress, reverseGeocode, snapToRoad, NominatimResult } from '@/lib/services';
 import { Car } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

@@ -177,7 +177,7 @@ export default function MapComponent({
                         <p className='text-sm font-medium text-green-600'>
                           {car.currency} {car.category === 'buy' ? `${car.minPrice} - ${car.maxPrice}` : car.category === 'rent' ? `${car.price}/${car.period || 'zi'}` : car.price}
                         </p>
-                        <p className='text-xs text-muted-foreground truncate'>{car.location}</p>
+                        <p className='text-xs text-muted-foreground truncate'>{typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address}</p>
                       </div>
                     </div>
                     <div className='flex items-center justify-between text-xs text-muted-foreground'>
