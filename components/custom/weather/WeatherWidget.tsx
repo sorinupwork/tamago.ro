@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { Cloud, Sun, CloudRain, Snowflake, MapPin, Thermometer } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
-interface WeatherData {
+type WeatherData = {
   temperature: number;
   description: string;
   icon: string;
   location: string;
-}
+};
 
 export default function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -86,7 +86,12 @@ export default function WeatherWidget() {
     return <Cloud className='w-8 h-8 text-gray-500' />;
   };
 
-  if (loading) return <Card className='p-4 animate-pulse'><div className='h-20 bg-gray-200 rounded'></div></Card>;
+  if (loading)
+    return (
+      <Card className='p-4 animate-pulse'>
+        <div className='h-20 bg-gray-200 rounded'></div>
+      </Card>
+    );
   if (error) return <Card className='p-4 text-center text-red-500'>{error}</Card>;
 
   return (

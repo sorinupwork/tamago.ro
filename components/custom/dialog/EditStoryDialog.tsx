@@ -29,29 +29,9 @@ export default function EditStoryDialog({ open, onOpenChange, story, onSuccess }
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
 
-  // Log when caption or files change
-  useEffect(() => {
-    console.log('\n=== EditStoryDialog state changed ===');
-    console.log('caption:', caption);
-    console.log('filePreviews length:', filePreviews.length);
-    console.log('filePreviews:', filePreviews);
-  }, [caption, filePreviews]);
-
-  // Log when caption or filePreviews change
-  useEffect(() => {
-    console.log('\n=== EditStoryDialog state changed ===');
-    console.log('caption state now:', caption);
-    console.log('filePreviews state now:', filePreviews);
-  }, [caption, filePreviews]);
-
   const handleOpenChange = (isOpen: boolean) => {
-    console.log('\n=== EditStoryDialog.handleOpenChange called ===');
-    console.log('isOpen:', isOpen);
-    console.log('story:', story);
     
-    // Only handle close action
     if (!isOpen) {
-      console.log('User closed dialog - resetting form');
       setCaption('');
       setNewFiles([]);
       setFilePreviews([]);
@@ -60,20 +40,11 @@ export default function EditStoryDialog({ open, onOpenChange, story, onSuccess }
     }
   };
 
-  // Separate effect for when dialog opens with story data
-  // Prefill form when dialog opens with story data
   useEffect(() => {
     if (open && story) {
-      console.log('\n=== EditStoryDialog - Dialog opened, prefilling data ===');
-      console.log('Full story object:', JSON.stringify(story, null, 2));
-      console.log('Caption value:', story.caption);
-      console.log('Files value:', story.files);
       
       const captionValue = story.caption || '';
       const previewUrls = story.files?.map((f) => f.url) || [];
-      
-      console.log('Setting caption to:', captionValue);
-      console.log('Setting filePreviews to:', previewUrls);
       
       setCaption(captionValue);
       setFilePreviews(previewUrls);

@@ -1,10 +1,10 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-interface SkeletonLoadingProps {
+type SkeletonLoadingProps = {
   variant: 'auth' | 'profile' | 'default' | 'homepage' | 'auto' | 'story' | 'feed' | 'favorite';
   className?: string;
-}
+};
 
 export default function SkeletonLoading({ variant, className }: SkeletonLoadingProps) {
   if (variant === 'auth') {

@@ -36,25 +36,10 @@ export default function EditFeedDialog({ open, onOpenChange, item, onSuccess }: 
 
   const isPoll = item?.type === 'poll';
 
-  // Log when text or question changes
-  useEffect(() => {
-    console.log('\n=== EditFeedDialog state changed ===');
-    if (isPoll) {
-      console.log('POLL - question:', question);
-      console.log('POLL - options:', options);
-    } else {
-      console.log('POST - text:', text);
-      console.log('POST - tags:', tags);
-      console.log('POST - filePreviews:', filePreviews);
-    }
-  }, [text, question, tags, options, filePreviews, isPoll]);
 
   const handleOpenChange = (isOpen: boolean) => {
-    console.log('\n=== EditFeedDialog.handleOpenChange called ===');
-    console.log('isOpen:', isOpen);
     
     if (!isOpen) {
-      console.log('User closed dialog - resetting form');
       setText('');
       setQuestion('');
       setOptions([]);
@@ -67,26 +52,16 @@ export default function EditFeedDialog({ open, onOpenChange, item, onSuccess }: 
     }
   };
 
-  // Prefill form when dialog opens with item data
   useEffect(() => {
     if (open && item) {
-      console.log('\n=== EditFeedDialog - Dialog opened, prefilling data ===');
-      console.log('Full item object:', JSON.stringify(item, null, 2));
       
       if (isPoll) {
-        console.log('--- POLL MODE ---');
-        console.log('question:', item.question);
-        console.log('options:', item.options);
         setQuestion(item.question || '');
         setOptions(item.options || []);
         setText('');
         setFilePreviews([]);
         setTags([]);
       } else {
-        console.log('--- POST MODE ---');
-        console.log('text:', item.text);
-        console.log('tags:', item.tags);
-        console.log('files:', item.files);
         setText(item.text || '');
         setTags(item.tags || []);
         setFilePreviews(item.files?.map((f) => f.url) || []);

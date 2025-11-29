@@ -5,9 +5,9 @@ type Message = {
   isUser: boolean;
 };
 
-interface ChatRoomProps {
+type ChatRoomProps = {
   messages: Message[];
-}
+};
 
 export default function ChatRoom({ messages }: ChatRoomProps) {
   return (

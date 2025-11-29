@@ -3,11 +3,11 @@ import { BellRing, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface ActivityFeedProps {
+type ActivityFeedProps = {
   activities: string[];
   onLoadMore?: () => void;
   onClear?: () => void;
-}
+};
 
 export default function ActivityFeed({ activities, onClear }: ActivityFeedProps) {
   return (
@@ -19,12 +19,7 @@ export default function ActivityFeed({ activities, onClear }: ActivityFeedProps)
             Notificari Live (Market & Social)
           </CardTitle>
           {onClear && (
-            <Button
-              size='sm'
-              variant='outline'
-              onClick={onClear}
-              className='h-8 px-2'
-            >
+            <Button size='sm' variant='outline' onClick={onClear} className='h-8 px-2'>
               <Trash2 className='h-3 w-3' />
             </Button>
           )}

@@ -5,23 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { User } from '@/lib/types';
 
-interface AppUserListSheetProps {
+type AppUserListSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   users: User[];
   loading: boolean;
   onUserClick?: (user: User) => void;
-}
+};
 
-export default function AppUserListSheet({
-  open,
-  onOpenChange,
-  title,
-  users,
-  loading,
-  onUserClick,
-}: AppUserListSheetProps) {
+export default function AppUserListSheet({ open, onOpenChange, title, users, loading, onUserClick }: AppUserListSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side='right' className='w-full md:w-1/3'>

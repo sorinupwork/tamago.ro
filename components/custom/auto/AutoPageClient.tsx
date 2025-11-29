@@ -17,6 +17,7 @@ import AppLocationInput from '@/components/custom/input/AppLocationInput';
 import AutoTabs from '@/components/custom/tabs/AutoTabs';
 import CarCard from '@/components/custom/card/CarCard';
 import SkeletonLoading from '@/components/custom/loading/SkeletonLoading';
+import AutoEmptyState from '@/components/custom/auto/AutoEmptyState';
 import { fetchCarsServerAction } from '@/actions/auto/actions';
 import { fetchCarMakes, fetchCarModels } from '@/lib/services';
 import { cn } from '@/lib/utils';
@@ -71,10 +72,9 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [locationFilter, setLocationFilter] = useState<LocationFilter>(getInitialLocationFilter(searchParams));
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
-  
   const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null);
+  const isInitialMount = useRef(true);
 
-  // Setup debounced search
   useEffect(() => {
     debouncedSearchRef.current = debounce((query: string) => {
       setDebouncedSearchQuery(query);
@@ -86,7 +86,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     };
   }, []);
 
-  // Handle search input changes with debounce
   const handleSearchInputChange = (value: string) => {
     setSearchQuery(value);
     debouncedSearchRef.current?.(value);
@@ -118,6 +117,11 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     startTransition(async () => {
       setCars([]);
       const newCars = await fetchCarsServerAction({
@@ -218,14 +222,6 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     startTransition(() => {
       setCars([]);
       setFilters((prev) => ({ ...prev, [key]: value }) as AutoFilterState);
-      setCurrentPage(1);
-    });
-  };
-
-  const handleSearchChange = (value: string) => {
-    startTransition(() => {
-      setCars([]);
-      setSearchQuery(value);
       setCurrentPage(1);
     });
   };
@@ -618,12 +614,14 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       >
         {isPending ? (
           <SkeletonLoading variant='auto' className='col-span-full' />
+        ) : paginatedItems.length === 0 ? (
+          <AutoEmptyState activeTab={activeTab} />
         ) : (
           paginatedItems.map((car) => <CarCard key={car.id} car={car} cardsPerPage={cardsPerPage} />)
         )}
       </div>
 
-      {!isPending && <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />}
+      {!isPending && paginatedItems.length > 0 && <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />}
     </div>
   );
 }
