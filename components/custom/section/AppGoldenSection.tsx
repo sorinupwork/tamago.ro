@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { BadgeCheckIcon, ArrowRightIcon } from 'lucide-react';
 import sanitizeHtml from 'sanitize-html';
 
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ShareButton from '../button/ShareButton';
@@ -45,19 +45,19 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
         className={`relative ring-4 ring-primary/20 hover:ring-primary/40 focus:ring-primary/40 transition rounded-xl backdrop-blur-sm shadow-lg ${className}`}
       >
         {isVerified && (
-          <Badge variant='secondary' className='absolute -top-2 left-2 z-10'>
+          <Badge variant='secondary' className='absolute -top-2 left-2 z-20'>
             <BadgeCheckIcon className='w-4 h-4 mr-1' />
             Verificat
           </Badge>
         )}
         {isNew && (
-          <Badge variant='destructive' className='absolute -top-2 right-2 z-10 wiggle'>
+          <Badge variant='destructive' className='absolute -top-2 right-2 z-20 wiggle'>
             Nou
           </Badge>
         )}
         <Card
           key={post.id}
-          className='h-full relative bg-cover bg-center cursor-default'
+          className='h-full relative bg-cover bg-center cursor-default py-0'
           style={{ backgroundImage: `url(${post.images[0]})` }}
         >
           <div className='absolute bottom-2 right-2 flex gap-2 z-20'>
@@ -70,12 +70,14 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </Button>
             </Link>
           </div>
-          <CardHeader className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50'>
-            <CardTitle className='text-white dark:text-black line-clamp-2'>{post.title}</CardTitle>
+          <CardContent className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50 flex-1 rounded-xl'>
+            <CardHeader>
+              <CardTitle className='text-white dark:text-black line-clamp-2'>{post.title}</CardTitle>
+            </CardHeader>
             <CardDescription className='text-white dark:text-black'>
               <div className='line-clamp-4' dangerouslySetInnerHTML={{ __html: sanitizedDescs[index] || '' }} />
             </CardDescription>
-          </CardHeader>
+          </CardContent>
         </Card>
       </div>
     );
