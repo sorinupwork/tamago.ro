@@ -1,8 +1,8 @@
 import { Fuel, Settings, MapPin, Car as CarIcon, Palette, Calendar, Gauge, Zap, CarFront, ShipWheel } from 'lucide-react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import type { Car } from '@/lib/types';
 import CarHistoryHighlights from './CarHistoryHighlights';
+import type { Car, CarBuy } from '@/lib/types';
 
 type CarDetailsAccordionProps = {
   car: Car;
@@ -11,25 +11,49 @@ type CarDetailsAccordionProps = {
 export default function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
   const statusMap = { new: 'Nou', used: 'Second hand', damaged: 'Deteriorat' };
   const statusLabel = statusMap[car.status as keyof typeof statusMap] || car.status;
+  
+  const isBuy = car.category === 'buy';
+  
+  
   const details = [
     ...(car.brand ? [{ icon: CarIcon, label: 'Brand', value: car.brand }] : []),
-    ...(car.engineCapacity ? [{ icon: Settings, label: 'Capacitate Motor', value: `${car.engineCapacity} cc` }] : []),
+    ...(isBuy && (car as CarBuy).minEngineCapacity && (car as CarBuy).maxEngineCapacity
+      ? [{ icon: Settings, label: 'Capacitate Motor', value: `${(car as CarBuy).minEngineCapacity} - ${(car as CarBuy).maxEngineCapacity} L` }]
+      : !isBuy && car.engineCapacity
+        ? [{ icon: Settings, label: 'Capacitate Motor', value: `${car.engineCapacity} L` }]
+        : []),
     { icon: Settings, label: 'Transmisie', value: car.transmission },
     { icon: CarIcon, label: 'Caroserie', value: car.bodyType },
     ...(car.steeringWheelPosition ? [{ icon: ShipWheel, label: 'Volan', value: car.steeringWheelPosition }] : []),
 
     ...(car.model ? [{ icon: CarIcon, label: 'Model', value: car.model }] : []),
-    ...(car.horsePower ? [{ icon: Zap, label: 'Putere', value: `${car.horsePower} CP` }] : []),
+    ...(isBuy && (car as CarBuy).minHorsePower && (car as CarBuy).maxHorsePower
+      ? [{ icon: Zap, label: 'Putere', value: `${(car as CarBuy).minHorsePower} - ${(car as CarBuy).maxHorsePower} CP` }]
+      : !isBuy && car.horsePower
+        ? [{ icon: Zap, label: 'Putere', value: `${car.horsePower} CP` }]
+        : []),
     { icon: CarIcon, label: 'Tracțiune', value: car.traction },
     { icon: Palette, label: 'Culoare', value: car.color },
     { icon: CarFront, label: 'Status', value: statusLabel },
   ];
 
   const previewDetails = [
-    { icon: MapPin, label: 'Locație', value: typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address },
-    ...(car.year ? [{ icon: Calendar, label: 'An', value: car.year }] : []),
+    {
+      icon: MapPin,
+      label: 'Locație',
+      value: typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address,
+    },
+    ...(isBuy && (car as CarBuy).minYear && (car as CarBuy).maxYear
+      ? [{ icon: Calendar, label: 'An', value: `${(car as CarBuy).minYear} - ${(car as CarBuy).maxYear}` }]
+      : !isBuy && car.year
+        ? [{ icon: Calendar, label: 'An', value: car.year }]
+        : []),
     { icon: Fuel, label: 'Combustibil', value: car.fuel },
-    ...(car.mileage ? [{ icon: Gauge, label: 'Km', value: car.mileage }] : []),
+    ...(isBuy && (car as CarBuy).minMileage && (car as CarBuy).maxMileage
+      ? [{ icon: Gauge, label: 'Km', value: `${(car as CarBuy).minMileage} - ${(car as CarBuy).maxMileage}` }]
+      : !isBuy && car.mileage
+        ? [{ icon: Gauge, label: 'Km', value: car.mileage }]
+        : []),
   ];
 
   const leftDetails = details.slice(0, Math.ceil(details.length / 2));

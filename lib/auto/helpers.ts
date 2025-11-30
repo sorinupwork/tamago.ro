@@ -89,6 +89,7 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     lat,
     lng,
     brand: doc.brand || '',
+    model: doc.model || '',
     year: parseNumberSafely(doc.year),
     mileage: parseNumberSafely(doc.mileage),
     fuel: doc.fuel || '',
@@ -99,6 +100,8 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     horsePower: parseNumberSafely(doc.horsePower),
     traction: doc.traction,
     status: doc.status,
+    steeringWheelPosition:
+      doc.steeringWheelPosition === 'left' ? 'Stânga' : doc.steeringWheelPosition === 'right' ? 'Dreapta' : doc.steeringWheelPosition,
     features: typeof doc.features === 'string' ? doc.features.split(',').map((f) => f.trim()) : doc.features,
     images: (doc.uploadedFiles && doc.uploadedFiles.length > 0 ? doc.uploadedFiles : doc.images) || ['/placeholder.svg'],
     options: doc.options,

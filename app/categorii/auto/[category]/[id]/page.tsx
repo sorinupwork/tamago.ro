@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import CarDetailClient from '@/components/custom/auto/CarDetailClient';
 import { getCarById, getSimilarCars } from '@/actions/auto/actions';
+import { getUserById } from '@/actions/auth/actions';
 
 export default async function CarDetailPage({
   params,
@@ -35,14 +36,13 @@ export default async function CarDetailPage({
     notFound();
   }
 
-  const [car, similarCars] = await Promise.all([
-    getCarById(category, id),
-    getSimilarCars(category, id, 4),
-  ]);
+  const [car, similarCars] = await Promise.all([getCarById(category, id), getSimilarCars(category, id, 4)]);
 
   if (!car) {
     notFound();
   }
 
-  return <CarDetailClient car={car} similarCars={similarCars} queryString={queryString} />;
+  const sellerUser = car.userId ? await getUserById(car.userId).catch(() => null) : null;
+
+  return <CarDetailClient car={car} sellerUser={sellerUser} similarCars={similarCars} queryString={queryString} />;
 }

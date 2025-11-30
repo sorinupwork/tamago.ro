@@ -26,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import MessageDrawer from '@/components/custom/drawer/MessageDrawer';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-// Drawer UI primitives are used via the reusable MessageDrawer component
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
 import MediaPreview from '@/components/custom/media/MediaPreview';
@@ -45,9 +44,10 @@ type CarDetailClientProps = {
   car: Car;
   similarCars: Car[];
   queryString: string;
+  sellerUser?: User | null;
 };
 
-export default function CarDetailClient({ car, similarCars, queryString }: CarDetailClientProps) {
+export default function CarDetailClient({ car, similarCars, queryString, sellerUser }: CarDetailClientProps) {
   const [isPending, startTransition] = useTransition();
   const [imageSrcs, setImageSrcs] = useState<string[]>(car.images.map((img) => img || '/placeholder.svg'));
   const [bidAmount, setBidAmount] = useState('');
@@ -176,9 +176,6 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
         })
       : carTimelineItems;
 
-     
-      
-
   return (
     <div className='container mx-auto max-w-7xl'>
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 px-4'>
@@ -207,10 +204,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
               onNext={handleNext}
               onPrev={handlePrev}
             >
-              <CarouselContent 
-                className={cn('mt-0 space-y-4', car.images.length === 1 ? 'h-[650px]' : 'h-[650px]')} 
-                containerClassName='p-1'
-              >
+              <CarouselContent className={'mt-0 space-y-4 h-[650px]'} containerClassName='p-1'>
                 {car.images.map((image, index) => {
                   const basisClass = car.images.length === 1 ? 'basis-full' : 'basis-1/2';
                   return (
@@ -250,9 +244,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
               <div className='flex justify-between items-start gap-4'>
                 <div className='flex-1'>
                   <CardTitle className='text-3xl font-bold'>{car.title}</CardTitle>
-                  <p className='text-lg text-muted-foreground'>
-                    {car.brand} {car.model ? `- ${car.model}` : ''} • {car.year}
-                  </p>
+                  <p className='text-lg text-muted-foreground'>{`${car.brand} ${car.model} - ${car.status === 'used' ? 'Second Hand' : car.status === 'new' ? 'Nou' : car.status === 'damaged' ? 'Deteriorat' : ''}`}</p>
                 </div>
 
                 <div className='flex flex-col items-end gap-2'>
@@ -263,7 +255,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     {isAuction && <Badge variant='outline'>Activ</Badge>}
                     <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
                   </div>
-                  {car.userId && <UserProfileCard user={{ id: car.userId, name: '', email: '' } as User} size='sm' showName={true} />}
+                  {sellerUser && <UserProfileCard user={sellerUser} size='sm' showName={true} />}
                 </div>
               </div>
 
@@ -289,7 +281,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   <Calendar className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                   <div className='min-w-0'>
                     <p className='text-xs font-semibold text-muted-foreground'>An Fabricație</p>
-                    <p className='text-lg font-bold'>{car.year}</p>
+                    <p className='text-lg font-bold'>{isBuy ? `${car.minYear} - ${car.maxYear}` : car.year}</p>
                   </div>
                 </div>
 
@@ -297,7 +289,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   <Gauge className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                   <div className='min-w-0'>
                     <p className='text-xs font-semibold text-muted-foreground'>Kilometraj</p>
-                    <p className='text-lg font-bold'>{car.mileage.toLocaleString('en-US')} km</p>
+                    <p className='text-lg font-bold'>{isBuy ? `${car.minMileage} - ${car.maxMileage}` : car.mileage} km</p>
                   </div>
                 </div>
 
@@ -317,25 +309,28 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                   </div>
                 </div>
 
-                {car.engineCapacity && (
-                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
-                    <Zap className='h-5 w-5 text-primary mt-0.5 shrink-0' />
-                    <div className='min-w-0'>
-                      <p className='text-xs font-semibold text-muted-foreground'>Cilindree</p>
-                      <p className='text-lg font-bold'>{(typeof car.engineCapacity === 'string' ? parseFloat(car.engineCapacity) : car.engineCapacity).toFixed(1)}L</p>
-                    </div>
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Zap className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>Capacitate Cilindrica</p>
+                    <p className='text-lg font-bold'>
+                      {isBuy
+                        ? `${car.minEngineCapacity} - ${car.maxEngineCapacity}`
+                        : car.engineCapacity
+                          ? (typeof car.engineCapacity === 'string' ? parseFloat(car.engineCapacity) : car.engineCapacity).toFixed(1)
+                          : 'N/A'}
+                      L
+                    </p>
                   </div>
-                )}
+                </div>
 
-                {car.horsePower && (
-                  <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
-                    <Wrench className='h-5 w-5 text-primary mt-0.5 shrink-0' />
-                    <div className='min-w-0'>
-                      <p className='text-xs font-semibold text-muted-foreground'>Putere</p>
-                      <p className='text-lg font-bold'>{car.horsePower} CP</p>
-                    </div>
+                <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
+                  <Wrench className='h-5 w-5 text-primary mt-0.5 shrink-0' />
+                  <div className='min-w-0'>
+                    <p className='text-xs font-semibold text-muted-foreground'>Putere</p>
+                    <p className='text-lg font-bold'>{isBuy ? `${car.minHorsePower} - ${car.maxHorsePower}` : car.horsePower} CP</p>
                   </div>
-                )}
+                </div>
 
                 {car.color && (
                   <div className='flex items-start gap-3 p-3 bg-muted rounded-lg'>
@@ -378,7 +373,7 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     <Wrench className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                     <div className='min-w-0'>
                       <p className='text-xs font-semibold text-muted-foreground'>Volan</p>
-                      <p className='text-lg font-bold'>{car.steeringWheelPosition === 'left' ? 'Stânga' : 'Dreapta'}</p>
+                      <p className='text-lg font-bold'>{car.steeringWheelPosition}</p>
                     </div>
                   </div>
                 )}
@@ -388,7 +383,11 @@ export default function CarDetailClient({ car, similarCars, queryString }: CarDe
                     <MapPin className='h-5 w-5 text-primary mt-0.5 shrink-0' />
                     <div className='min-w-0'>
                       <p className='text-xs font-semibold text-muted-foreground'>Locație</p>
-                      <p className='text-lg font-bold truncate'>{typeof car.location === 'string' ? car.location : (car.location as { lat: number; lng: number; address: string })?.address}</p>
+                      <p className='text-lg font-bold truncate'>
+                        {typeof car.location === 'string'
+                          ? car.location
+                          : (car.location as { lat: number; lng: number; address: string })?.address}
+                      </p>
                     </div>
                   </div>
                 )}

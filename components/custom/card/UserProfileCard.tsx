@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2, ExternalLink } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
+import { getUserById } from '@/actions/auth/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { User } from '@/lib/types';
-import Image from 'next/image';
-import Link from 'next/link';
 
 type Props = {
   user?: User | null;
+  userId?: string;
   className?: string;
   interactive?: boolean;
   contentOnly?: boolean;
@@ -52,6 +54,7 @@ function UserProfileContent({ user }: { user?: User | null }) {
 
 export default function UserProfileCard({
   user,
+  userId,
   showName = false,
   size = 'md',
   className = '',
@@ -60,14 +63,35 @@ export default function UserProfileCard({
   interactive = true,
 }: Props) {
   const isMobile = useIsMobile();
+  const [resolvedUser, setResolvedUser] = useState<User | null | undefined>(user);
+  const [isLoading, setIsLoading] = useState(!user && !!userId);
   const [open, setOpen] = useState(false);
 
-  if (!user) return null;
+  useEffect(() => {
+    if (!user && userId) {
+      getUserById(userId)
+        .then((fetchedUser) => {
+          setResolvedUser(fetchedUser);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error fetching user:', error);
+          setResolvedUser(null);
+          setIsLoading(false);
+        });
+    }
+  }, [userId, user]);
+
+  if (isLoading) {
+    return <div className='w-12 h-12 bg-gray-200 rounded-full animate-pulse' />;
+  }
+
+  if (!resolvedUser) return null;
 
   if (contentOnly) {
     return (
       <div className={className}>
-        <UserProfileContent user={user} />
+        <UserProfileContent user={resolvedUser} />
       </div>
     );
   }
@@ -80,7 +104,7 @@ export default function UserProfileCard({
       <div className={`relative ${sizeClass} rounded-lg overflow-hidden bg-gray-200 cursor-default ${className}`}>
         <Image
           fill
-          src={storyPreview || user?.image || user?.avatar || '/avatars/default.jpg'}
+          src={storyPreview || resolvedUser?.image || resolvedUser?.avatar || '/avatars/default.jpg'}
           alt='Story preview'
           className='w-full h-full object-cover'
         />
@@ -89,8 +113,8 @@ export default function UserProfileCard({
 
         <div className={`absolute top-2 left-2 ${avatarSize} rounded-full border-2 border-white overflow-hidden`}>
           <Avatar className='w-full h-full'>
-            <AvatarImage src={user?.image || user?.avatar} />
-            <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
+            <AvatarImage src={resolvedUser?.image || resolvedUser?.avatar} />
+            <AvatarFallback>{resolvedUser?.name?.[0] || '?'}</AvatarFallback>
           </Avatar>
         </div>
       </div>
@@ -99,7 +123,7 @@ export default function UserProfileCard({
     return (
       <div className='flex flex-col items-center gap-1'>
         {cardEl}
-        {showName && <span className='text-xs font-semibold'>{user?.name || 'Unknown'}</span>}
+        {showName && <span className='text-xs font-semibold'>{resolvedUser?.name || 'Unknown'}</span>}
       </div>
     );
   }
@@ -118,11 +142,11 @@ export default function UserProfileCard({
         className={`cursor-${interactive ? 'pointer' : 'default'}`}
       >
         <Avatar className={size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-16 h-16' : 'w-12 h-12'}>
-          <AvatarImage src={user?.image || user?.avatar} />
-          <AvatarFallback>{user?.name?.[0] || '?'}</AvatarFallback>
+          <AvatarImage src={resolvedUser?.image || resolvedUser?.avatar} />
+          <AvatarFallback>{resolvedUser?.name?.[0] || '?'}</AvatarFallback>
         </Avatar>
       </div>
-      {showName && <span className='font-semibold text-sm'>{user?.name || 'Unknown'}</span>}
+      {showName && <span className='font-semibold text-sm'>{resolvedUser?.name || 'Unknown'}</span>}
     </div>
   );
 
@@ -135,7 +159,7 @@ export default function UserProfileCard({
       <HoverCard>
         <HoverCardTrigger asChild>{avatarEl}</HoverCardTrigger>
         <HoverCardContent className='w-80 max-w-xs'>
-          <UserProfileContent user={user} />
+          <UserProfileContent user={resolvedUser} />
         </HoverCardContent>
       </HoverCard>
     );
@@ -146,8 +170,8 @@ export default function UserProfileCard({
       {avatarEl}
       <Dialog open={open} onOpenChange={(v) => setOpen(v)}>
         <DialogContent className='max-w-sm w-full'>
-          <DialogTitle>{user.name}</DialogTitle>
-          <UserProfileContent user={user} />
+          <DialogTitle>{resolvedUser.name}</DialogTitle>
+          <UserProfileContent user={resolvedUser} />
         </DialogContent>
       </Dialog>
     </>

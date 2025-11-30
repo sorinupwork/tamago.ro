@@ -17,7 +17,7 @@ import CarDetailsAccordion from '../accordion/CarDetailsAccordion';
 import UserProfileCard from './UserProfileCard';
 import { getUserById } from '@/actions/auth/actions';
 import { categories, reverseCategoryMapping } from '@/lib/categories';
-import type { Car, User } from '@/lib/types';
+import type { Car, CarBuy, User } from '@/lib/types';
 import SafeHtml from '../text/SafeHtml';
 
 type CarCardProps = {
@@ -97,7 +97,7 @@ export default function CarCard({ car, cardsPerPage = 3, watchDrag = true }: Car
             <p className='text-xl md:text-2xl font-extrabold text-primary mb-2'>
               {car.currency}{' '}
               {car.category === 'buy'
-                ? `${car.minPrice} - ${car.maxPrice}`
+                ? `${(car as CarBuy).minPrice || '0'} - ${(car as CarBuy).maxPrice || '0'}`
                 : car.category === 'rent'
                   ? `${car.price}/${car.period || 'zi'}`
                   : car.price}
@@ -156,23 +156,4 @@ export default function CarCard({ car, cardsPerPage = 3, watchDrag = true }: Car
       </CardContent>
     </Card>
   );
-}
-
-function getColorValue(colorName: string): string {
-  const colorMap: Record<string, string> = {
-    Alb: '#ffffff',
-    Negru: '#000000',
-    Gri: '#808080',
-    Albastru: '#0000ff',
-    Rosu: '#ff0000',
-    Verde: '#008000',
-    Galben: '#ffff00',
-    Portocaliu: '#ffa500',
-    Violet: '#800080',
-    Maro: '#a52a2a',
-    Argintiu: '#c0c0c0',
-    Auriu: '#ffd700',
-    Alta: '#d3d3d3',
-  };
-  return colorMap[colorName] || '#d3d3d3';
 }
