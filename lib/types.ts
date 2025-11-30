@@ -75,6 +75,9 @@ export type RawCarDoc = {
   urlCategory?: string;
   views?: number;
   carCategory?: 'sell' | 'buy' | 'rent' | 'auction';
+  bids?: unknown[];
+  currentBidder?: string;
+  currentBidAmount?: number;
 };
 
 // ============================================================================
@@ -146,17 +149,21 @@ export type CarRent = BaseCarProperties & {
   driverTelephone?: string;
 };
 
+export type Bid = {
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  amount: number;
+  createdAt: string;
+};
+
 export type CarAuction = BaseCarProperties & {
   category: 'auction';
   price: string;
   endDate: string;
-  bids?: Array<{
-    userId: string;
-    amount: string;
-    timestamp: string;
-  }>;
+  bids?: Bid[];
   currentBidder?: string;
-  currentBidAmount?: string;
+  currentBidAmount?: number;
 };
 
 export type Car = CarSell | CarBuy | CarRent | CarAuction;

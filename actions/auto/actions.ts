@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter, User } from '@/lib/types';
+import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter, User, Bid } from '@/lib/types';
 import { mapRawCarToPost, normalizeNumberString } from '@/lib/auto/helpers';
 import { auth } from '@/lib/auth/auth';
 import { categoryMapping } from '@/lib/categories';
@@ -132,7 +132,7 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const page = Math.max(1, params.page || 1);
     let limit = Math.max(1, params.limit || 20);
     const hasLocationFilter = !!(params.lat && params.lng && params.radius);
-    
+
     if (hasLocationFilter) {
       limit = 999999;
     }
@@ -171,39 +171,28 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const coll = db.collection(collectionName);
     const allDocs = await coll.find(query).toArray();
 
-    let locationFilteredCount = 0;
-    
     const filtered = allDocs.filter((doc: RawCarDoc) => {
       if (params.lat !== undefined && params.lng !== undefined && params.radius !== undefined) {
-        locationFilteredCount++;
-        
         const docLocation = typeof doc.location === 'object' ? doc.location : null;
-        
+
         if (!docLocation || docLocation.lat === undefined || docLocation.lng === undefined) {
-          if (locationFilteredCount <= 5) {
-            console.log('[getCarsWithOptionalPagination] Doc missing location:', {
-              docId: doc._id.toString().substring(0, 8),
-              location: doc.location
-            });
-          }
           return false;
         }
-        
+
         const R = 6371; // Earth's radius in km
-        const dLat = (docLocation.lat - params.lat) * Math.PI / 180;
-        const dLng = (docLocation.lng - params.lng) * Math.PI / 180;
-        const a = 
+        const dLat = ((docLocation.lat - params.lat) * Math.PI) / 180;
+        const dLng = ((docLocation.lng - params.lng) * Math.PI) / 180;
+        const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(params.lat * Math.PI / 180) * Math.cos(docLocation.lat * Math.PI / 180) *
-          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          Math.cos((params.lat * Math.PI) / 180) * Math.cos((docLocation.lat * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c;
-        
+
         const withinRadius = distance <= params.radius;
-        
+
         if (!withinRadius) return false;
       }
-      
+
       if (params.priceMin !== undefined || params.priceMax !== undefined) {
         if (isBuyCategory) {
           const minPrice = normalizeNumberString(doc.minPrice);
@@ -325,7 +314,9 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const paginatedItems = filtered.slice(skipVal, skipVal + limit);
     const hasMore = page * limit < total;
 
-    const userIds = [...new Set(paginatedItems.map((item: RawCarDoc) => item.userId).filter((id): id is string => !!id && ObjectId.isValid(id)))];
+    const userIds = [
+      ...new Set(paginatedItems.map((item: RawCarDoc) => item.userId).filter((id): id is string => !!id && ObjectId.isValid(id))),
+    ];
 
     if (userIds.length > 0) {
       try {
@@ -518,7 +509,7 @@ export async function submitBuyAutoForm(
   const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.buySchema.parse(data);
-    
+
     // Convert string values to numbers for database storage
     const dataToInsert = {
       ...validatedData,
@@ -532,7 +523,7 @@ export async function submitBuyAutoForm(
       minHorsePower: parseInt(validatedData.minHorsePower),
       maxHorsePower: parseInt(validatedData.maxHorsePower),
     };
-    
+
     const result = await db.collection('buy_auto_cars').insertOne(dataToInsert);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
@@ -817,5 +808,123 @@ export async function deletePost(postId: string, category: string): Promise<{ su
   } catch (error) {
     console.error('Error deleting post:', error);
     return { success: false, message: 'An error occurred while deleting the post' };
+  }
+}
+
+export async function placeBid(
+  carId: string,
+  category: string,
+  bidAmount: number
+): Promise<{ success: boolean; message: string; bid?: Bid }> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user) {
+      return { success: false, message: 'Trebuie să fii autentificat pentru a licita.' };
+    }
+
+    const categoryMappings: Record<string, string> = {
+      oferta: 'sell_auto_cars',
+      cerere: 'buy_auto_cars',
+      inchiriere: 'rent_auto_cars',
+      licitatie: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (collectionName !== 'auction_auto_cars') {
+      return { success: false, message: 'Doar anunțurile de licitație pot primi oferte.' };
+    }
+
+    if (!ObjectId.isValid(carId)) {
+      return { success: false, message: 'ID anunț invalid.' };
+    }
+
+    const car = await db.collection(collectionName).findOne({ _id: new ObjectId(carId) });
+    if (!car) {
+      return { success: false, message: 'Anunțul nu a fost găsit.' };
+    }
+
+    if (car.endDate) {
+      const endDate = new Date(car.endDate);
+      if (endDate < new Date()) {
+        return { success: false, message: 'Licitația s-a încheiat.' };
+      }
+    }
+
+    const existingBids = (car.bids || []) as Bid[];
+
+    if (existingBids.length === 0) {
+      if (bidAmount <= 0) {
+        return { success: false, message: 'Suma licitației trebuie să fie pozitivă.' };
+      }
+    } else {
+      const highestBid = Math.max(...existingBids.map((b) => b.amount));
+      if (bidAmount <= highestBid) {
+        return { success: false, message: `Suma licitației trebuie să fie mai mare decât ${highestBid} ${car.currency || 'EUR'}.` };
+      }
+    }
+
+    const userId = session.user.id;
+    const userName = session.user.name || session.user.email || 'Anonymous';
+    const userAvatar = session.user.image || undefined;
+
+    const newBid: Bid = {
+      userId,
+      userName,
+      userAvatar,
+      amount: bidAmount,
+      createdAt: new Date().toISOString(),
+    };
+
+    const result = await db.collection(collectionName).updateOne(
+      { _id: new ObjectId(carId) },
+      {
+        $push: { bids: newBid as unknown as never },
+        $set: {
+          currentBidder: userId,
+          currentBidAmount: bidAmount,
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return { success: false, message: 'Nu s-a putut plasa licitația.' };
+    }
+
+    revalidatePath(`/categorii/auto/${category}/${carId}`);
+    return { success: true, message: 'Licitație plasată cu succes!', bid: newBid };
+  } catch (error) {
+    console.error('Error placing bid:', error);
+    return { success: false, message: 'A apărut o eroare la plasarea licitației.' };
+  }
+}
+
+export async function getBids(carId: string, category: string): Promise<Bid[]> {
+  try {
+    const categoryMappings: Record<string, string> = {
+      oferta: 'sell_auto_cars',
+      cerere: 'buy_auto_cars',
+      inchiriere: 'rent_auto_cars',
+      licitatie: 'auction_auto_cars',
+    };
+
+    const collectionName = categoryMappings[category];
+    if (collectionName !== 'auction_auto_cars') {
+      return [];
+    }
+
+    if (!ObjectId.isValid(carId)) {
+      return [];
+    }
+
+    const car = await db.collection(collectionName).findOne({ _id: new ObjectId(carId) });
+    if (!car) {
+      return [];
+    }
+
+    return (car.bids || []) as Bid[];
+  } catch (error) {
+    console.error('Error fetching bids:', error);
+    return [];
   }
 }

@@ -53,20 +53,49 @@ export function getPriceWithCurrency(car: Car): string {
   return `${getDisplayPrice(car)} ${car.currency || 'RON'}`;
 }
 
-function parseNumberSafely(value: string | number | undefined): number {
+export function parseNumberSafely(value: string | number | undefined): number {
   if (!value) return 0;
 
   const str = String(value).trim();
   if (!str) return 0;
 
+  // Count dots and commas
+  const dotCount = (str.match(/\./g) || []).length;
+  const commaCount = (str.match(/,/g) || []).length;
+  
+  // If multiple dots or commas, they're thousand separators
+  if (dotCount > 1) {
+    // European format: 1.234.567,89 or just 142.000
+    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  }
+  if (commaCount > 1) {
+    // US format: 1,234,567.89 or just 142,000
+    return parseFloat(str.replace(/,/g, ''));
+  }
+
   const lastCommaIdx = str.lastIndexOf(',');
   const lastDotIdx = str.lastIndexOf('.');
 
+  // If comma comes after dot, it's European decimal separator
   if (lastCommaIdx > lastDotIdx) {
+    // European: 1.234,56 - dots are thousand separators, comma is decimal
     return parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  } else {
+  }
+  
+  // If dot comes after comma, it's US decimal separator
+  if (lastDotIdx > lastCommaIdx) {
+    // Check if dot is likely a thousand separator (3+ digits after it)
+    const afterDot = str.substring(lastDotIdx + 1);
+    if (afterDot.length === 3 && !afterDot.includes(',') && !afterDot.includes('.')) {
+      // Likely thousand separator: 142.000
+      return parseFloat(str.replace(/\./g, '').replace(/,/g, ''));
+    }
+    // US format: 1,234.56 - commas are thousand separators, dot is decimal
     return parseFloat(str.replace(/,/g, ''));
   }
+
+  // No separators or only one
+  return parseFloat(str);
 }
 
 export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent' | 'auction' = 'sell'): Post {
@@ -77,7 +106,6 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     createdAt = (doc._id as ObjectId).getTimestamp().toISOString();
   }
 
-  // Location is now always an object with {lat, lng, address}
   const locationObj = typeof doc.location === 'object' ? doc.location : { lat: 44.4268, lng: 26.1025, address: doc.location || 'Unknown' };
   const location = locationObj.address;
   const lat = locationObj.lat;
@@ -157,6 +185,9 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         category: 'auction',
         price: String(doc.price || ''),
         endDate: doc.endDate || '',
+        bids: doc.bids || [],
+        currentBidder: doc.currentBidder,
+        currentBidAmount: doc.currentBidAmount,
         year: parseNumberSafely(doc.year),
         mileage: String(doc.mileage || ''),
         engineCapacity: parseNumberSafely(doc.engineCapacity),

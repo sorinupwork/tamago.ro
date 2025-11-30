@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useRef, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Phone,
   MessageCircle,
@@ -25,7 +26,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import MessageDrawer from '@/components/custom/drawer/MessageDrawer';
-import { Input } from '@/components/ui/input';
+import AppInput from '@/components/custom/input/AppInput';
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import Breadcrumbs from '@/components/custom/breadcrumbs/Breadcrumbs';
@@ -39,16 +40,20 @@ import Timeline from '@/components/custom/timeline/Timeline';
 import UserProfileCard from '@/components/custom/card/UserProfileCard';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { cn } from '@/lib/utils';
-import type { Car, User } from '@/lib/types';
+import type { Car, User, CarAuction } from '@/lib/types';
+import { placeBid } from '@/actions/auto/actions';
+import { parseNumberSafely } from '@/lib/auto/helpers';
 
 type CarDetailClientProps = {
   car: Car;
   similarCars: Car[];
   queryString: string;
   sellerUser?: User | null;
+  currentUser?: User | null;
 };
 
-export default function CarDetailClient({ car, similarCars, queryString, sellerUser }: CarDetailClientProps) {
+export default function CarDetailClient({ car, similarCars, queryString, sellerUser, currentUser }: CarDetailClientProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [imageSrcs, setImageSrcs] = useState<string[]>(car.images.map((img) => img || '/placeholder.svg'));
   const [bidAmount, setBidAmount] = useState('');
@@ -58,15 +63,12 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
 
   const autoHref = `/categorii/auto${queryString ? '?' + queryString : ''}`;
 
-  // Mock bid history for auctions
-  const bidHistory = [
-    { bidder: 'Ion Popescu', amount: 15000, time: '2 ore în urmă' },
-    { bidder: 'Maria Ionescu', amount: 15500, time: '1 oră în urmă' },
-    { bidder: 'Vasile Georgescu', amount: 16000, time: '30 min în urmă' },
-  ];
+  // Get real bids from auction car
+  const auctionCar = car.category === 'auction' ? (car as CarAuction) : null;
+  const bidHistory = auctionCar?.bids || [];
+  const sortedBids = [...bidHistory].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Mock auction end time (24 hours)
-  const [auctionEndTime] = useState(() => new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const auctionEndTime = auctionCar?.endDate ? new Date(auctionCar.endDate) : null;
 
   const mapCenter: [number, number] = [car.lat || 44.4268, car.lng || 26.1025];
 
@@ -92,18 +94,32 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
 
   const handleBid = () => {
     startTransition(async () => {
-      const bid = parseInt(bidAmount);
+      if (!currentUser) {
+        toast.error('Trebuie să fii autentificat pentru a licita.');
+        return;
+      }
+
       if (car.category !== 'auction') {
-        toast.error('Doar asta pot fi lichitate.');
+        toast.error('Doar anunțurile de licitație pot primi oferte.');
         return;
       }
-      const currentPrice = parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.'));
-      if (isNaN(bid) || bid <= currentPrice) {
-        toast.error('Suma licitației trebuie să fie mai mare decât prețul curent.');
+
+      const bid = parseNumberSafely(bidAmount);
+
+      if (isNaN(bid) || bid <= 0) {
+        toast.error('Suma licitației trebuie să fie validă.');
         return;
       }
-      toast.success(`Licitație plasată: $${bid}`);
-      // Add server action call here if needed
+
+      const result = await placeBid(car.id, 'licitatie', bid);
+
+      if (result.success) {
+        toast.success(result.message);
+        setBidAmount('');
+        router.refresh();
+      } else {
+        toast.error(result.message);
+      }
     });
   };
 
@@ -144,18 +160,25 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
   const isSell = car.category === 'sell';
   const isBuy = car.category === 'buy';
 
-  const biddersForStories: User[] = bidHistory.map((bid, index) => ({
-    id: (index + 1).toString(),
-    name: bid.bidder,
-    email: `mock${index}@example.com`,
-    provider: 'credentials' as const,
-    avatar: `/avatars/0${(index % 4) + 1}.png`,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: `Bid: $${bid.amount}`,
-    category: 'auction',
-    location: [45.9432 + index * 0.01, 24.9668 + index * 0.01] as [number, number],
-  }));
+  // Get unique bidders with their latest/highest bid
+  const uniqueBidders = new Map<string, User>();
+  sortedBids.forEach((bid) => {
+    if (!uniqueBidders.has(bid.userId)) {
+      uniqueBidders.set(bid.userId, {
+        id: bid.userId,
+        name: bid.userName,
+        email: '',
+        provider: 'credentials' as const,
+        avatar: bid.userAvatar || undefined,
+        createdAt: new Date(bid.createdAt),
+        updatedAt: new Date(bid.createdAt),
+        status: `${bid.amount} ${auctionCar?.currency || 'EUR'}`,
+        category: 'auction',
+        location: [0, 0] as [number, number],
+      });
+    }
+  });
+  const biddersForStories: User[] = Array.from(uniqueBidders.values());
 
   const carTimelineItems = [
     { icon: CarIcon, label: 'Listat pentru Vânzare', value: 'Anunț publicat în 2024', year: 2024 },
@@ -253,7 +276,6 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
                     <Badge variant={isAuction ? 'destructive' : 'secondary'}>
                       {isSell ? 'Ofertă' : isBuy ? 'Cerere' : isRent ? 'Închiriere' : 'Licitație'}
                     </Badge>
-                    {isAuction && <Badge variant='outline'>Activ</Badge>}
                     <FavoriteButton itemId={car.id} itemTitle={car.title} itemImage={car.images[0] || ''} itemCategory={car.category} />
                   </div>
                   {sellerUser && <UserProfileCard user={sellerUser} size='sm' showName={true} />}
@@ -263,7 +285,7 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
               <p className='text-4xl font-bold text-primary mt-4'>
                 {car.currency} {isBuy ? `${car.minPrice} - ${car.maxPrice}` : isRent ? `${car.price}/${car.period || 'zi'}` : car.price}
               </p>
-              {isAuction && (
+              {isAuction && auctionEndTime && (
                 <div className='bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3 mt-3'>
                   <div className='flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-200'>
                     <Clock className='h-4 w-4' />
@@ -394,7 +416,6 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
                 )}
               </div>
 
-              {/* Options Section */}
               {car.options && car.options.length > 0 && (
                 <div className='mb-6'>
                   <h4 className='font-semibold mb-3'>Dotări și Opțiuni:</h4>
@@ -408,7 +429,6 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
                 </div>
               )}
 
-              {/* Rental Driver Info */}
               {isRent && car.withDriver && (
                 <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
                   <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-1'>
@@ -443,39 +463,91 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
             </CardContent>
           </Card>
 
-          {isAuction && (
+          {isAuction && auctionCar && (
             <Card>
               <CardHeader>
-                <CardTitle>Licitație</CardTitle>
+                <CardTitle className='flex items-center justify-between'>
+                  <span>Licitație</span>
+                  {auctionEndTime && (
+                    <Badge variant={new Date() > auctionEndTime ? 'destructive' : 'default'}>
+                      {new Date() > auctionEndTime ? 'Încheiată' : 'Activă'}
+                    </Badge>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <p>
-                  Licitație curentă: <strong>${car.price}</strong>
-                </p>
-                <div className='flex gap-2'>
-                  <Input
-                    type='number'
-                    placeholder='Suma licitației'
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    min={car.category === 'auction' ? parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.')) + 1 : 0}
-                    step={1}
-                    disabled={isPending}
-                  />
-                  <Button
-                    onClick={handleBid}
-                    disabled={
-                      !bidAmount ||
-                      (car.category === 'auction'
-                        ? parseInt(bidAmount) <= parseFloat(car.price.replace(/\./g, '').replace(/,/g, '.'))
-                        : true) ||
-                      isPending
-                    }
-                  >
-                    Licitează
-                  </Button>
-                </div>
-                <AuctionBidders users={biddersForStories} title='Participanți Licitație' />
+                {sortedBids.length > 0 ? (
+                  <div className='p-4 bg-muted rounded-lg'>
+                    <p className='text-sm text-muted-foreground'>Oferta curentă</p>
+                    <p className='text-3xl font-bold text-primary'>
+                      {sortedBids[0].amount} {auctionCar.currency || 'EUR'}
+                    </p>
+                    <p className='text-xs text-muted-foreground mt-1'>
+                      de {sortedBids[0].userName} • {new Date(sortedBids[0].createdAt).toLocaleString('ro-RO')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className='p-4 bg-muted rounded-lg'>
+                    <p className='text-sm text-muted-foreground'>Preț de pornire</p>
+                    <p className='text-3xl font-bold text-primary'>
+                      {car.price} {auctionCar.currency || 'EUR'}
+                    </p>
+                    <p className='text-xs text-muted-foreground mt-1'>Nicio ofertă încă</p>
+                  </div>
+                )}
+
+                {auctionEndTime && new Date() < auctionEndTime && (
+                  <>
+                    <div className='flex gap-2'>
+                      <AppInput
+                        type='number'
+                        placeholder={
+                          sortedBids.length > 0 ? `Minim ${sortedBids[0].amount + 1} ${auctionCar.currency || 'EUR'}` : 'Suma licitației'
+                        }
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        min={sortedBids.length > 0 ? sortedBids[0].amount + 1 : 0}
+                        step='1'
+                        disabled={isPending || !currentUser}
+                        className='flex-1'
+                      />
+                      <Button onClick={handleBid} disabled={!bidAmount || isPending || !currentUser}>
+                        {isPending ? 'Se procesează...' : 'Licitează'}
+                      </Button>
+                    </div>
+                    {!currentUser && (
+                      <p className='text-sm text-muted-foreground text-center'>Trebuie să fii autentificat pentru a licita.</p>
+                    )}
+                  </>
+                )}
+
+                {sortedBids.length > 0 && (
+                  <div className='space-y-2'>
+                    <h4 className='font-semibold text-sm'>Istoric Licitații ({sortedBids.length})</h4>
+                    <div className='max-h-60 overflow-y-auto space-y-2 pr-1'>
+                      {sortedBids.slice(0, 3).map((bid, index) => (
+                        <div key={index} className='flex justify-between items-center p-2 bg-muted/50 rounded'>
+                          <div>
+                            <p className='font-medium text-sm'>{bid.userName}</p>
+                            <p className='text-xs text-muted-foreground'>{new Date(bid.createdAt).toLocaleString('ro-RO')}</p>
+                          </div>
+                          <p className='font-bold'>
+                            {bid.amount} {auctionCar.currency || 'EUR'}
+                          </p>
+                        </div>
+                      ))}
+                      {sortedBids.length > 3 && (
+                        <div className='text-center py-2'>
+                          <p className='text-xs text-muted-foreground'>
+                            +{sortedBids.length - 3} mai {sortedBids.length - 3 === 1 ? 'mult' : 'multe'} licitații
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {biddersForStories.length > 0 && <AuctionBidders users={biddersForStories} title='Participanți Licitație' />}
               </CardContent>
             </Card>
           )}

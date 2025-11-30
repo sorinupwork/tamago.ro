@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import CarDetailClient from '@/components/custom/auto/CarDetailClient';
 import { getCarById, getSimilarCars } from '@/actions/auto/actions';
 import { getUserById } from '@/actions/auth/actions';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 export default async function CarDetailPage({
   params,
@@ -36,7 +38,11 @@ export default async function CarDetailPage({
     notFound();
   }
 
-  const [car, similarCars] = await Promise.all([getCarById(category, id), getSimilarCars(category, id, 4)]);
+  const [car, similarCars, session] = await Promise.all([
+    getCarById(category, id),
+    getSimilarCars(category, id, 4),
+    auth.api.getSession({ headers: await headers() }).catch(() => null),
+  ]);
 
   if (!car) {
     notFound();
@@ -44,5 +50,13 @@ export default async function CarDetailPage({
 
   const sellerUser = car.userId ? await getUserById(car.userId).catch(() => null) : null;
 
-  return <CarDetailClient car={car} sellerUser={sellerUser} similarCars={similarCars} queryString={queryString} />;
+  return (
+    <CarDetailClient
+      car={car}
+      sellerUser={sellerUser}
+      similarCars={similarCars}
+      queryString={queryString}
+      currentUser={session?.user || null}
+    />
+  );
 }
