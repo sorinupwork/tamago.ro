@@ -74,7 +74,8 @@ export default function BuyAutoForm({
       minEngineCapacity: '0.1',
       maxEngineCapacity: '5.0',
       carType: undefined,
-      horsePower: '',
+      minHorsePower: '50',
+      maxHorsePower: '500',
       transmission: undefined,
       traction: undefined,
       steeringWheelPosition: 'left',
@@ -129,6 +130,16 @@ export default function BuyAutoForm({
     parseFloat(form.watch('maxEngineCapacity') || '5.0'),
   ];
 
+  const handleHorsePowerRangeChange = (value: number[]) => {
+    form.setValue('minHorsePower', value[0].toString(), { shouldValidate: true });
+    form.setValue('maxHorsePower', value[1].toString(), { shouldValidate: true });
+  };
+
+  const horsePowerRangeValue = [
+    parseFloat(form.watch('minHorsePower') || '50'),
+    parseFloat(form.watch('maxHorsePower') || '500'),
+  ];
+
   useEffect(() => {
     const loadBrands = async () => {
       const fetchedBrands = await fetchCarMakes();
@@ -172,7 +183,8 @@ export default function BuyAutoForm({
       minEngineCapacity: watchedValues.minEngineCapacity || '',
       maxEngineCapacity: watchedValues.maxEngineCapacity || '',
       carType: watchedValues.carType || '',
-      horsePower: watchedValues.horsePower || '',
+      minHorsePower: watchedValues.minHorsePower || '',
+      maxHorsePower: watchedValues.maxHorsePower || '',
       transmission: watchedValues.transmission || '',
       traction: watchedValues.traction || '',
     });
@@ -194,7 +206,8 @@ export default function BuyAutoForm({
     watchedValues.minEngineCapacity,
     watchedValues.maxEngineCapacity,
     watchedValues.carType,
-    watchedValues.horsePower,
+    watchedValues.minHorsePower,
+    watchedValues.maxHorsePower,
     watchedValues.transmission,
     watchedValues.traction,
     uploadedFiles,
@@ -490,36 +503,15 @@ export default function BuyAutoForm({
             className='min-w-0 w-full'
           />
 
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <AppInput
-              type='number'
-              min={1}
-              placeholder='150'
-              value={form.watch('horsePower')}
-              onChange={(e) => form.setValue('horsePower', e.target.value, { shouldValidate: true })}
-              className='w-full'
-              label='Putere (CP)'
-              error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
-            />
-            <AppSelectInput
-              options={[...transmissionOptions]}
-              value={form.watch('transmission')}
-              onValueChange={(v) => form.setValue('transmission', v as 'Manual' | 'Automatic' | 'Semi-Automatic')}
-              placeholder='Selectați transmisia'
-              className='w-full'
-              label='Transmisie'
-              error={form.formState.errors.transmission ? [form.formState.errors.transmission] : undefined}
-            />
-            <AppSelectInput
-              label='Tractiune'
-              options={tractionOptions}
-              value={form.watch('traction')}
-              onValueChange={(v) => form.setValue('traction', v as 'integrala' | 'fata' | 'spate')}
-              placeholder='Selectați tracțiunea'
-              className='max-w-full'
-              error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
-            />
-          </div>
+          <AppSlider
+            label='Putere (CP)'
+            value={horsePowerRangeValue}
+            onValueChange={handleHorsePowerRangeChange}
+            min={50}
+            max={1500}
+            step={10}
+            className='min-w-0 w-full'
+          />
 
           <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
 

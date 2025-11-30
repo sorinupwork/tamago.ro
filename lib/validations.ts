@@ -78,7 +78,8 @@ export const auto = {
     carType: z.enum(['SUV', 'Coupe', 'Sedan', 'Hatchback', 'Convertible', 'Wagon', 'Pickup', 'Van', 'Other'], {
       message: 'Tipul mașinii este obligatoriu',
     }),
-    horsePower: z.string().regex(/^\d+$/, { message: 'Puterea trebuie să fie un număr' }),
+    minHorsePower: z.string().regex(/^\d+$/, { message: 'Puterea minimă trebuie să fie un număr' }),
+    maxHorsePower: z.string().regex(/^\d+$/, { message: 'Puterea maximă trebuie să fie un număr' }),
     transmission: z.enum(['Manual', 'Automatic', 'Semi-Automatic'], { message: 'Transmisia este obligatorie' }),
     traction: z.enum(['integrala', 'fata', 'spate'], { message: 'Tracțiunea este obligatorie' }),
     steeringWheelPosition: z.enum(['left', 'right'], { message: 'Poziția volanului este obligatorie' }),

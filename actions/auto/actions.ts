@@ -657,6 +657,8 @@ export async function updatePost(
         maxYear: parseInt(d.maxYear),
         minEngineCapacity: normalizeNumberString(d.minEngineCapacity),
         maxEngineCapacity: normalizeNumberString(d.maxEngineCapacity),
+        minHorsePower: normalizeNumberString(d.minHorsePower),
+        maxHorsePower: normalizeNumberString(d.maxHorsePower),
       };
     } else if (category === 'rent') {
       updateData = {

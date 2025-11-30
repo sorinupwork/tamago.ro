@@ -46,6 +46,8 @@ export type PreviewData = {
   maxEngineCapacity?: string;
   carType?: string;
   horsePower?: string;
+  minHorsePower?: string;
+  maxHorsePower?: string;
   transmission?: string;
   traction?: string;
   steeringWheelPosition?: string;

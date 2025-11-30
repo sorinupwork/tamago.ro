@@ -17,10 +17,6 @@ export function getFilteredCars(
     (car) => (car.engineCapacity || 0) >= filters.engineCapacityRange[0] && (car.engineCapacity || 0) <= filters.engineCapacityRange[1]
   );
 
-  filtered = filtered.filter(
-    (car) => (car.horsePower || 0) >= filters.horsepowerRange[0] && (car.horsePower || 0) <= filters.horsepowerRange[1]
-  );
-
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
 
   filtered = filtered.filter((car) => {
@@ -48,7 +44,16 @@ export function getFilteredCars(
       return car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1];
     }
   });
-  if (filters.brand) filtered = filtered.filter((car) => car.brand.toLowerCase().includes(filters.brand.toLowerCase()));
+
+  filtered = filtered.filter((car) => {
+    if (car.category === 'buy') {
+      const carMinHorsePower = car.minHorsePower || filters.horsepowerRange[0];
+      const carMaxHorsePower = car.maxHorsePower || filters.horsepowerRange[1];
+      return !(carMaxHorsePower < filters.horsepowerRange[0] || carMinHorsePower > filters.horsepowerRange[1]);
+    } else {
+      return (car.horsePower || 0) >= filters.horsepowerRange[0] && (car.horsePower || 0) <= filters.horsepowerRange[1];
+    }
+  });
   if (filters.model) filtered = filtered.filter((car) => car.model?.toLowerCase().includes(filters.model.toLowerCase()));
   if (filters.steeringWheelPosition) filtered = filtered.filter((car) => car.steeringWheelPosition === filters.steeringWheelPosition);
   if (filters.priceCurrency.length > 0) filtered = filtered.filter((car) => filters.priceCurrency.includes(car.currency || ''));

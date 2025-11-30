@@ -125,6 +125,8 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         maxYear: doc.maxYear ? parseInt(String(doc.maxYear)) : undefined,
         minEngineCapacity: doc.minEngineCapacity ? parseInt(String(doc.minEngineCapacity)) : undefined,
         maxEngineCapacity: doc.maxEngineCapacity ? parseInt(String(doc.maxEngineCapacity)) : undefined,
+        minHorsePower: doc.minHorsePower ? parseInt(String(doc.minHorsePower)) : undefined,
+        maxHorsePower: doc.maxHorsePower ? parseInt(String(doc.maxHorsePower)) : undefined,
       } as CarBuy;
     }
 

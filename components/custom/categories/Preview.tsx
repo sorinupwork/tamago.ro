@@ -56,6 +56,8 @@ export default function Preview({
   maxEngineCapacity,
   carType,
   horsePower,
+  minHorsePower,
+  maxHorsePower,
   transmission,
   traction,
   steeringWheelPosition,
@@ -178,7 +180,18 @@ export default function Preview({
           <div className='text-sm flex items-center gap-2'>
             <Power size={16} className='text-red-500 shrink-0' />
             <span>
-              <strong>Putere:</strong> {horsePower ? `${horsePower} CP` : 'Nespecificat'}
+              <strong>Putere:</strong>{' '}
+              {category === 'buy'
+                ? minHorsePower && maxHorsePower
+                  ? `${minHorsePower} - ${maxHorsePower} CP`
+                  : minHorsePower
+                    ? `De la ${minHorsePower} CP`
+                    : maxHorsePower
+                      ? `Până la ${maxHorsePower} CP`
+                      : 'Nespecificat'
+                : horsePower
+                  ? `${horsePower} CP`
+                  : 'Nespecificat'}
             </span>
           </div>
 

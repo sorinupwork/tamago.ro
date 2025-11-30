@@ -57,6 +57,8 @@ export type RawCarDoc = {
   engineCapacity?: string | number;
   carType?: string;
   horsePower?: string | number;
+  minHorsePower?: string | number;
+  maxHorsePower?: string | number;
   status?: string;
   features?: string | string[];
   traction?: string;
@@ -126,6 +128,8 @@ export type CarBuy = BaseCarProperties & {
   maxYear?: number;
   minEngineCapacity?: number;
   maxEngineCapacity?: number;
+  minHorsePower?: number;
+  maxHorsePower?: number;
 };
 
 export type CarRent = BaseCarProperties & {
