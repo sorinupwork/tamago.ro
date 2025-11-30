@@ -13,9 +13,10 @@ export function getFilteredCars(
 ): Car[] {
   let filtered = cars.slice();
 
-  filtered = filtered.filter(
-    (car) => (car.engineCapacity || 0) >= filters.engineCapacityRange[0] && (car.engineCapacity || 0) <= filters.engineCapacityRange[1]
-  );
+  filtered = filtered.filter((car) => {
+    const capacity = typeof car.engineCapacity === 'string' ? parseFloat(car.engineCapacity) : (car.engineCapacity || 0);
+    return capacity >= filters.engineCapacityRange[0] && capacity <= filters.engineCapacityRange[1];
+  });
 
   if (filters.status) filtered = filtered.filter((car) => car.status === filters.status);
 
@@ -31,7 +32,8 @@ export function getFilteredCars(
       const carMaxYear = car.maxYear || filters.yearRange[1];
       return !(carMaxYear < filters.yearRange[0] || carMinYear > filters.yearRange[1]);
     } else {
-      return car.year >= filters.yearRange[0] && car.year <= filters.yearRange[1];
+      const year = typeof car.year === 'string' ? parseInt(car.year) : (car.year || 0);
+      return year >= filters.yearRange[0] && year <= filters.yearRange[1];
     }
   });
 
@@ -41,7 +43,8 @@ export function getFilteredCars(
       const carMaxMileage = car.maxMileage || filters.mileageRange[1];
       return !(carMaxMileage < filters.mileageRange[0] || carMinMileage > filters.mileageRange[1]);
     } else {
-      return car.mileage >= filters.mileageRange[0] && car.mileage <= filters.mileageRange[1];
+      const mileage = typeof car.mileage === 'string' ? parseFloat(car.mileage) : (car.mileage || 0);
+      return mileage >= filters.mileageRange[0] && mileage <= filters.mileageRange[1];
     }
   });
 
@@ -51,7 +54,8 @@ export function getFilteredCars(
       const carMaxHorsePower = car.maxHorsePower || filters.horsepowerRange[1];
       return !(carMaxHorsePower < filters.horsepowerRange[0] || carMinHorsePower > filters.horsepowerRange[1]);
     } else {
-      return (car.horsePower || 0) >= filters.horsepowerRange[0] && (car.horsePower || 0) <= filters.horsepowerRange[1];
+      const horsePower = typeof car.horsePower === 'string' ? parseFloat(car.horsePower) : (car.horsePower || 0);
+      return horsePower >= filters.horsepowerRange[0] && horsePower <= filters.horsepowerRange[1];
     }
   });
   if (filters.model) filtered = filtered.filter((car) => car.model?.toLowerCase().includes(filters.model.toLowerCase()));

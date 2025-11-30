@@ -1,5 +1,22 @@
-import type { Car, SortCriteria } from '@/lib/types';
+import type { Car, CarBuy, SortCriteria } from '@/lib/types';
 import { getPriceNumeric } from './helpers';
+
+function getMileageValue(car: Car): number {
+  if (car.category === 'buy') {
+    const buyCar = car as CarBuy;
+    return buyCar.minMileage || 0;
+  }
+  const mileageStr = String(car.mileage || '0');
+  return parseFloat(mileageStr.replace(/,/g, ''));
+}
+
+function getYearValue(car: Car): number {
+  if (car.category === 'buy') {
+    const buyCar = car as CarBuy;
+    return buyCar.minYear || 0;
+  }
+  return typeof car.year === 'number' ? car.year : parseFloat(String(car.year || '0'));
+}
 
 export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
   const sorted = cars.slice();
@@ -20,11 +37,15 @@ export function getSortedCars(cars: Car[], sortCriteria: SortCriteria): Car[] {
       if (result !== 0) return result;
     }
     if (sortCriteria.year) {
-      result = sortCriteria.year === 'asc' ? a.year - b.year : b.year - a.year;
+      const aYear = getYearValue(a);
+      const bYear = getYearValue(b);
+      result = sortCriteria.year === 'asc' ? aYear - bYear : bYear - aYear;
       if (result !== 0) return result;
     }
     if (sortCriteria.mileage) {
-      result = sortCriteria.mileage === 'asc' ? a.mileage - b.mileage : b.mileage - a.mileage;
+      const aMileage = getMileageValue(a);
+      const bMileage = getMileageValue(b);
+      result = sortCriteria.mileage === 'asc' ? aMileage - bMileage : bMileage - aMileage;
       if (result !== 0) return result;
     }
     return 0;

@@ -92,14 +92,10 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     lng,
     brand: doc.brand || '',
     model: doc.model || '',
-    year: parseNumberSafely(doc.year),
-    mileage: parseNumberSafely(doc.mileage),
     fuel: doc.fuel || '',
     transmission: doc.transmission || '',
     color: doc.color || '',
     bodyType: doc.carType || '',
-    engineCapacity: parseNumberSafely(doc.engineCapacity),
-    horsePower: parseNumberSafely(doc.horsePower),
     traction: doc.traction,
     status: doc.status,
     steeringWheelPosition:
@@ -110,6 +106,7 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
     history: doc.history,
     views: doc.views,
     userId: doc.userId,
+    user: doc.user,
     sellerType: (doc.sellerType === 'firm' ? 'firm' : 'private') as 'private' | 'firm',
     contactPhone: doc.contactPhone || '',
     contactEmail: doc.contactEmail || '',
@@ -128,8 +125,8 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         maxMileage: doc.maxMileage,
         minYear: doc.minYear ? parseInt(String(doc.minYear)) : undefined,
         maxYear: doc.maxYear ? parseInt(String(doc.maxYear)) : undefined,
-        minEngineCapacity: doc.minEngineCapacity ? parseInt(String(doc.minEngineCapacity)) : undefined,
-        maxEngineCapacity: doc.maxEngineCapacity ? parseInt(String(doc.maxEngineCapacity)) : undefined,
+        minEngineCapacity: doc.minEngineCapacity ? parseFloat(String(doc.minEngineCapacity)) : undefined,
+        maxEngineCapacity: doc.maxEngineCapacity ? parseFloat(String(doc.maxEngineCapacity)) : undefined,
         minHorsePower: doc.minHorsePower ? parseInt(String(doc.minHorsePower)) : undefined,
         maxHorsePower: doc.maxHorsePower ? parseInt(String(doc.maxHorsePower)) : undefined,
       } as CarBuy;
@@ -147,6 +144,10 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         driverName: doc.driverName,
         driverContact: doc.driverContact,
         driverTelephone: doc.driverTelephone,
+        year: parseNumberSafely(doc.year),
+        mileage: String(doc.mileage || ''),
+        engineCapacity: parseNumberSafely(doc.engineCapacity),
+        horsePower: parseNumberSafely(doc.horsePower),
       } as CarRent;
     }
 
@@ -156,6 +157,10 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         category: 'auction',
         price: String(doc.price || ''),
         endDate: doc.endDate || '',
+        year: parseNumberSafely(doc.year),
+        mileage: String(doc.mileage || ''),
+        engineCapacity: parseNumberSafely(doc.engineCapacity),
+        horsePower: parseNumberSafely(doc.horsePower),
       } as CarAuction;
     }
 
@@ -165,6 +170,10 @@ export function mapRawCarToPost(doc: RawCarDoc, category: 'sell' | 'buy' | 'rent
         ...baseProps,
         category: 'sell',
         price: String(doc.price || ''),
+        year: parseNumberSafely(doc.year),
+        mileage: String(doc.mileage || ''),
+        engineCapacity: parseNumberSafely(doc.engineCapacity),
+        horsePower: parseNumberSafely(doc.horsePower),
       } as CarSell;
     }
   }

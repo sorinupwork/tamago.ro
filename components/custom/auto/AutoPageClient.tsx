@@ -22,7 +22,8 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { categoryMapping } from '@/lib/categories';
 import { steeringWheelOptions, tractionOptions, carTypeOptions, colorOptions } from '@/lib/mockData';
-import { paginateArray } from '@/lib/auto/pagination';
+import { calcTotalPages } from '@/lib/auto/pagination';
+
 import {
   defaultActiveTab,
   defaultFilters,
@@ -36,7 +37,7 @@ import {
   getInitialLocationFilter,
   statusMap,
 } from '@/lib/auto/initializers';
-import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, RawCarDoc } from '@/lib/types';
+import type { AutoFilterState, SortCriteria, LocationData, LocationFilter, RawCarDoc, Car } from '@/lib/types';
 import { mapRawCarToPost } from '@/lib/auto/helpers';
 import CategoryEmptyState from '@/components/custom/empty/CategoryEmptyState';
 import { getAppliedFilters } from '@/lib/auto/filters';
@@ -63,6 +64,98 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   const [resetKey, setResetKey] = useState(0);
   const isMobile = useIsMobile();
 
+  const updateUrl = (
+    newActiveTab: keyof typeof categoryMapping,
+    newFilters: AutoFilterState,
+    newSortCriteria: SortCriteria,
+    newSearchQuery: string,
+    newLocationFilter: LocationFilter,
+    newCurrentPage: number
+  ) => {
+    const params = new URLSearchParams();
+    if (newActiveTab !== defaultActiveTab) params.set('tip', newActiveTab);
+
+    if (newFilters.brand !== defaultFilters.brand) params.set('marca', newFilters.brand);
+    if (newFilters.model !== defaultFilters.model) params.set('model', newFilters.model);
+    if (newFilters.steeringWheelPosition !== defaultFilters.steeringWheelPosition) params.set('volan', newFilters.steeringWheelPosition);
+    if (newFilters.priceCurrency.length > 0) newFilters.priceCurrency.forEach((c) => params.append('moneda', c));
+    if (newFilters.fuel.length > 0) newFilters.fuel.forEach((f) => params.append('combustibil', f));
+    if (newFilters.transmission.length > 0) newFilters.transmission.forEach((t) => params.append('transmisie', t));
+    if (newFilters.bodyType.length > 0) newFilters.bodyType.forEach((b) => params.append('caroserie', b));
+    if (newFilters.color.length > 0) newFilters.color.forEach((c) => params.append('culoare', c));
+    if (newFilters.traction.length > 0) newFilters.traction.forEach((tr) => params.append('tractiune', tr));
+    if (newFilters.status !== defaultFilters.status) {
+      const stare = Object.keys(statusMap).find((k) => statusMap[k as keyof typeof statusMap] === newFilters.status) || newFilters.status;
+      params.set('stare', stare);
+    }
+    if (newFilters.priceRange[0] !== defaultFilters.priceRange[0] || newFilters.priceRange[1] !== defaultFilters.priceRange[1]) {
+      params.set('pretMin', newFilters.priceRange[0].toString());
+      params.set('pretMax', newFilters.priceRange[1].toString());
+    }
+    if (newFilters.yearRange[0] !== defaultFilters.yearRange[0] || newFilters.yearRange[1] !== defaultFilters.yearRange[1]) {
+      params.set('anMin', newFilters.yearRange[0].toString());
+      params.set('anMax', newFilters.yearRange[1].toString());
+    }
+    if (newFilters.mileageRange[0] !== defaultFilters.mileageRange[0] || newFilters.mileageRange[1] !== defaultFilters.mileageRange[1]) {
+      params.set('kilometrajMin', newFilters.mileageRange[0].toString());
+      params.set('kilometrajMax', newFilters.mileageRange[1].toString());
+    }
+    if (
+      newFilters.engineCapacityRange[0] !== defaultFilters.engineCapacityRange[0] ||
+      newFilters.engineCapacityRange[1] !== defaultFilters.engineCapacityRange[1]
+    ) {
+      params.set('capacitateMin', newFilters.engineCapacityRange[0].toString());
+      params.set('capacitateMax', newFilters.engineCapacityRange[1].toString());
+    }
+    if (
+      newFilters.horsepowerRange[0] !== defaultFilters.horsepowerRange[0] ||
+      newFilters.horsepowerRange[1] !== defaultFilters.horsepowerRange[1]
+    ) {
+      params.set('caiPutereMin', newFilters.horsepowerRange[0].toString());
+      params.set('caiPutereMax', newFilters.horsepowerRange[1].toString());
+    }
+
+    if (newSortCriteria.price) params.set('pret', newSortCriteria.price);
+    if (newSortCriteria.year) params.set('an', newSortCriteria.year);
+    if (newSortCriteria.mileage) params.set('kilometraj', newSortCriteria.mileage);
+    if (newSortCriteria.date) params.set('data', newSortCriteria.date);
+
+    if (newSearchQuery !== defaultSearchQuery) params.set('cautare', newSearchQuery);
+    if (newLocationFilter.location) {
+      params.set('lat', newLocationFilter.location.lat.toString());
+      params.set('lng', newLocationFilter.location.lng.toString());
+      params.set('raza', newLocationFilter.radius.toString());
+    }
+
+    if (newCurrentPage !== defaultCurrentPage) {
+      params.set('pagina', newCurrentPage.toString());
+    } else {
+      params.delete('pagina');
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : '';
+
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const currentUrl = currentParams.toString() ? `?${currentParams.toString()}` : '';
+
+    if (newUrl !== currentUrl) {
+      startTransition(() => {
+        router.push(newUrl || window.location.pathname);
+      });
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(initialPage);
+  }, [initialPage]);
+
+  useEffect(() => {
+    if (initialTip && initialTip in categoryMapping) {
+      setActiveTab(initialTip as keyof typeof categoryMapping);
+    }
+  }, [initialTip]);
+
+
+
   const cars = useMemo(
     () =>
       result.items.map((doc: RawCarDoc) =>
@@ -75,13 +168,13 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
   useEffect(() => {
     debouncedSearchRef.current = debounce((query: string) => {
       setDebouncedSearchQuery(query);
-      setCurrentPage(1);
+      updateUrl(activeTab, filters, sortCriteria, query, locationFilter, 1);
     }, 300);
 
     return () => {
       debouncedSearchRef.current?.cancel();
     };
-  }, []);
+  }, [activeTab, filters, sortCriteria, locationFilter]);
 
   const handleSearchInputChange = (value: string) => {
     setSearchQuery(value);
@@ -111,125 +204,64 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     loadModels();
   }, [filters.brand]);
 
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (activeTab !== defaultActiveTab) params.set('tip', activeTab);
-
-    if (filters.brand !== defaultFilters.brand) params.set('marca', filters.brand);
-    if (filters.model !== defaultFilters.model) params.set('model', filters.model);
-    if (filters.steeringWheelPosition !== defaultFilters.steeringWheelPosition) params.set('volan', filters.steeringWheelPosition);
-    if (filters.priceCurrency.length > 0) filters.priceCurrency.forEach((c) => params.append('moneda', c));
-    if (filters.fuel.length > 0) filters.fuel.forEach((f) => params.append('combustibil', f));
-    if (filters.transmission.length > 0) filters.transmission.forEach((t) => params.append('transmisie', t));
-    if (filters.bodyType.length > 0) filters.bodyType.forEach((b) => params.append('caroserie', b));
-    if (filters.color.length > 0) filters.color.forEach((c) => params.append('culoare', c));
-    if (filters.traction.length > 0) filters.traction.forEach((tr) => params.append('tractiune', tr));
-    if (filters.status !== defaultFilters.status) {
-      const stare = Object.keys(statusMap).find((k) => statusMap[k as keyof typeof statusMap] === filters.status) || filters.status;
-      params.set('stare', stare);
-    }
-    if (filters.priceRange[0] !== defaultFilters.priceRange[0] || filters.priceRange[1] !== defaultFilters.priceRange[1]) {
-      params.set('pretMin', filters.priceRange[0].toString());
-      params.set('pretMax', filters.priceRange[1].toString());
-    }
-    if (filters.yearRange[0] !== defaultFilters.yearRange[0] || filters.yearRange[1] !== defaultFilters.yearRange[1]) {
-      params.set('anMin', filters.yearRange[0].toString());
-      params.set('anMax', filters.yearRange[1].toString());
-    }
-    if (filters.mileageRange[0] !== defaultFilters.mileageRange[0] || filters.mileageRange[1] !== defaultFilters.mileageRange[1]) {
-      params.set('kilometrajMin', filters.mileageRange[0].toString());
-      params.set('kilometrajMax', filters.mileageRange[1].toString());
-    }
-    if (
-      filters.engineCapacityRange[0] !== defaultFilters.engineCapacityRange[0] ||
-      filters.engineCapacityRange[1] !== defaultFilters.engineCapacityRange[1]
-    ) {
-      params.set('capacitateMin', filters.engineCapacityRange[0].toString());
-      params.set('capacitateMax', filters.engineCapacityRange[1].toString());
-    }
-    if (
-      filters.horsepowerRange[0] !== defaultFilters.horsepowerRange[0] ||
-      filters.horsepowerRange[1] !== defaultFilters.horsepowerRange[1]
-    ) {
-      params.set('caiPutereMin', filters.horsepowerRange[0].toString());
-      params.set('caiPutereMax', filters.horsepowerRange[1].toString());
-    }
-
-    if (sortCriteria.price) params.set('pret', sortCriteria.price);
-    if (sortCriteria.year) params.set('an', sortCriteria.year);
-    if (sortCriteria.mileage) params.set('kilometraj', sortCriteria.mileage);
-    if (sortCriteria.date) params.set('data', sortCriteria.date);
-
-    if (debouncedSearchQuery !== defaultSearchQuery) params.set('cautare', debouncedSearchQuery);
-    if (locationFilter.location) {
-      params.set('lat', locationFilter.location.lat.toString());
-      params.set('lng', locationFilter.location.lng.toString());
-      params.set('raza', locationFilter.radius.toString());
-    }
-    if (currentPage !== defaultCurrentPage) {
-      params.set('pagina', currentPage.toString());
-    } else {
-      params.delete('pagina');
-    }
-    const newUrl = params.toString() ? `?${params.toString()}` : '';
-    startTransition(() => {
-      router.push(newUrl || window.location.pathname);
-    });
-  }, [activeTab, filters, sortCriteria, debouncedSearchQuery, locationFilter, currentPage, router]);
-
-  const { totalPages, paginatedItems } = paginateArray(cars, currentPage);
+  const paginatedItems = cars;
+  const totalPages = calcTotalPages(result.total);
   const cardsPerPage = Math.min(Math.max(paginatedItems.length, 1), 3);
 
   const handleFilterChange = (key: keyof AutoFilterState, value: string | number[] | string[]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }) as AutoFilterState);
+    const newFilters = { ...filters, [key]: value } as AutoFilterState;
+    setFilters(newFilters);
     setCurrentPage(1);
+    updateUrl(activeTab, newFilters, sortCriteria, debouncedSearchQuery, locationFilter, 1);
   };
 
   const handleLocationChange = (location: LocationData | null, radius: number) => {
-    setLocationFilter({ location, radius });
+    const newLocationFilter = { location, radius };
+    setLocationFilter(newLocationFilter);
     setCurrentPage(1);
+    updateUrl(activeTab, filters, sortCriteria, debouncedSearchQuery, newLocationFilter, 1);
   };
 
   const removeFilter = (key: string, value: string) => {
+    let newFilters = { ...filters };
+    let newSortCriteria = { ...sortCriteria };
+    let newSearchQuery = debouncedSearchQuery;
+    let newLocationFilter = { ...locationFilter };
+
     if (key === 'searchQuery') {
       setSearchQuery(defaultSearchQuery);
       setDebouncedSearchQuery(defaultSearchQuery);
-      setCurrentPage(1);
+      newSearchQuery = defaultSearchQuery;
     } else if (key === 'location') {
       setLocationFilter(defaultLocationFilter);
       setResetKey((prev) => prev + 1);
-      setCurrentPage(1);
+      newLocationFilter = defaultLocationFilter;
     } else if (key === 'priceRange') {
-      setFilters((prev) => ({ ...prev, priceRange: defaultFilters.priceRange }));
-      setCurrentPage(1);
+      newFilters.priceRange = defaultFilters.priceRange;
     } else if (key === 'yearRange') {
-      setFilters((prev) => ({ ...prev, yearRange: defaultFilters.yearRange }));
-      setCurrentPage(1);
+      newFilters.yearRange = defaultFilters.yearRange;
     } else if (key === 'mileageRange') {
-      setFilters((prev) => ({ ...prev, mileageRange: defaultFilters.mileageRange }));
-      setCurrentPage(1);
+      newFilters.mileageRange = defaultFilters.mileageRange;
     } else if (key === 'engineCapacityRange') {
-      setFilters((prev) => ({ ...prev, engineCapacityRange: defaultFilters.engineCapacityRange }));
-      setCurrentPage(1);
+      newFilters.engineCapacityRange = defaultFilters.engineCapacityRange;
     } else if (key === 'horsepowerRange') {
-      setFilters((prev) => ({ ...prev, horsepowerRange: defaultFilters.horsepowerRange }));
-      setCurrentPage(1);
+      newFilters.horsepowerRange = defaultFilters.horsepowerRange;
     } else if (key === 'price' || key === 'year' || key === 'mileage' || key === 'date') {
-      setSortCriteria((prev) => ({ ...prev, [key]: null }));
-      setCurrentPage(1);
+      newSortCriteria = { ...sortCriteria, [key]: null };
     } else if (key in filters && Array.isArray((filters as Record<string, unknown>)[key])) {
-      setFilters(
-        (prev) =>
-          ({
-            ...prev,
-            [key]: ((prev as Record<string, unknown>)[key] as string[]).filter((item) => item !== value),
-          }) as AutoFilterState
-      );
-      setCurrentPage(1);
+      newFilters = {
+        ...filters,
+        [key]: ((filters as Record<string, unknown>)[key] as string[]).filter((item) => item !== value),
+      } as AutoFilterState;
     } else {
-      setFilters((prev) => ({ ...prev, [key]: defaultFilters[key as keyof AutoFilterState] }));
-      setCurrentPage(1);
+      newFilters = { ...filters, [key]: defaultFilters[key as keyof AutoFilterState] };
     }
+
+    setFilters(newFilters);
+    setSortCriteria(newSortCriteria);
+    setLocationFilter(newLocationFilter);
+    setCurrentPage(1);
+    updateUrl(activeTab, newFilters, newSortCriteria, newSearchQuery, newLocationFilter, 1);
   };
 
   const resetAllFilters = () => {
@@ -240,6 +272,25 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
     setLocationFilter(defaultLocationFilter);
     setCurrentPage(defaultCurrentPage);
     setResetKey((prev) => prev + 1);
+    updateUrl(activeTab, defaultFilters, defaultSortCriteria, defaultSearchQuery, defaultLocationFilter, defaultCurrentPage);
+  };
+
+  const handleTabChange = (tab: keyof typeof categoryMapping) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    updateUrl(tab, filters, sortCriteria, debouncedSearchQuery, locationFilter, 1);
+  };
+
+  const handleSortChange = (key: keyof SortCriteria, value: 'asc' | 'desc' | null) => {
+    const newSortCriteria = { ...sortCriteria, [key]: value };
+    setSortCriteria(newSortCriteria);
+    setCurrentPage(1);
+    updateUrl(activeTab, filters, newSortCriteria, debouncedSearchQuery, locationFilter, 1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    updateUrl(activeTab, filters, sortCriteria, debouncedSearchQuery, locationFilter, page);
   };
 
   const saveSearch = async () => {
@@ -284,10 +335,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       <div className='flex flex-wrap gap-2 mb-4 justify-center md:justify-start'>
         <AutoTabs
           activeTab={activeTab}
-          onChange={(t) => {
-            setActiveTab(t);
-            setCurrentPage(1);
-          }}
+          onChange={handleTabChange}
         />
       </div>
 
@@ -375,8 +423,10 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
           options={brands}
           value={filters.brand}
           onValueChange={(value) => {
-            handleFilterChange('brand', value);
-            handleFilterChange('model', '');
+            const newFilters = { ...filters, brand: value, model: '' } as AutoFilterState;
+            setFilters(newFilters);
+            setCurrentPage(1);
+            updateUrl(activeTab, newFilters, sortCriteria, debouncedSearchQuery, locationFilter, 1);
           }}
           placeholder='Marcă'
         />
@@ -454,8 +504,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.price || 'none'}
             onValueChange={(value) => {
-              setSortCriteria((prev) => ({ ...prev, price: value === 'none' ? null : (value as 'asc' | 'desc') }));
-              setCurrentPage(1);
+              handleSortChange('price', value === 'none' ? null : (value as 'asc' | 'desc'));
             }}
             label='Preț'
           />
@@ -467,8 +516,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.year || 'none'}
             onValueChange={(value) => {
-              setSortCriteria((prev) => ({ ...prev, year: value === 'none' ? null : (value as 'asc' | 'desc') }));
-              setCurrentPage(1);
+              handleSortChange('year', value === 'none' ? null : (value as 'asc' | 'desc'));
             }}
             label='An'
           />
@@ -480,8 +528,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.mileage || 'none'}
             onValueChange={(value) => {
-              setSortCriteria((prev) => ({ ...prev, mileage: value === 'none' ? null : (value as 'asc' | 'desc') }));
-              setCurrentPage(1);
+              handleSortChange('mileage', value === 'none' ? null : (value as 'asc' | 'desc'));
             }}
             label='Kilometraj'
           />
@@ -493,8 +540,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
             ]}
             value={sortCriteria.date || 'none'}
             onValueChange={(value) => {
-              setSortCriteria((prev) => ({ ...prev, date: value === 'none' ? null : (value as 'asc' | 'desc') }));
-              setCurrentPage(1);
+              handleSortChange('date', value === 'none' ? null : (value as 'asc' | 'desc'));
             }}
             label='Dată'
           />
@@ -553,7 +599,7 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
       </div>
 
       {!isPending && paginatedItems.length > 0 && (
-        <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className='mt-8' />
+        <AppPagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} className='mt-8' />
       )}
     </div>
   );

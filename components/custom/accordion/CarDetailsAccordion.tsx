@@ -71,7 +71,7 @@ export default function CarDetailsAccordion({ car }: CarDetailsAccordionProps) {
         ))}
       </div>
 
-      <CarHistoryHighlights features={car.features} items={car.history} car={car} />
+      <CarHistoryHighlights features={car.features} items={car.history} />
 
       <Accordion type='single' collapsible className='w-full' defaultValue='details'>
         <AccordionItem value='details'>

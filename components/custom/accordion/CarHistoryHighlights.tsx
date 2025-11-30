@@ -4,10 +4,9 @@ import sanitizeHtml from 'sanitize-html';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Timeline from '@/components/custom/timeline/Timeline';
-import type { Car, CarHistoryItem } from '@/lib/types';
+import type { CarHistoryItem } from '@/lib/types';
 
 type CarHistoryHighlightsProps = {
-  car?: Car;
   features?: string[];
   items?: CarHistoryItem[];
 };
@@ -20,37 +19,16 @@ const ICON_MAP: { [key: string]: LucideIcon } = {
   Other: FileText,
 };
 
-export default function CarHistoryHighlights({ car, features, items }: CarHistoryHighlightsProps) {
+export default function CarHistoryHighlights({ features, items }: CarHistoryHighlightsProps) {
   const historyItems =
     items && items.length > 0
       ? items.map((i) => ({
           icon: ICON_MAP[i.icon || 'FileText'] || FileText,
           label: i.title,
           value: i.description || '',
-          year: i.year ?? (car ? car.year : undefined),
+          year: i.year || undefined,
         }))
-      : car
-        ? [
-            {
-              icon: FileText,
-              label: 'RAR',
-              value: `Valabil până în ${car.year + 2}`,
-              year: car.year,
-            },
-            {
-              icon: Wrench,
-              label: 'Revizie',
-              value: `Ultima la ${Math.floor(car.mileage / 15000) * 15000} km`,
-              year: car.year + Math.floor(car.mileage / 15000),
-            },
-            {
-              icon: Droplet,
-              label: 'Schimb Ulei',
-              value: `Ultimul la ${Math.floor(car.mileage / 10000) * 10000} km`,
-              year: car.year + Math.floor(car.mileage / 10000),
-            },
-          ].sort((a, b) => (a.year ?? 0) - (b.year ?? 0))
-        : [];
+      : [];
 
   if (historyItems.length === 0) return null;
 
@@ -70,7 +48,6 @@ export default function CarHistoryHighlights({ car, features, items }: CarHistor
             items={[
               {
                 ...previewItem,
-                extraInfo: undefined,
               },
             ]}
             contentClassName='group-data-[state=closed]:overflow-hidden group-data-[state=closed]:[mask-image:linear-gradient(to_top,transparent_2px,black_80px)] transition-all duration-300'

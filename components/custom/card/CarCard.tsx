@@ -31,10 +31,10 @@ export default function CarCard({ car, cardsPerPage = 3, watchDrag = true }: Car
   const queryString = searchParams.toString();
   const urlCategory = reverseCategoryMapping[car.category as keyof typeof reverseCategoryMapping] || car.category;
   const href = `/categorii/auto/${urlCategory}/${car.id}${queryString ? '?' + queryString : ''}`;
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(car.user || null);
 
   useEffect(() => {
-    if (car.userId) {
+    if (!user && car.userId) {
       getUserById(car.userId).then((fetchedUser) => {
         setUser(
           fetchedUser
@@ -45,7 +45,7 @@ export default function CarCard({ car, cardsPerPage = 3, watchDrag = true }: Car
         );
       });
     }
-  }, [car.userId]);
+  }, [car.userId, user]);
 
   const getButtonText = () => {
     switch (car.category) {

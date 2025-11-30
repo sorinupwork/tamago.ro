@@ -70,6 +70,7 @@ export type RawCarDoc = {
   contactEmail?: string;
   sellerType?: string;
   userId?: string;
+  user?: User | null;
   history?: CarHistoryItem[];
   urlCategory?: string;
   views?: number;
@@ -90,7 +91,7 @@ type BaseCarProperties = {
   brand: string;
   model?: string;
   year: number;
-  mileage: number;
+  mileage: string;
   fuel: string;
   transmission: string;
   color: string;
@@ -108,6 +109,7 @@ type BaseCarProperties = {
   contactEmail?: string;
   sellerType: 'private' | 'firm';
   userId?: string;
+  user?: User | null;
   views?: number;
   createdAt: string;
   currency?: string;

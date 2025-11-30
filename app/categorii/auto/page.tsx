@@ -37,9 +37,25 @@ export default async function AutoPage({ searchParams }: { searchParams: Promise
   if (resolvedSearchParams.kilometraj) sortBy = resolvedSearchParams.kilometraj === 'asc' ? 'mileage_asc' : 'mileage_desc';
   if (resolvedSearchParams.data) sortBy = resolvedSearchParams.data === 'asc' ? 'date_asc' : 'date_desc';
 
+  const pageNum = Math.max(1, pagina);
+  let skip = 0;
+  let limit = 0;
+
+  if (pageNum === 1) {
+    skip = 0;
+    limit = 1;
+  } else if (pageNum === 2) {
+    skip = 1;
+    limit = 2;
+  } else {
+    skip = 3 + (pageNum - 3) * 3;
+    limit = 3;
+  }
+
   const params = {
-    page: 1,
-    limit: 100,
+    page: pageNum,
+    limit: limit,
+    skip: skip,
     search: cautare,
     status,
     sortBy,

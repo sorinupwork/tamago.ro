@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo';
 import { auto, AutoSellFormData, AutoBuyFormData, AutoRentFormData, AutoAuctionFormData } from '@/lib/validations';
-import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter } from '@/lib/types';
+import { Post, RawCarDoc, CarHistoryItem, Car, AutoFilterState, SortCriteria, LocationFilter, User } from '@/lib/types';
 import { mapRawCarToPost, normalizeNumberString } from '@/lib/auto/helpers';
 import { auth } from '@/lib/auth/auth';
 import { categoryMapping } from '@/lib/categories';
@@ -131,8 +131,10 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
 
     const page = Math.max(1, params.page || 1);
     let limit = Math.max(1, params.limit || 20);
-    if (params.lat && params.lng && params.radius) {
-      limit = 50;
+    const hasLocationFilter = !!(params.lat && params.lng && params.radius);
+    
+    if (hasLocationFilter) {
+      limit = 999999;
     }
     const skipVal = typeof params.skip === 'number' ? params.skip : (page - 1) * limit;
 
@@ -169,7 +171,39 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const coll = db.collection(collectionName);
     const allDocs = await coll.find(query).toArray();
 
+    let locationFilteredCount = 0;
+    
     const filtered = allDocs.filter((doc: RawCarDoc) => {
+      if (params.lat !== undefined && params.lng !== undefined && params.radius !== undefined) {
+        locationFilteredCount++;
+        
+        const docLocation = typeof doc.location === 'object' ? doc.location : null;
+        
+        if (!docLocation || docLocation.lat === undefined || docLocation.lng === undefined) {
+          if (locationFilteredCount <= 5) {
+            console.log('[getCarsWithOptionalPagination] Doc missing location:', {
+              docId: doc._id.toString().substring(0, 8),
+              location: doc.location
+            });
+          }
+          return false;
+        }
+        
+        const R = 6371; // Earth's radius in km
+        const dLat = (docLocation.lat - params.lat) * Math.PI / 180;
+        const dLng = (docLocation.lng - params.lng) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(params.lat * Math.PI / 180) * Math.cos(docLocation.lat * Math.PI / 180) *
+          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+        
+        const withinRadius = distance <= params.radius;
+        
+        if (!withinRadius) return false;
+      }
+      
       if (params.priceMin !== undefined || params.priceMax !== undefined) {
         if (isBuyCategory) {
           const minPrice = normalizeNumberString(doc.minPrice);
@@ -290,6 +324,26 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
     const total = filtered.length;
     const paginatedItems = filtered.slice(skipVal, skipVal + limit);
     const hasMore = page * limit < total;
+
+    const userIds = [...new Set(paginatedItems.map((item: RawCarDoc) => item.userId).filter((id): id is string => !!id && ObjectId.isValid(id)))];
+
+    if (userIds.length > 0) {
+      try {
+        const users = await db
+          .collection('user')
+          .find({ _id: { $in: userIds.map((id) => new ObjectId(id)) } })
+          .toArray();
+        const usersMap = new Map(users.map((u) => [u._id.toString(), { ...u, id: u._id.toString() }]));
+
+        paginatedItems.forEach((item: RawCarDoc) => {
+          if (item.userId && usersMap.has(item.userId)) {
+            item.user = usersMap.get(item.userId) as unknown as User;
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching users for cars:', error);
+      }
+    }
 
     return { items: JSON.parse(JSON.stringify(paginatedItems)), total, hasMore };
   } catch (error) {
@@ -464,7 +518,22 @@ export async function submitBuyAutoForm(
   const userId = session?.user?.id ?? null;
   try {
     const validatedData = auto.buySchema.parse(data);
-    const result = await db.collection('buy_auto_cars').insertOne({ ...validatedData, userId });
+    
+    // Convert string values to numbers for database storage
+    const dataToInsert = {
+      ...validatedData,
+      userId,
+      minMileage: parseInt(validatedData.minMileage),
+      maxMileage: parseInt(validatedData.maxMileage),
+      minYear: parseInt(validatedData.minYear),
+      maxYear: parseInt(validatedData.maxYear),
+      minEngineCapacity: parseFloat(validatedData.minEngineCapacity),
+      maxEngineCapacity: parseFloat(validatedData.maxEngineCapacity),
+      minHorsePower: parseInt(validatedData.minHorsePower),
+      maxHorsePower: parseInt(validatedData.maxHorsePower),
+    };
+    
+    const result = await db.collection('buy_auto_cars').insertOne(dataToInsert);
     return { success: true, insertedId: result.insertedId.toString() };
   } catch (error) {
     console.error('Error submitting buy auto form:', error);
@@ -620,30 +689,33 @@ export async function updatePost(
       title: d.title,
       description: d.description,
       brand: d.brand,
-      year: parseInt(d.year),
-      mileage: normalizeNumberString(d.mileage),
+      model: d.model,
       fuel: d.fuel,
       transmission: d.transmission,
       color: d.color,
-      engineCapacity: normalizeNumberString(d.engineCapacity),
       carType: d.carType,
-      horsePower: parseInt(d.horsePower),
       traction: d.traction,
+      steeringWheelPosition: d.steeringWheelPosition,
       features: d.features || '',
-      images: d.uploadedFiles || [],
+      uploadedFiles: d.uploadedFiles || [],
       options: d.options || [],
       history: d.history || [],
       status: d.status,
       currency: d.currency,
+      contactPhone: d.contactPhone,
     };
 
-    let updateData: Record<string, unknown> = sharedUpdateData;
+    let updateData: Record<string, unknown> = {};
 
     if (category === 'sell') {
       updateData = {
         ...sharedUpdateData,
         price: d.price,
         location: d.location,
+        year: parseInt(d.year),
+        mileage: normalizeNumberString(d.mileage),
+        engineCapacity: normalizeNumberString(d.engineCapacity),
+        horsePower: parseInt(d.horsePower),
       };
     } else if (category === 'buy') {
       updateData = {
@@ -651,14 +723,14 @@ export async function updatePost(
         minPrice: d.minPrice,
         maxPrice: d.maxPrice,
         location: d.location,
-        minMileage: normalizeNumberString(d.minMileage),
-        maxMileage: normalizeNumberString(d.maxMileage),
+        minMileage: parseInt(d.minMileage),
+        maxMileage: parseInt(d.maxMileage),
         minYear: parseInt(d.minYear),
         maxYear: parseInt(d.maxYear),
-        minEngineCapacity: normalizeNumberString(d.minEngineCapacity),
-        maxEngineCapacity: normalizeNumberString(d.maxEngineCapacity),
-        minHorsePower: normalizeNumberString(d.minHorsePower),
-        maxHorsePower: normalizeNumberString(d.maxHorsePower),
+        minEngineCapacity: parseFloat(d.minEngineCapacity),
+        maxEngineCapacity: parseFloat(d.maxEngineCapacity),
+        minHorsePower: parseInt(d.minHorsePower),
+        maxHorsePower: parseInt(d.maxHorsePower),
       };
     } else if (category === 'rent') {
       updateData = {
@@ -672,6 +744,10 @@ export async function updatePost(
         driverContact: d.driverContact,
         driverTelephone: d.driverTelephone,
         location: d.location,
+        year: parseInt(d.year),
+        mileage: normalizeNumberString(d.mileage),
+        engineCapacity: normalizeNumberString(d.engineCapacity),
+        horsePower: parseInt(d.horsePower),
       };
     } else if (category === 'auction') {
       updateData = {
@@ -679,6 +755,10 @@ export async function updatePost(
         price: d.price,
         location: d.location,
         endDate: d.endDate,
+        year: parseInt(d.year),
+        mileage: normalizeNumberString(d.mileage),
+        engineCapacity: normalizeNumberString(d.engineCapacity),
+        horsePower: parseInt(d.horsePower),
       };
     }
 
