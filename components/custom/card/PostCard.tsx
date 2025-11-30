@@ -25,62 +25,65 @@ export default function PostCard({ post, onEdit, onDelete, onView }: PostCardPro
       <CardContent className='p-4 flex flex-col h-full'>
         <div className='flex flex-col h-full'>
           <div className='space-y-3 flex-1'>
-          {/* Header with category and status */}
-          <div className='flex items-start justify-between gap-2'>
-            <div className='flex items-center gap-2'>
-              <Badge variant='outline' className='text-xs capitalize'>
-                {post.category}
-              </Badge>
-              <Badge variant={isActive ? 'default' : 'secondary'} className='text-xs'>
-                {isActive ? 'Activ' : post.status === 'sold' ? 'Vândut' : 'Draft'}
-              </Badge>
-            </div>
-            <div className='flex items-center gap-3'>
-              <span className='text-xs text-muted-foreground font-medium flex items-center gap-1'>
-                <Eye className='h-3 w-3' />
-                {post.views ?? 0}
-              </span>
-              {post.favoritesCount !== undefined && (
+            {/* Header with category and status */}
+            <div className='flex items-start justify-between gap-2'>
+              <div className='flex items-center gap-2'>
+                <Badge variant='outline' className='text-xs capitalize'>
+                  {post.category}
+                </Badge>
+                <Badge variant={isActive ? 'default' : 'secondary'} className='text-xs'>
+                  {isActive ? 'Activ' : post.status === 'sold' ? 'Vândut' : 'Draft'}
+                </Badge>
+              </div>
+              <div className='flex items-center gap-3'>
                 <span className='text-xs text-muted-foreground font-medium flex items-center gap-1'>
-                  <Heart className='h-3 w-3' />
-                  {post.favoritesCount}
+                  <Eye className='h-3 w-3' />
+                  {post.views ?? 0}
                 </span>
-              )}
+                {post.favoritesCount !== undefined && (
+                  <span className='text-xs text-muted-foreground font-medium flex items-center gap-1'>
+                    <Heart className='h-3 w-3' />
+                    {post.favoritesCount}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Image */}
-          <div className='relative w-full h-48 rounded-lg overflow-hidden'>
-            <Image src={imageSrc} alt={post.title} fill className='object-cover' />
-          </div>
+            {/* Image */}
+            <div className='relative w-full h-48 rounded-lg overflow-hidden'>
+              <Image src={imageSrc} alt={post.title} fill className='object-cover' />
+            </div>
 
-          {/* Title and description */}
-          <div className='space-y-1'>
-            <h3 className='font-semibold text-sm line-clamp-2'>{post.title}</h3>
-            {post.description && <SafeHtml html={post.description} className='text-xs text-muted-foreground line-clamp-2' />}
-          </div>
+            {/* Title and description */}
+            <div className='space-y-1'>
+              <h3 className='font-semibold text-sm line-clamp-2'>{post.title}</h3>
+              {post.description && <SafeHtml html={post.description} className='text-xs text-muted-foreground line-clamp-2' />}
+            </div>
 
-          {/* Price */}
-          <div className='border-t pt-2'>
-            <p className='font-bold text-sm'>{getPriceWithCurrency(post)}</p>
-          </div>
+            {/* Price */}
+            <div className='border-t pt-2'>
+              <p className='font-bold text-sm'>{getPriceWithCurrency(post)}</p>
+            </div>
 
-          {/* Car details */}
-          <div className='grid grid-cols-2 gap-2 text-xs text-muted-foreground border-t pt-2'>
-            {post.category === 'buy' ? (
-              (post.minYear || post.maxYear) && <div>Year: {post.minYear} - {post.maxYear}</div>
-            ) : (
-              post.year && <div>Year: {post.year}</div>
-            )}
-            {post.category === 'buy' ? (
-              (post.minMileage !== undefined || post.maxMileage !== undefined) && <div>Mileage: {post.minMileage?.toLocaleString()} - {post.maxMileage?.toLocaleString()} km</div>
-            ) : (
-              post.mileage !== undefined && <div>Mileage: {post.mileage.toLocaleString()} km</div>
-            )}
-            {post.fuel && <div>Fuel: {post.fuel}</div>}
-            {post.transmission && <div>Transmission: {post.transmission}</div>}
-          </div>
-
+            {/* Car details */}
+            <div className='grid grid-cols-2 gap-2 text-xs text-muted-foreground border-t pt-2'>
+              {post.category === 'buy'
+                ? (post.minYear || post.maxYear) && (
+                    <div>
+                      Year: {post.minYear} - {post.maxYear}
+                    </div>
+                  )
+                : post.year && <div>Year: {post.year}</div>}
+              {post.category === 'buy'
+                ? (post.minMileage !== undefined || post.maxMileage !== undefined) && (
+                    <div>
+                      Mileage: {post.minMileage?.toLocaleString()} - {post.maxMileage?.toLocaleString()} km
+                    </div>
+                  )
+                : post.mileage !== undefined && <div>Mileage: {post.mileage.toLocaleString()} km</div>}
+              {post.fuel && <div>Fuel: {post.fuel}</div>}
+              {post.transmission && <div>Transmission: {post.transmission}</div>}
+            </div>
           </div>
 
           {/* Action buttons */}

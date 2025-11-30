@@ -43,6 +43,8 @@ export function getMaxPriceNumeric(car: Car): number {
 export function getDisplayPrice(car: Car): string {
   if (car.category === 'buy') {
     return `${car.minPrice} - ${car.maxPrice}`;
+  } else if (car.category === 'rent') {
+    return `${car.price} / ${car.period}`;
   }
   return car.price;
 }

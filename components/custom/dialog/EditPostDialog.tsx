@@ -172,11 +172,19 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
         newFormData.price = post.price || '';
         newFormData.endDate = post.endDate || '';
         const auctionLoc = post.location as unknown;
-        if (typeof auctionLoc === 'string') {
-          newFormData.location = auctionLoc;
-        } else if (typeof auctionLoc === 'object' && auctionLoc !== null) {
-          const locObj = auctionLoc as { address?: string };
-          newFormData.location = locObj.address || '';
+        if (typeof auctionLoc === 'object' && auctionLoc !== null) {
+          const locObj = auctionLoc as { lat?: number; lng?: number; address?: string };
+          setLocation({
+            lat: locObj.lat || 0,
+            lng: locObj.lng || 0,
+            address: locObj.address || '',
+          });
+        } else if (typeof auctionLoc === 'string') {
+          setLocation({
+            lat: post.lat || 0,
+            lng: post.lng || 0,
+            address: auctionLoc,
+          });
         }
       }
 
@@ -274,7 +282,11 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
     } else if (post.category === 'auction') {
       submitData.price = formData.price;
       submitData.endDate = formData.endDate;
-      submitData.location = formData.location;
+      submitData.location = location || {
+        lat: 0,
+        lng: 0,
+        address: '',
+      };
     }
 
     startTransition(async () => {
@@ -768,22 +780,23 @@ export default function EditPostDialog({ open, onOpenChange, post, onSuccess }: 
                   <FieldGroup>
                     <AppInput
                       label='Data Sfârșit Licitație'
-                      placeholder='YYYY-MM-DDTHH:mm'
+                      placeholder='YYYY-MM-DD'
                       name='endDate'
                       onChange={(e) => handleFieldChange('endDate', e.target.value)}
                       value={String(formData.endDate || '')}
-                      type='datetime-local'
+                      type='date'
                     />
                   </FieldGroup>
-                  <FieldGroup>
-                    <AppInput
-                      label='Locație'
-                      placeholder='Locația mașinii...'
-                      name='location'
-                      onChange={(e) => handleFieldChange('location', e.target.value)}
-                      value={String(formData.location || '')}
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium'>Locație</label>
+                    <AppLocationInput
+                      location={location}
+                      onChange={(loc) => setLocation(loc)}
+                      placeholder='Selectează sau caută o locație...'
+                      label=''
+                      showMap={true}
                     />
-                  </FieldGroup>
+                  </div>
                 </>
               )}
             </TabsContent>

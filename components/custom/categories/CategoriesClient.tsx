@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -107,8 +107,19 @@ export default function CategoriesClient({ initialCategory, initialSubcategory }
     setPreviewData(data);
   }, []);
 
+  // Debounce preview updates to prevent excessive re-renders
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedOnPreviewUpdate = useCallback((data: PreviewData) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      onPreviewUpdate(data);
+    }, 300);
+  }, [onPreviewUpdate]);
+
   const getForm = () => {
-    const props = { onPreviewUpdate, subcategory: selectedSubcategory };
+    const props = { onPreviewUpdate: debouncedOnPreviewUpdate, subcategory: selectedSubcategory };
     if (selectedSubcategory === 'auto') {
       switch (selectedCategory) {
         case 'sell':

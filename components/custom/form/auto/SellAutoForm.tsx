@@ -48,6 +48,7 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
 
   const form = useForm<AutoSellFormData>({
     resolver: zodResolver(auto.sellSchema) as Resolver<AutoSellFormData>,
+    mode: 'onBlur',
     defaultValues: {
       title: '',
       price: '',
@@ -101,12 +102,13 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls);
-    form.trigger('uploadedFiles');
+    form.setValue('uploadedFiles', previewUrls, { shouldDirty: true });
   };
 
+  // Build preview data from current form values and update preview
+  // Debouncing of preview updates happens in parent component
   useEffect(() => {
-    onPreviewUpdate({
+    const previewData: PreviewData = {
       category: 'sell',
       title: watchedValues.title || '',
       price: watchedValues.price || '',
@@ -130,7 +132,8 @@ export default function SellAutoForm({ onPreviewUpdate }: { onPreviewUpdate: (da
       options,
       uploadedFiles,
       history,
-    });
+    };
+    onPreviewUpdate(previewData);
   }, [
     watchedValues.status,
     watchedValues.title,

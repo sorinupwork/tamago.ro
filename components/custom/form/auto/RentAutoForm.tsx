@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MapPin } from 'lucide-react';
@@ -58,7 +58,7 @@ export default function RentAutoForm({
 
   const form = useForm<AutoRentFormData>({
     resolver: zodResolver(auto.rentSchema) as Resolver<AutoRentFormData>,
-    mode: 'onChange',
+    mode: 'onBlur',
     defaultValues: {
       title: '',
       description: '',
@@ -99,12 +99,13 @@ export default function RentAutoForm({
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls);
-    form.trigger('uploadedFiles');
+    form.setValue('uploadedFiles', previewUrls, { shouldDirty: true });
   };
 
-  const previewData = useMemo(
-    () => ({
+  // Build preview data from current form values and update preview
+  // Debouncing of preview updates happens in parent component
+  useEffect(() => {
+    const previewData: PreviewData = {
       title: watchedValues.title || '',
       description: watchedValues.description || '',
       price: watchedValues.price || '',
@@ -135,43 +136,40 @@ export default function RentAutoForm({
       traction: watchedValues.traction || '',
       steeringWheelPosition: watchedValues.steeringWheelPosition || 'left',
       history,
-    }),
-    [
-      watchedValues.title,
-      watchedValues.description,
-      watchedValues.price,
-      watchedValues.currency,
-      watchedValues.period,
-      watchedValues.location,
-      watchedValues.fuel,
-      watchedValues.status,
-      watchedValues.mileage,
-      watchedValues.year,
-      watchedValues.features,
-      watchedValues.startDate,
-      watchedValues.endDate,
-      watchedValues.withDriver,
-      watchedValues.driverName,
-      watchedValues.driverContact,
-      watchedValues.driverTelephone,
-      watchedValues.brand,
-      watchedValues.model,
-      watchedValues.color,
-      watchedValues.engineCapacity,
-      watchedValues.carType,
-      watchedValues.horsePower,
-      watchedValues.transmission,
-      watchedValues.traction,
-      watchedValues.steeringWheelPosition,
-      history,
-      options,
-      uploadedFiles,
-    ]
-  );
-
-  useEffect(() => {
+    };
     onPreviewUpdate(previewData);
-  }, [previewData, onPreviewUpdate]);
+  }, [
+    watchedValues.title,
+    watchedValues.description,
+    watchedValues.price,
+    watchedValues.currency,
+    watchedValues.period,
+    watchedValues.location,
+    watchedValues.fuel,
+    watchedValues.status,
+    watchedValues.mileage,
+    watchedValues.year,
+    watchedValues.features,
+    watchedValues.startDate,
+    watchedValues.endDate,
+    watchedValues.withDriver,
+    watchedValues.driverName,
+    watchedValues.driverContact,
+    watchedValues.driverTelephone,
+    watchedValues.brand,
+    watchedValues.model,
+    watchedValues.color,
+    watchedValues.engineCapacity,
+    watchedValues.carType,
+    watchedValues.horsePower,
+    watchedValues.transmission,
+    watchedValues.traction,
+    watchedValues.steeringWheelPosition,
+    history,
+    options,
+    uploadedFiles,
+    onPreviewUpdate,
+  ]);
 
   useEffect(() => {
     const loadBrands = async () => {
@@ -260,7 +258,7 @@ export default function RentAutoForm({
               type='text'
               placeholder='Introduceți titlul'
               value={form.watch('title')}
-              onChange={(e) => form.setValue('title', e.target.value, { shouldValidate: true })}
+              onChange={(e) => form.setValue('title', e.target.value, { shouldDirty: true })}
               className='break-all w-full overflow-wrap-break-word wrap-break-word'
               label='Titlu'
               error={form.formState.errors.title ? [form.formState.errors.title] : undefined}
@@ -289,7 +287,7 @@ export default function RentAutoForm({
 
           <AppTextarea
             value={form.watch('description')}
-            onChange={(v) => form.setValue('description', v, { shouldValidate: true })}
+            onChange={(v) => form.setValue('description', v, { shouldDirty: true })}
             placeholder='Descrieți produsul detaliat...'
             label='Descriere'
             error={form.formState.errors.description ? [form.formState.errors.description] : undefined}
@@ -337,7 +335,7 @@ export default function RentAutoForm({
               step='0.01'
               placeholder='22.500'
               value={form.watch('mileage')}
-              onChange={(e) => form.setValue('mileage', e.target.value, { shouldValidate: true })}
+              onChange={(e) => form.setValue('mileage', e.target.value, { shouldDirty: true })}
               className='break-all w-full'
               label='Kilometraj'
               error={form.formState.errors.mileage ? [form.formState.errors.mileage] : undefined}
@@ -347,7 +345,7 @@ export default function RentAutoForm({
               type='number'
               placeholder='2020'
               value={form.watch('year')}
-              onChange={(e) => form.setValue('year', e.target.value, { shouldValidate: true })}
+              onChange={(e) => form.setValue('year', e.target.value, { shouldDirty: true })}
               className='break-all w-full'
               label='An Fabricație'
               error={form.formState.errors.year ? [form.formState.errors.year] : undefined}
@@ -360,7 +358,7 @@ export default function RentAutoForm({
               options={brands}
               value={form.watch('brand')}
               onValueChange={(v) => {
-                form.setValue('brand', v as string, { shouldValidate: true });
+                form.setValue('brand', v as string, { shouldDirty: true });
                 form.setValue('model', '');
               }}
               placeholder='Selectați marca'
@@ -372,7 +370,7 @@ export default function RentAutoForm({
             <AppSelectInput
               options={models}
               value={form.watch('model') || ''}
-              onValueChange={(v) => form.setValue('model', v as string, { shouldValidate: true })}
+              onValueChange={(v) => form.setValue('model', v as string, { shouldDirty: true })}
               placeholder={form.watch('brand') ? 'Selectați modelul' : 'Selectați mai întâi marca'}
               disabled={!form.watch('brand')}
               className='w-full'
@@ -382,7 +380,7 @@ export default function RentAutoForm({
             <AppSelectInput
               options={colorOptions}
               value={form.watch('color')}
-              onValueChange={(v) => form.setValue('color', v as string, { shouldValidate: true })}
+              onValueChange={(v) => form.setValue('color', v as string, { shouldDirty: true })}
               placeholder='Selectați culoarea'
               className='w-full'
               label='Culoare'
@@ -393,40 +391,20 @@ export default function RentAutoForm({
               label='Poziția Volanului'
               options={steeringWheelOptions}
               value={form.watch('steeringWheelPosition')}
-              onValueChange={(v) => form.setValue('steeringWheelPosition', v as 'left' | 'right', { shouldValidate: true })}
+              onValueChange={(v) => form.setValue('steeringWheelPosition', v as 'left' | 'right', { shouldDirty: true })}
               placeholder='Selectați poziția volanului'
               className='w-full'
               error={form.formState.errors.steeringWheelPosition ? [form.formState.errors.steeringWheelPosition] : undefined}
             />
           </div>
 
-          <AppInput
-            type='tel'
-            placeholder='+40 7XX XXX XXX'
-            value={form.watch('contactPhone')}
-            onChange={(e) => form.setValue('contactPhone', e.target.value, { shouldValidate: true })}
-            className='min-w-0 w-full'
-            label='Telefon Contact (Optional)'
-            error={form.formState.errors.contactPhone ? [form.formState.errors.contactPhone] : undefined}
-          />
-
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0'>
-            <AppSelectInput
-              options={colorOptions}
-              value={form.watch('color')}
-              onValueChange={(v) => form.setValue('color', v as string, { shouldValidate: true })}
-              placeholder='Selectați culoarea'
-              className='w-full'
-              label='Culoare'
-              error={form.formState.errors.color ? [form.formState.errors.color] : undefined}
-              required
-            />
             <AppInput
               type='number'
               step='0.1'
               placeholder='2.0'
               value={form.watch('engineCapacity')}
-              onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldValidate: true })}
+              onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldDirty: true })}
               className='w-full'
               label='Capacitate Cilindrică (L)'
               error={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined}
@@ -451,7 +429,7 @@ export default function RentAutoForm({
               type='number'
               placeholder='150'
               value={form.watch('horsePower')}
-              onChange={(e) => form.setValue('horsePower', e.target.value, { shouldValidate: true })}
+              onChange={(e) => form.setValue('horsePower', e.target.value, { shouldDirty: true })}
               className='w-full'
               label='Putere (CP)'
               error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
@@ -477,6 +455,16 @@ export default function RentAutoForm({
               error={form.formState.errors.traction ? [form.formState.errors.traction] : undefined}
             />
           </div>
+
+          <AppInput
+            type='tel'
+            placeholder='+40 7XX XXX XXX'
+            value={form.watch('contactPhone')}
+            onChange={(e) => form.setValue('contactPhone', e.target.value, { shouldDirty: true })}
+            className='min-w-0 w-full'
+            label='Telefon Contact (Optional)'
+            error={form.formState.errors.contactPhone ? [form.formState.errors.contactPhone] : undefined}
+          />
 
           <CarHighlightsForm history={history} setHistory={setHistory} iconOptions={iconSelectOptions} />
 

@@ -70,7 +70,7 @@ export default function AppGoldenSection({ title, posts }: AppGoldenSectionProps
               </Button>
             </Link>
           </div>
-          <CardContent className='relative z-10 px-6 py-4 bg-black/50 dark:bg-white/50 flex-1 rounded-xl'>
+          <CardContent className='relative z-10 px-6 py-8 bg-black/50 dark:bg-white/50 flex-1 rounded-xl'>
             <CardHeader>
               <CardTitle className='text-white dark:text-black line-clamp-2'>{post.title}</CardTitle>
             </CardHeader>

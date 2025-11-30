@@ -54,6 +54,7 @@ export default function BuyAutoForm({
 
   const form = useForm<AutoBuyFormData>({
     resolver: zodResolver(auto.buySchema) as Resolver<AutoBuyFormData>,
+    mode: 'onBlur',
     defaultValues: {
       title: '',
       description: '',
@@ -92,27 +93,26 @@ export default function BuyAutoForm({
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls);
-    form.trigger('uploadedFiles');
+    form.setValue('uploadedFiles', previewUrls, { shouldDirty: true });
   };
 
   const handlePriceRangeChange = (value: number[]) => {
-    form.setValue('minPrice', value[0].toString(), { shouldValidate: true });
-    form.setValue('maxPrice', value[1].toString(), { shouldValidate: true });
+    form.setValue('minPrice', value[0].toString(), { shouldDirty: true });
+    form.setValue('maxPrice', value[1].toString(), { shouldDirty: true });
   };
 
   const priceRangeValue = [parseFloat(form.watch('minPrice') || '0'), parseFloat(form.watch('maxPrice') || '10000')];
 
   const handleMileageRangeChange = (value: number[]) => {
-    form.setValue('minMileage', value[0].toString(), { shouldValidate: true });
-    form.setValue('maxMileage', value[1].toString(), { shouldValidate: true });
+    form.setValue('minMileage', value[0].toString(), { shouldDirty: true });
+    form.setValue('maxMileage', value[1].toString(), { shouldDirty: true });
   };
 
   const mileageRangeValue = [parseFloat(form.watch('minMileage') || '0'), parseFloat(form.watch('maxMileage') || '500000')];
 
   const handleYearRangeChange = (value: number[]) => {
-    form.setValue('minYear', value[0].toString(), { shouldValidate: true });
-    form.setValue('maxYear', value[1].toString(), { shouldValidate: true });
+    form.setValue('minYear', value[0].toString(), { shouldDirty: true });
+    form.setValue('maxYear', value[1].toString(), { shouldDirty: true });
   };
 
   const yearRangeValue = [
@@ -121,8 +121,8 @@ export default function BuyAutoForm({
   ];
 
   const handleEngineCapacityRangeChange = (value: number[]) => {
-    form.setValue('minEngineCapacity', value[0].toString(), { shouldValidate: true });
-    form.setValue('maxEngineCapacity', value[1].toString(), { shouldValidate: true });
+    form.setValue('minEngineCapacity', value[0].toString(), { shouldDirty: true });
+    form.setValue('maxEngineCapacity', value[1].toString(), { shouldDirty: true });
   };
 
   const engineCapacityRangeValue = [
@@ -131,8 +131,8 @@ export default function BuyAutoForm({
   ];
 
   const handleHorsePowerRangeChange = (value: number[]) => {
-    form.setValue('minHorsePower', value[0].toString(), { shouldValidate: true });
-    form.setValue('maxHorsePower', value[1].toString(), { shouldValidate: true });
+    form.setValue('minHorsePower', value[0].toString(), { shouldDirty: true });
+    form.setValue('maxHorsePower', value[1].toString(), { shouldDirty: true });
   };
 
   const horsePowerRangeValue = [
@@ -160,8 +160,10 @@ export default function BuyAutoForm({
     loadModels();
   }, [watchedValues.brand]);
 
+  // Build preview data from current form values and update preview
+  // Debouncing of preview updates happens in parent component
   useEffect(() => {
-    onPreviewUpdate({
+    const previewData: PreviewData = {
       title: watchedValues.title || '',
       description: watchedValues.description || '',
       minPrice: watchedValues.minPrice || '',
@@ -187,7 +189,8 @@ export default function BuyAutoForm({
       maxHorsePower: watchedValues.maxHorsePower || '',
       transmission: watchedValues.transmission || '',
       traction: watchedValues.traction || '',
-    });
+    };
+    onPreviewUpdate(previewData);
   }, [
     watchedValues.title,
     watchedValues.description,
@@ -214,7 +217,6 @@ export default function BuyAutoForm({
     options,
     history,
     onPreviewUpdate,
-    form,
   ]);
 
   const onSubmit: SubmitHandler<AutoBuyFormData> = async (data) => {

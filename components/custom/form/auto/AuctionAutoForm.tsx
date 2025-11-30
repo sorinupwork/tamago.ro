@@ -55,7 +55,7 @@ export default function AuctionAutoForm({
 
   const form = useForm<AutoAuctionFormData>({
     resolver: zodResolver(auto.auctionSchema) as Resolver<AutoAuctionFormData>,
-    mode: 'onChange',
+    mode: 'onBlur',
     defaultValues: {
       title: '',
       description: '',
@@ -90,12 +90,13 @@ export default function AuctionAutoForm({
     setFiles(newFiles);
     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setUploadedFiles(previewUrls);
-    form.setValue('uploadedFiles', previewUrls);
-    form.trigger('uploadedFiles');
+    form.setValue('uploadedFiles', previewUrls, { shouldDirty: true });
   };
 
+  // Build preview data from current form values and update preview
+  // Debouncing of preview updates happens in parent component
   useEffect(() => {
-    onPreviewUpdate({
+    const previewData: PreviewData = {
       title: watchedValues.title || '',
       description: watchedValues.description || '',
       price: watchedValues.price || '',
@@ -119,7 +120,8 @@ export default function AuctionAutoForm({
       status: watchedValues.status || '',
       startingBid: watchedValues.price || '',
       history,
-    });
+    };
+    onPreviewUpdate(previewData);
   }, [
     watchedValues.title,
     watchedValues.description,
@@ -401,6 +403,17 @@ export default function AuctionAutoForm({
                 className='w-full'
                 label='Putere (CP)'
                 error={form.formState.errors.horsePower ? [form.formState.errors.horsePower] : undefined}
+                required
+              />
+              <AppInput
+                type='number'
+                placeholder='1.6'
+                step='0.1'
+                value={form.watch('engineCapacity')}
+                onChange={(e) => form.setValue('engineCapacity', e.target.value, { shouldValidate: true })}
+                className='w-full'
+                label='Capacitate Cilindree (L)'
+                error={form.formState.errors.engineCapacity ? [form.formState.errors.engineCapacity] : undefined}
                 required
               />
               <AppSelectInput

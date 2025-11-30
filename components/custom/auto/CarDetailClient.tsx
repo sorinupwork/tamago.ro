@@ -15,6 +15,7 @@ import {
   Calendar,
   Palette,
   Wrench,
+  User as UserIcon,
   type LucideIcon,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
@@ -410,17 +411,19 @@ export default function CarDetailClient({ car, similarCars, queryString, sellerU
               {/* Rental Driver Info */}
               {isRent && car.withDriver && (
                 <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
-                  <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-3'>👨‍✈️ Șofer Inclus</h4>
+                  <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-1'>
+                    <UserIcon size={20} /> Șofer
+                  </h4>
                   <div className='space-y-2 text-sm'>
                     <p>
-                      <strong>Nume Șofer:</strong> {car.driverName}
+                      <strong>Nume:</strong> {car.driverName}
                     </p>
                     <p>
-                      <strong>Contact Șofer:</strong> {car.driverContact}
+                      <strong>Contact:</strong> {car.driverContact}
                     </p>
                     {car.driverTelephone && (
                       <p>
-                        <strong>Telefon Șofer:</strong> {car.driverTelephone}
+                        <strong>Telefon:</strong> {car.driverTelephone}
                       </p>
                     )}
                   </div>
