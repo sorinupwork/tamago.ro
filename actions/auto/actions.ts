@@ -233,18 +233,15 @@ async function getCarsWithOptionalPagination(collectionName: string, maybeParams
       }
 
       if (params.engineCapacityMin !== undefined || params.engineCapacityMax !== undefined) {
-        const capacityMinCC = params.engineCapacityMin ? params.engineCapacityMin * 1000 : undefined;
-        const capacityMaxCC = params.engineCapacityMax ? params.engineCapacityMax * 1000 : undefined;
-
         if (isBuyCategory) {
           const minCapacity = normalizeNumberString(doc.minEngineCapacity);
           const maxCapacity = normalizeNumberString(doc.maxEngineCapacity);
-          if (capacityMinCC !== undefined && maxCapacity < capacityMinCC) return false;
-          if (capacityMaxCC !== undefined && minCapacity > capacityMaxCC) return false;
+          if (params.engineCapacityMin !== undefined && maxCapacity < params.engineCapacityMin) return false;
+          if (params.engineCapacityMax !== undefined && minCapacity > params.engineCapacityMax) return false;
         } else {
           const capacity = normalizeNumberString(doc.engineCapacity);
-          if (capacityMinCC !== undefined && capacity < capacityMinCC) return false;
-          if (capacityMaxCC !== undefined && capacity > capacityMaxCC) return false;
+          if (params.engineCapacityMin !== undefined && capacity < params.engineCapacityMin) return false;
+          if (params.engineCapacityMax !== undefined && capacity > params.engineCapacityMax) return false;
         }
       }
 

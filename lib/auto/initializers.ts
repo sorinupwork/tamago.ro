@@ -64,8 +64,8 @@ export const getInitialFilters = (searchParams: URLSearchParams): AutoFilterStat
     parseInt(searchParams.get('kilometrajMax') || defaultFilters.mileageRange[1].toString()),
   ];
   filters.engineCapacityRange = [
-    parseInt(searchParams.get('capacitateMotorMin') || defaultFilters.engineCapacityRange[0].toString()),
-    parseInt(searchParams.get('capacitateMotorMax') || defaultFilters.engineCapacityRange[1].toString()),
+    parseFloat(searchParams.get('capacitateMin') || defaultFilters.engineCapacityRange[0].toString()),
+    parseFloat(searchParams.get('capacitateMax') || defaultFilters.engineCapacityRange[1].toString()),
   ];
   filters.horsepowerRange = [
     parseInt(searchParams.get('caiPutereMin') || defaultFilters.horsepowerRange[0].toString()),

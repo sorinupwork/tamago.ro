@@ -220,12 +220,38 @@ export function normalizeNumberString(value: string | number | undefined): numbe
   const str = String(value).trim();
   if (!str) return 0;
 
+  const dotCount = (str.match(/\./g) || []).length;
+  const commaCount = (str.match(/,/g) || []).length;
+  
+  // Multiple dots = European thousand separator (1.200.000)
+  if (dotCount > 1) {
+    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  }
+  
+  // Multiple commas = US thousand separator (1,200,000)
+  if (commaCount > 1) {
+    return parseFloat(str.replace(/,/g, ''));
+  }
+
   const lastCommaIdx = str.lastIndexOf(',');
   const lastDotIdx = str.lastIndexOf('.');
 
+  // Comma after dot = European decimal (1.200,50)
   if (lastCommaIdx > lastDotIdx) {
     return parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  } else {
+  }
+  
+  // Dot after comma = US decimal (1,200.50)
+  if (lastDotIdx > lastCommaIdx) {
+    // Check if this is likely a thousand separator
+    const afterDot = str.substring(lastDotIdx + 1);
+    // If exactly 3 digits after dot and no decimals, it's a thousand separator
+    if (afterDot.length === 3 && /^\d{3}$/.test(afterDot)) {
+      return parseFloat(str.replace(/[.,]/g, ''));
+    }
     return parseFloat(str.replace(/,/g, ''));
   }
+
+  // No separators
+  return parseFloat(str);
 }

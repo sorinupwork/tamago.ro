@@ -126,7 +126,7 @@ export function getAppliedFilters(
           {
             key: 'priceRange',
             value: `${filters.priceRange[0]}-${filters.priceRange[1]}`,
-            label: `Interval Preț: $${filters.priceRange[0]} - $${filters.priceRange[1]}`,
+            label: `Interval Preț: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}${filters.priceCurrency.length === 1 ? ' ' + filters.priceCurrency[0] : ''}`,
           },
         ]
       : []),
@@ -154,7 +154,7 @@ export function getAppliedFilters(
           {
             key: 'engineCapacityRange',
             value: `${filters.engineCapacityRange[0]}-${filters.engineCapacityRange[1]}`,
-            label: `Interval Capacitate Motor: ${filters.engineCapacityRange[0]} - ${filters.engineCapacityRange[1]} cc`,
+            label: `Interval Capacitate Motor: ${filters.engineCapacityRange[0]} - ${filters.engineCapacityRange[1]} L`,
           },
         ]
       : []),

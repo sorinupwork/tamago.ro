@@ -360,15 +360,26 @@ export default function AutoPageClient({ initialResult, initialPage, initialTip 
         <Button variant='default'>Caută</Button>
       </div>
 
-      <div className='mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
+      <div className='mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
+        <AppSelectInput
+          options={[
+            { value: 'RON', label: 'RON' },
+            { value: 'EUR', label: 'EUR' },
+            { value: 'USD', label: 'USD' },
+            { value: 'GBP', label: 'GBP' },
+          ]}
+          value={filters.priceCurrency}
+          onValueChange={(value) => handleFilterChange('priceCurrency', value as string[])}
+          multiple={true}
+          placeholder='Monedă'
+        />
         <AppSlider
           label='Preț'
           min={0}
           max={1000000}
-          step={10000}
+          step={1000}
           value={filters.priceRange}
           onValueChange={(value) => handleFilterChange('priceRange', value)}
-          currency='€'
         />
         <AppSlider
           label='An'
